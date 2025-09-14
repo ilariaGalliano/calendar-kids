@@ -1,0 +1,7 @@
+{
+  "name": "calendar-kids",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
