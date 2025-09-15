@@ -1,0 +1,44 @@
+<ion-list>
+  <ion-item>
+    <ion-label position="stacked">Titolo</ion-label>
+    <ion-input [(ngModel)]="(title as any)()"
+               (ionInput)="title.set(($event.target as HTMLInputElement).value)"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Colore</ion-label>
+    <ion-input type="color" [(ngModel)]="(color as any)()"
+               (ionInput)="color.set(($event.target as HTMLInputElement).value)"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Inizio</ion-label>
+    <ion-datetime presentation="date-time" [value]="startISO()"
+                  (ionChange)="startISO.set(($event.detail.value as string))"></ion-datetime>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Fine</ionlabel>
+    <ion-datetime presentation="date-time" [value]="endISO()"
+                  (ionChange)="endISO.set(($event.detail.value as string))"></ion-datetime>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Ripetizione</ion-label>
+    <ion-select [value]="repeat()" (ionChange)="repeat.set($event.detail.value)">
+      <ion-select-option value="none">Nessuna</ion-select-option>
+      <ion-select-option value="daily">Giornaliera</ion-select-option>
+      <ion-select-option value="weekly">Settimanale</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Promemoria (minuti prima)</ion-label>
+    <ion-input placeholder="es. 5,10,30"
+               (ionBlur)="reminders.set(($event.target as HTMLInputElement).value.split(',').map(v=>+v.trim()).filter(v=>!isNaN(v)))"></ion-input>
+  </ion-item>
+
+  <ion-item lines="none">
+    <ion-button expand="block" (click)="add()">Aggiungi attività</ion-button>
+  </ion-item>
+</ion-list>

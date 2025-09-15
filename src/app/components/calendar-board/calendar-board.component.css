@@ -1,0 +1,100 @@
+/* .board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.day-col { border-radius: 16px; }
+.dropzone { min-height: 100px; padding: 4px; border: 2px dashed rgba(0,0,0,.08); border-radius: 12px; }
+@media (max-width: 900px){ .board { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px){ .board { grid-template-columns: repeat(1, 1fr); } } */
+
+/* BOARD */
+.board {
+  background: #f8fafc;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+/* CARD GIORNO */
+ion-card.day-col {
+  --background: #ffffff;
+  --color: #0f172a;
+  --border-radius: 24px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+
+  /* bordo sinistro evidente per vedere il colore subito */
+  border-left-width: 10px;
+  border-left-style: solid;
+}
+
+/* Header della card (colore pieno) */
+ion-card.day-col ion-card-header {
+  --background: transparent; /* alcuni temi ignorano, quindi uso anche bg diretto */
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 16px 18px;
+}
+
+ion-card.day-col ion-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #0f172a;
+}
+
+ion-card.day-col ion-card-content {
+  padding: 14px 12px 16px;
+}
+
+/* DROPZONE */
+.dropzone {
+  min-height: 260px;
+  border: 2px dashed rgba(15,23,42,0.12);
+  border-radius: 18px;
+  padding: 10px;
+  background: #f1f5f9; /* più scuro così lo noti */
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+/* PLACEHOLDER */
+.empty {
+  margin: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #64748b;
+  text-align: center;
+  border: 1px dashed rgba(0,0,0,0.1);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  font-style: italic;
+}
+
+/* VARIANTI COLORE per ogni colonna (header + bordo sinistro) */
+.day-col:nth-child(1) { border-left-color: #9AD7FF; }
+.day-col:nth-child(1) ion-card-header { background: #EAF6FF; }
+
+.day-col:nth-child(2) { border-left-color: #FFD47A; }
+.day-col:nth-child(2) ion-card-header { background: #FFF3D6; }
+
+.day-col:nth-child(3) { border-left-color: #A8E6A1; }
+.day-col:nth-child(3) ion-card-header { background: #ECFBEA; }
+
+.day-col:nth-child(4) { border-left-color: #FFB3C7; }
+.day-col:nth-child(4) ion-card-header { background: #FFE6ED; }
+
+.day-col:nth-child(5) { border-left-color: #CBB5FF; }
+.day-col:nth-child(5) ion-card-header { background: #F1EAFE; }
+
+.day-col:nth-child(6) { border-left-color: #8FD3C7; }
+.day-col:nth-child(6) ion-card-header { background: #E6FAF6; }
+
+.day-col:nth-child(7) { border-left-color: #FFCCB3; }
+.day-col:nth-child(7) ion-card-header { background: #FFF0E8; }
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .board { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  ion-card.day-col ion-card-title { font-size: 1.05rem; }
+}

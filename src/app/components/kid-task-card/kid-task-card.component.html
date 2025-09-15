@@ -1,0 +1,57 @@
+<!-- Wrapper: l’elemento con cdkDrag -->
+<div class="task-card"
+     cdkDrag
+     [cdkDragStartDelay]="{ touch: 150, mouse: 0 }">
+   <ion-item
+    lines="none"
+    class="task-item"
+    style="
+      --background:#fff;
+      --border-radius:14px;
+      --padding-start:12px;
+      --inner-padding-end:12px;
+      --min-height:56px;
+    "
+  >
+    <!-- Checkbox -->
+    <ion-checkbox
+      slot="start"
+      [(ngModel)]="task.done"
+      (ionChange)="onDoneChange()"
+      aria-label="Completato"></ion-checkbox>
+
+    <!-- Barra colore a sinistra -->
+    <div class="task-accent" [style.background]="task.color"></div>
+
+    <ion-label [class.completed]="task.done">
+      <h2 class="task-title">{{ task.title }}</h2>
+      <p class="task-time">
+        {{ task.start | date:'shortTime' }} → {{ task.end | date:'shortTime' }}
+      </p>
+    </ion-label>
+
+    <ion-icon name="reorder-two-outline"
+              class="drag-handle"
+              cdkDragHandle
+              aria-label="Trascina"></ion-icon>
+
+    <ion-badge class="task-badge" [style.background]="task.color"></ion-badge>
+  </ion-item>
+
+
+  <!-- (Opzionale) Anteprima personalizzata durante il drag -->
+  <ng-template cdkDragPreview>
+    <div class="task-preview">
+      <div class="task-accent" [style.background]="task.color"></div>
+      <div class="preview-text">
+        <div class="title">{{ task.title }}</div>
+        <div class="time">{{ task.start | date:'shortTime' }} → {{ task.end | date:'shortTime' }}</div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- (Opzionale) Segnaposto mentre l’elemento è in drag -->
+  <ng-template cdkDragPlaceholder>
+    <div class="task-placeholder"></div>
+  </ng-template>
+</div>

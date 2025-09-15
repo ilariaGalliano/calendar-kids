@@ -1,0 +1,51 @@
+/* .task-item { border-radius: 12px; margin: 6px 0; }
+.task-item h2 { font-size: 1.05rem; }
+.task-item p  { font-size: .85rem; opacity: .8; } */
+
+/* outer wrapper = where we put margin & shadow (reliable) */
+.task-card {
+  margin: 8px 6px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+/* ion-item host: rely on Ionic vars set inline */
+.task-item {
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* left color bar */
+.task-accent {
+  width: 8px;
+  height: 100%;
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+  margin-right: 10px;
+}
+
+/* text */
+.task-title {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: .2px;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+.task-time {
+  font-size: .85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* badge a “pill” */
+.task-badge {
+  border-radius: 999px;
+  color: #0b3450;      /* readable on pastel background */
+}
+
+.completed .task-title,
+.completed .task-time {
+  text-decoration: line-through;
+  opacity: 0.5;
+}

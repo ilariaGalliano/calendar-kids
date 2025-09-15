@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { CalendarBoardComponent } from './components/calendar-board/calendar-board.component';
 
 export const routes: Routes = [
   {
@@ -10,4 +11,5 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+  { path: 'calendario', component: CalendarBoardComponent },
 ];
