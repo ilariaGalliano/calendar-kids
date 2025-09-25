@@ -1,8 +1,15 @@
 <div class="board">
+  <!-- Bottone di test -->
+  <!-- <ion-button (click)="loadFromBackend()" fill="outline" size="small">
+    Test Chiama BE
+  </ion-button> -->
+
   @for (d of days; track d) {
     <ion-card class="day-col">
       <ion-card-header>
         <ion-card-title>{{ d | date:'EEE dd/MM' }}</ion-card-title>
+        <!-- Debug per ogni giorno -->
+        <small>Tasks: {{ (lists()[d] || []).length }}</small>
       </ion-card-header>
 
       <ion-card-content>
@@ -12,14 +19,15 @@
           (cdkDropListDropped)="drop($event, d)"
           class="dropzone">
 
-          <!-- Se hai il drag dentro il kid-task-card va benissimo così -->
           <app-kid-task-card
-            *ngFor="let t of (lists()[d] || [])"
-            [task]="t">
+            *ngFor="let t of lists()[d]"
+            [task]="t"
+            (doneChange)="onDone($event)">
           </app-kid-task-card>
 
-          <!-- Facoltativo: placeholder quando non ci sono task -->
-          <div class="empty" *ngIf="!(lists()[d]?.length)">Nessun task</div>
+          <div class="empty" *ngIf="!(lists()[d]?.length)">
+            Nessun task per {{ d }}
+          </div>
         </ion-list>
       </ion-card-content>
     </ion-card>
