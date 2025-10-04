@@ -1,0 +1,87 @@
+ <ion-content class="login-page">
+      <div class="clouds">
+        <div class="cloud cloud1">☁️</div>
+        <div class="cloud cloud2">☁️</div>
+        <div class="cloud cloud3">☁️</div>
+      </div>
+
+      <div class="login-container">
+        <!-- Header con emoji -->
+        <div class="welcome-header">
+          <h1>Calendario</h1>
+          <p>Benvenuto nel tuo calendario magico!</p>
+        </div>
+
+        <!-- Card di login colorata -->
+        <ion-card class="login-card">
+          <ion-card-header>
+            <div class="card-emoji">🎨</div>
+            <ion-card-title>Accedi alla tua famiglia</ion-card-title>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <!-- Login per genitori -->
+            <div class="login-section parent-section">
+              <h3>👨‍👩‍👧‍👦 Genitori</h3>
+              <ion-item class="custom-item">
+                <ion-input
+                  label="📧 Email"
+                  labelPlacement="stacked"
+                  type="email"
+                  [(ngModel)]="email"
+                  placeholder="mamma@esempio.com">
+                </ion-input>
+              </ion-item>
+              
+              <ion-item class="custom-item">
+                <ion-input
+                  label="🔒 Password"
+                  labelPlacement="stacked"
+                  type="password"
+                  [(ngModel)]="password"
+                  placeholder="••••••••">
+                </ion-input>
+              </ion-item>
+              
+              <ion-button 
+                expand="block" 
+                color="primary"
+                (click)="loginParent()"
+                class="login-btn parent-btn">
+                <ion-icon name="log-in-outline" slot="start"></ion-icon>
+                Accedi come Genitore
+              </ion-button>
+            </div>
+
+            <!-- Divisore -->
+            <div class="divider">
+              <span>oppure</span>
+            </div>
+
+            <!-- Login veloce per bambini -->
+            <div class="login-section kids-section">
+              <h3>🧒 Bambini</h3>
+              <p class="kids-subtitle">Scegli il tuo avatar e entra!</p>
+              
+              <ion-grid class="kids-grid">
+                <ion-row>
+                  <ion-col size="6" *ngFor="let kid of kidsAvatars">
+                    <div class="kid-avatar" (click)="loginKid(kid)">
+                      <div class="avatar-circle" [style.background]="kid.color">
+                        <span class="avatar-emoji">{{ kid.emoji }}</span>
+                      </div>
+                      <p>{{ kid.name }}</p>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Footer carino -->
+        <div class="footer">
+          <p>✨ Organizziamo insieme la giornata! ✨</p>
+        </div>
+      </div>
+    </ion-content>

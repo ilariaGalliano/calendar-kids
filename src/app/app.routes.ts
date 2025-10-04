@@ -7,8 +7,12 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
   },
   {
+    path: 'login',
+    loadComponent: () => import('./components/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'login',
     pathMatch: 'full',
   },
   { path: 'calendario', component: CalendarBoardComponent },

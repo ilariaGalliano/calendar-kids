@@ -17,8 +17,8 @@ console.log('[APP]', 'apiBase =', environment.apiBase);
 registerLocaleData(localeIt)
 
 bootstrapApplication(AppComponent, {
+  // { provide: RouteReuseStrategy, useClass: IonicRouteStr
   providers: [
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'it' },

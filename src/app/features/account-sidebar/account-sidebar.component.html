@@ -1,0 +1,98 @@
+<div class="sidebar-content">
+  <!-- Header -->
+  <div class="sidebar-header">
+    <h2>Account</h2>
+  </div>
+
+  <ion-content>
+    <!-- Utente Corrente -->
+    @if (currentUser(); as user) {
+      <div class="current-user-section">
+        <h3>Utente Corrente</h3>
+        <ion-item class="current-user-item">
+          <ion-avatar slot="start">
+            @if (user.avatar) {
+              <img [src]="user.avatar" [alt]="user.name">
+            } @else {
+              <div class="avatar-placeholder">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+            }
+          </ion-avatar>
+          <ion-label>
+            <h2>{{ user.name }}</h2>
+            <p>{{ user.email }}</p>
+            <p class="role-badge" [class]="user.role">{{ user.role === 'parent' ? 'Genitore' : 'Bambino' }}</p>
+          </ion-label>
+        </ion-item>
+      </div>
+    }
+
+    <!-- Profili Famiglia -->
+    <div class="family-section">
+      <div class="section-header">
+        <h3>Famiglia</h3>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          (click)="addProfile()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <ion-list>
+        @for (profile of familyProfiles(); track profile.id) {
+          <ion-item 
+            button
+            [class.selected]="selectedProfile()?.id === profile.id"
+            (click)="selectProfile(profile)">
+            
+            <ion-avatar slot="start">
+              @if (profile.avatar) {
+                <img [src]="profile.avatar" [alt]="profile.name">
+              } @else {
+                <div class="avatar-placeholder" [class]="profile.role">
+                  <ion-icon [name]="profile.role === 'parent' ? 'person-outline' : 'happy-outline'"></ion-icon>
+                </div>
+              }
+            </ion-avatar>
+
+            <ion-label>
+              <h2>{{ profile.name }}</h2>
+              @if (profile.email) {
+                <p>{{ profile.email }}</p>
+              }
+              <p class="role-badge" [class]="profile.role">
+                {{ profile.role === 'parent' ? 'Genitore' : 'Bambino' }}
+              </p>
+            </ion-label>
+
+            @if (selectedProfile()?.id === profile.id) {
+              <ion-icon name="checkmark-circle" slot="end" color="success"></ion-icon>
+            }
+          </ion-item>
+        }
+      </ion-list>
+    </div>
+
+    <!-- Azioni -->
+    <div class="actions-section">
+      <ion-button 
+        expand="block" 
+        fill="outline"
+        (click)="goToSettings()">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+        Impostazioni
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        color="danger" 
+        fill="outline"
+        (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Logout
+      </ion-button>
+    </div>
+  </ion-content>
+</div>

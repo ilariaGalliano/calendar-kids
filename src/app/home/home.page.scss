@@ -1,27 +1,55 @@
-#container {
-  text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.app-layout {
+  display: flex;
+  min-height: 100vh; // Cambiato da height: 100vh
+  width: 100%;
+  position: relative;
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.main-container {
+  flex: 1;
+  // Rimuovi overflow-y: auto se presente
+  background: transparent; // Lascia che il calendario mostri il suo sfondo
+  transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.sidebar-closed {
+    margin-right: 0;
+  }
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+.sidebar-container {
+  width: 320px;
+  min-width: 320px;
+  background: var(--ion-color-light);
+  border-left: 1px solid var(--ion-color-medium); // Cambiato da border-right a border-left
+  overflow-y: auto;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1); // Ombra a sinistra invece che a destra
 }
 
-#container a {
-  text-decoration: none;
+/* Responsive per tablet/mobile */
+@media (max-width: 768px) {
+  .sidebar-container {
+    width: 280px;
+    min-width: 280px;
+  }
+}
+
+/* Mobile molto piccolo */
+@media (max-width: 480px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .sidebar-container {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+    border-left: none;
+    border-top: 1px solid var(--ion-color-medium);
+    order: 2; // Sidebar in fondo su mobile
+  }
+
+  .main-container {
+    flex: 1;
+    order: 1; // Calendar in alto su mobile
+  }
 }

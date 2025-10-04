@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { IonApp, IonContent, IonMenu, IonRouterOutlet } from '@ionic/angular/standalone';
+import { AccountSidebarComponent } from './features/account-sidebar/account-sidebar.component';
 
 @Component({
   selector: 'app-root',

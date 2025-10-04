@@ -21,4 +21,6 @@ export interface KidTask {
   assigneeProfileId?: string;
   description?: string | null;
   icon?: string;
+  repeat?: any; //TODO: fix this
+  reminders?: number[];
 }

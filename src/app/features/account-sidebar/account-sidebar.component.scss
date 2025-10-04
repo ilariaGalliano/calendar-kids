@@ -1,0 +1,138 @@
+.sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--ion-background-color);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--ion-color-light);
+  background: var(--ion-color-medium);
+  color: var(--ion-color-primary-contrast);
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  ion-button {
+    --color: var(--ion-color-primary-contrast);
+  }
+}
+
+.current-user-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+
+  .current-user-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+  }
+}
+
+.family-section {
+  flex: 1;
+  padding: 16px;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+    }
+  }
+
+  ion-item {
+    --padding-start: 8px;
+    --inner-padding-end: 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    
+    &.selected {
+      --background: var(--ion-color-primary-tint);
+      --color: var(--ion-color-primary-shade);
+    }
+
+    &:hover {
+      --background: var(--ion-color-light);
+    }
+  }
+}
+
+.avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  
+  &.parent {
+    background: var(--ion-color-primary-tint);
+    color: var(--ion-color-primary);
+  }
+  
+  &.child {
+    background: var(--ion-color-secondary-tint);
+    color: var(--ion-color-secondary);
+  }
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 4px;
+  
+  &.parent {
+    background: var(--ion-color-primary-tint);
+    color: #fff;
+  }
+  
+  &.child {
+    background: var(--ion-color-secondary-tint);
+    color:  #fff;
+  }
+}
+
+.actions-section {
+  padding: 16px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  
+  ion-button {
+    margin-bottom: 8px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Responsive
+@media (min-width: 768px) {
+  .sidebar-content {
+    width: 320px;
+  }
+}

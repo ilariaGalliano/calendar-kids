@@ -1,35 +1,59 @@
-<div class="board">
-  <!-- Bottone di test -->
-  <!-- <ion-button (click)="loadFromBackend()" fill="outline" size="small">
-    Test Chiama BE
-  </ion-button> -->
+<ion-content class="kids-page">
+  <!-- Decorazioni fluttuanti -->
+  <div class="floating-decorations">
+    <div class="decoration">🌟</div>
+    <div class="decoration">🎨</div>
+    <div class="decoration">🦄</div>
+    <div class="decoration">🎈</div>
+    <div class="decoration">⭐</div>
+    <div class="decoration">🌈</div>
+  </div>
 
-  @for (d of days; track d) {
-    <ion-card class="day-col">
-      <ion-card-header>
-        <ion-card-title>{{ d | date:'EEE dd/MM' }}</ion-card-title>
-        <!-- Debug per ogni giorno -->
-        <small>Tasks: {{ (lists()[d] || []).length }}</small>
-      </ion-card-header>
+  <div class="calendar-container">
+    <!-- Titolo semplificato -->
+    <div class="page-title">
+      <h1>Il Tuo Calendario Magico</h1>
+    </div>
 
-      <ion-card-content>
-        <ion-list
-          cdkDropList
-          [cdkDropListData]="lists()[d] || []"
-          (cdkDropListDropped)="drop($event, d)"
-          class="dropzone">
+    <!-- Griglia dei giorni -->
+    <div class="days-grid">
+      @for (d of days; track d) {
+        <ion-card class="day-card kids-card">
+          <ion-card-header class="day-header">
+            <div class="day-emoji">{{ getDayEmoji(d) }}</div>
+            <ion-card-title>{{ d | date:'EEE' }}</ion-card-title>
+            <p class="day-date">{{ d | date:'dd/MM' }}</p>
+            <ion-badge class="task-counter" [color]="getTaskCountColor(d)">
+              {{ (lists()[d] || []).length }} compiti
+            </ion-badge>
+          </ion-card-header>
 
-          <app-kid-task-card
-            *ngFor="let t of lists()[d]"
-            [task]="t"
-            (doneChange)="onDone($event)">
-          </app-kid-task-card>
+          <ion-card-content>
+            <div
+              cdkDropList
+              [cdkDropListData]="lists()[d] || []"
+              (cdkDropListDropped)="drop($event, d)"
+              class="drop-zone">
 
-          <div class="empty" *ngIf="!(lists()[d]?.length)">
-            Nessun task per {{ d }}
-          </div>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-  }
-</div>
+              @for (task of lists()[d]; track task.id) {
+                <div cdkDrag class="task-wrapper">
+                  <app-kid-task-card
+                    [task]="task"
+                    (doneChange)="onDone($event)">
+                  </app-kid-task-card>
+                </div>
+              }
+<!-- 
+              @if (!(lists()[d].length)) {
+                <div class="empty-day">
+                  <div class="empty-emoji">😴</div>
+                  <p>Nessun compito oggi!</p>
+                </div>
+              } -->
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  </div>
+</ion-content>

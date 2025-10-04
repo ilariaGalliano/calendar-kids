@@ -1,0 +1,203 @@
+.kids-page {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  // Rimuovi min-height: 100vh per permettere scroll naturale
+  position: relative;
+  overflow: visible; // Cambiato da hidden per permettere scroll
+}
+
+.floating-decorations {
+  position: fixed; // Cambiato da absolute per mantenere decorazioni ferme
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; // Altezza viewport, non della pagina
+  pointer-events: none;
+  z-index: 1;
+  
+  .decoration {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.6;
+    animation: gentle-float 8s ease-in-out infinite;
+    
+    &:nth-child(1) { top: 8%; left: 5%; animation-delay: 0s; }
+    &:nth-child(2) { top: 15%; right: 8%; animation-delay: 2s; }
+    &:nth-child(3) { top: 45%; left: 3%; animation-delay: 4s; }
+    &:nth-child(4) { bottom: 25%; right: 6%; animation-delay: 1s; }
+    &:nth-child(5) { bottom: 10%; left: 10%; animation-delay: 3s; }
+  }
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+.calendar-container {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  // Rimuovi qualsiasi min-height qui
+}
+
+.header-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  
+  .reload-btn {
+    --background: var(--kids-green);
+    --color: white;
+  }
+}
+
+.page-title {
+  text-align: center;
+  color: white;
+  margin-bottom: 25px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  
+  h1 {
+    font-size: 2.2rem;
+    margin: 0;
+  }
+  
+  p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 8px 0;
+  }
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  // Rimuovi qualsiasi height fissa
+  padding-bottom: 40px; // Spazio in fondo per scroll comodo
+}
+
+.day-card {
+  border: none;
+  margin: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+  }
+  
+  .day-header {
+    text-align: center;
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    padding: 20px 16px;
+    border-bottom: 2px solid #dee2e6;
+    border-radius: 20px 20px 0 0;
+    
+    .day-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    
+    ion-card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--ion-color-dark);
+      margin: 8px 0 4px 0;
+      text-transform: capitalize;
+    }
+    
+    .day-date {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--ion-color-medium);
+    }
+    
+    .task-counter {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.drop-zone {
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  
+  &.cdk-drop-list-dragging {
+    background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+    border: 2px dashed var(--ion-color-primary);
+  }
+}
+
+.task-wrapper {
+  margin-bottom: 12px;
+  
+  &.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+  
+  &.cdk-drag-placeholder {
+    opacity: 0.5;
+    background: var(--ion-color-light);
+    border: 2px dashed var(--ion-color-medium);
+    border-radius: 10px;
+    height: 60px;
+  }
+}
+
+.empty-day {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--ion-color-medium);
+  
+  .empty-emoji {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+  
+  p {
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .days-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .calendar-container {
+    padding: 15px;
+  }
+  
+  .page-title h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    padding: 10px;
+  }
+  
+  .page-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .days-grid {
+    gap: 12px;
+    padding-bottom: 20px;
+  }
+}
