@@ -1,11 +1,32 @@
+export interface Child {
+  id: string;
+  name: string;
+  avatar?: string;
+  age: number;
+}
+
+export interface Routine {
+  id: string;
+  childId: string;
+  name: string;
+  tasks: Task[];
+  days: string[]; // ['mon', 'tue', 'wed', ...]
+  startTime: string;
+  isActive: boolean;
+}
+
 export interface Task {
   id: string;
-  householdId: string;
+  householdId?: string;
   title: string;
   color?: string | null;
   icon?: string | null;
   schedule?: any;
   isActive: boolean;
+  emoji: string;
+  duration: number; // minuti
+  description?: string;
+  category: 'morning' | 'afternoon' | 'evening' | 'custom';
 }
 
 export interface TaskInstance {

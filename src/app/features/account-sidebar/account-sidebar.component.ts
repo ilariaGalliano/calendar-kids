@@ -100,11 +100,9 @@ export class AccountSidebarComponent implements OnInit {
  logout() {
     // this.auth.logout();
     this.router.navigate(['/login']);
-    // Non serve più emettere closeSidebar
   }
 
   goToSettings() {
     this.router.navigate(['/settings']);
-    // Non serve più emettere closeSidebar
   }
 }
