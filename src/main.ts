@@ -7,12 +7,31 @@ import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { registerLocaleData } from '@angular/common';
 import localeIt from '@angular/common/locales/it';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import { addIcons } from 'ionicons';
+import { 
+  addOutline, closeOutline, logOutOutline, personOutline, 
+  happyOutline, settingsOutline, refreshOutline, checkmarkCircle,
+  menuOutline, logInOutline, reorderTwoOutline
+} from 'ionicons/icons';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { authInterceptor } from './app/common/auth.interceptor';
 import { environment } from './environments/environment';
 
-console.log('[APP]', 'apiBase =', environment.apiBase);
+addIcons({
+  'add-outline': addOutline,
+  'close-outline': closeOutline,
+  'log-out-outline': logOutOutline,
+  'person-outline': personOutline,
+  'happy-outline': happyOutline,
+  'settings-outline': settingsOutline,
+  'refresh-outline': refreshOutline,
+  'checkmark-circle': checkmarkCircle,
+  'menu-outline': menuOutline,
+  'log-in-outline': logInOutline,
+  'reorder-two-outline': reorderTwoOutline
+});
+
 
 registerLocaleData(localeIt)
 

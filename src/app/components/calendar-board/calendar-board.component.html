@@ -10,14 +10,62 @@
   </div>
 
   <div class="calendar-container">
-    <!-- Titolo semplificato -->
-    <div class="page-title">
-      <h1>Il Tuo Calendario Magico</h1>
+    <!-- Header con controlli -->
+    <div class="calendar-header">
+      <div class="header-top">
+        <h1>Il Tuo Calendario Magico</h1>
+        
+        <!-- Controlli di navigazione -->
+        <div class="nav-controls">
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="goToToday()" 
+            class="today-btn">
+            <ion-icon name="today" slot="icon-only"></ion-icon>
+          </ion-button>
+          
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="navigateDate('prev')" 
+            class="nav-btn">
+            <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
+          </ion-button>
+          
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="navigateDate('next')" 
+            class="nav-btn">
+            <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Selettore vista e titolo data -->
+      <div class="header-bottom">
+        <div class="date-title">
+          <h2>{{ getDateTitle() }}</h2>
+        </div>
+        
+        <ion-segment 
+          [value]="currentView()" 
+          (ionChange)="onViewChange($event)" 
+          class="view-selector">
+          <ion-segment-button value="day">
+            <ion-label>Oggi</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="week">
+            <ion-label>Settimana</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </div>
 
     <!-- Griglia dei giorni -->
-    <div class="days-grid">
-      @for (d of days; track d) {
+    <div class="days-grid" [class.single-day]="currentView() === 'day'">
+      @for (d of getDisplayDays(); track d) {
         <ion-card class="day-card kids-card">
           <ion-card-header class="day-header">
             <div class="day-emoji">{{ getDayEmoji(d) }}</div>
@@ -44,12 +92,12 @@
                 </div>
               }
 
-              @if (!(lists()[d].length)) {
+              <!-- @if (!(lists()[d].length)) {
                 <div class="empty-day">
                   <div class="empty-emoji">😴</div>
                   <p>Nessun compito oggi!</p>
                 </div>
-              }
+              } -->
             </div>
           </ion-card-content>
         </ion-card>

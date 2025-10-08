@@ -33,6 +33,60 @@
   }
 }
 
+/* Stati di caricamento ed errore */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  padding: 2rem;
+  
+  ion-spinner {
+    margin-bottom: 1rem;
+    --color: var(--ion-color-primary);
+  }
+  
+  ion-text {
+    text-align: center;
+    
+    p {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  padding: 2rem;
+  text-align: center;
+  
+  ion-text {
+    margin-bottom: 1.5rem;
+    
+    h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+  }
+  
+  ion-button {
+    --padding-start: 1.5rem;
+    --padding-end: 1.5rem;
+  }
+}
+
 /* Mobile molto piccolo */
 @media (max-width: 480px) {
   .app-layout {
@@ -51,5 +105,11 @@
   .main-container {
     flex: 1;
     order: 1; // Calendar in alto su mobile
+  }
+  
+  .loading-container,
+  .error-container {
+    height: 50vh;
+    padding: 1rem;
   }
 }

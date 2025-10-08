@@ -2,8 +2,43 @@
     <div class="app-layout">
       <!-- Contenuto principale -->
       <div class="main-container" [class.sidebar-closed]="!sidebarExpanded()">
-        <app-calendar-board [days]="days()" [tasksByDay]="tasksByDay()" [householdId]="householdId || ''">
-        </app-calendar-board>
+        
+        <!-- Stato di caricamento -->
+        @if (isLoading()) {
+          <div class="loading-container">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <ion-text color="medium">
+              <p>Caricamento calendario...</p>
+            </ion-text>
+          </div>
+        }
+        
+        <!-- Stato di errore -->
+        @else if (getError()) {
+          <div class="error-container">
+            <ion-text color="danger">
+              <h2>⚠️ Errore</h2>
+              <p>{{ getError() }}</p>
+            </ion-text>
+            <ion-button fill="solid" color="primary" (click)="reload()">
+              🔄 Riprova
+            </ion-button>
+          </div>
+        }
+        
+        <!-- Calendario principale -->
+        @else {
+          <app-calendar-board 
+            [days]="days()" 
+            [tasksByDay]="tasksByDay()" 
+            [householdId]="householdId || ''"
+            [initialView]="currentView()"
+            (taskDone)="onTaskDone($event)"
+            (viewChanged)="onViewChanged($event)"
+            (dateChanged)="onDateChanged($event)">
+          </app-calendar-board>
+        }
+        
       </div>
 
       <!-- Pulsante toggle sidebar -->

@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { TaskInstance } from '../models/task.models';
 import { Profile } from './profile.models';
+import { CalendarResponse, CalendarWeek, CalendarDay } from '../models/calendar.models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -13,8 +14,42 @@ export class ApiService {
     return this.http.post<{ accessToken: string }>(`${this.base}/auth/login`, { email, password });
   }
 
+  // NUOVI METODI CALENDARIO
+  
+  // Calendario mensile completo
+  getMonthCalendar(householdId: string, year: number, month: number) {
+    console.log('[API CALL]', 'calendar/month', { householdId, year, month });
+    const params = new HttpParams()
+      .set('householdId', householdId)
+      .set('year', year.toString())
+      .set('month', month.toString());
+
+    return this.http.get<CalendarResponse>(`${this.base}/calendar/month`, { params });
+  }
+
+  // Calendario settimanale
+  getWeekCalendar(householdId: string, date: string) {
+    console.log('[API CALL]', 'calendar/week', { householdId, date });
+    const params = new HttpParams()
+      .set('householdId', householdId)
+      .set('date', date);
+
+    return this.http.get<CalendarWeek>(`${this.base}/calendar/week`, { params });
+  }
+
+  // Calendario giornaliero
+  getDayCalendar(householdId: string, date: string) {
+    console.log('[API CALL]', 'calendar/day', { householdId, date });
+    const params = new HttpParams()
+      .set('householdId', householdId)
+      .set('date', date);
+
+    return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
+  }
+
+  // METODI LEGACY (mantenuti per compatibilità)
   getCalendar(householdId: string, fromISO: string, toISO: string) {
-    console.log('[API CALL]', 'calendar', { householdId, fromISO, toISO }); // 👈 log in FE
+    console.log('[API CALL]', 'calendar (legacy)', { householdId, fromISO, toISO });
     const params = new HttpParams()
       .set('householdId', householdId)
       .set('from', fromISO)
@@ -23,8 +58,9 @@ export class ApiService {
     return this.http.get<TaskInstance[]>(`${this.base}/calendar`, { params });
   }
 
+  // Segna task come completata
   setInstanceDone(householdId: string, instanceId: string, done: boolean) {
-    // se il tuo BE richiede householdId nel path/query, adegua questa firma
+    console.log('[API CALL]', 'setInstanceDone', { instanceId, done });
     return this.http.patch<TaskInstance>(`${this.base}/calendar/${instanceId}/done`, { done });
   }
 

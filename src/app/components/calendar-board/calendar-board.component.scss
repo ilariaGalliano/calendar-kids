@@ -42,6 +42,80 @@
   // Rimuovi qualsiasi min-height qui
 }
 
+.calendar-header {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-controls {
+      display: flex;
+      gap: 8px;
+
+      .today-btn, .nav-btn {
+        --background: var(--kids-blue);
+        --color: white;
+        --border-radius: 12px;
+        --box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        
+        &:hover {
+          --background: var(--kids-purple);
+        }
+      }
+    }
+  }
+
+  .header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    .date-title {
+      flex: 1;
+      
+      h2 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: purple;
+        font-weight: 600;
+      }
+    }
+
+    .view-selector {
+      --background: rgba(102, 126, 234, 0.1);
+      --indicator-color: var(--kids-blue);
+      --color-checked: white;
+      --border-radius: 15px;
+      min-width: 180px;
+
+      ion-segment-button {
+        --indicator-box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        --border-radius: 12px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
 .header-actions {
   display: flex;
   justify-content: center;
@@ -77,6 +151,52 @@
   gap: 20px;
   // Rimuovi qualsiasi height fissa
   padding-bottom: 40px; // Spazio in fondo per scroll comodo
+
+  // Vista singola giornata
+  &.single-day {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+    
+    .day-card {
+      min-height: 400px;
+      
+      .day-header {
+        .day-emoji {
+          font-size: 3.5rem;
+        }
+        
+        ion-card-title {
+          font-size: 1.6rem;
+        }
+        
+        .day-date {
+          font-size: 1.1rem;
+        }
+        
+        .task-counter {
+          font-size: 1rem;
+          padding: 8px 16px;
+        }
+      }
+      
+      ion-card-content {
+        padding: 25px;
+        
+        .drop-zone {
+          min-height: 300px;
+          
+          .task-wrapper {
+            margin-bottom: 15px;
+            
+            app-kid-task-card {
+              transform: scale(1.05);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 .day-card {
@@ -173,6 +293,37 @@
 
 // Responsive
 @media (max-width: 768px) {
+  .calendar-header {
+    padding: 15px;
+    margin-bottom: 20px;
+
+    .header-top {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .header-bottom {
+      flex-direction: column;
+      text-align: center;
+      gap: 15px;
+
+      .date-title h2 {
+        font-size: 1.1rem;
+      }
+
+      .view-selector {
+        min-width: 160px;
+        width: 100%;
+        max-width: 200px;
+      }
+    }
+  }
+
   .days-grid {
     grid-template-columns: 1fr;
     gap: 15px;

@@ -2,11 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonButton,
-  IonContent 
+  IonContent,
+  IonSpinner,
+  IonText 
 } from '@ionic/angular/standalone';
 import { CalendarBoardComponent } from '../components/calendar-board/calendar-board.component';
 import { AccountSidebarComponent } from '../features/account-sidebar/account-sidebar.component';
-import { SchedulerService } from '../services/scheduler.service';
+import { CalendarService } from '../services/calendar.service';
 import { ApiService } from '../common/api.service';
 import { KidTask } from '../models/kid.models';
 import { Preferences } from '@capacitor/preferences';
@@ -20,6 +22,8 @@ import { Preferences } from '@capacitor/preferences';
     CommonModule,
     IonContent,
     IonButton,
+    IonSpinner,
+    IonText,
     CalendarBoardComponent,
     AccountSidebarComponent
   ],
@@ -29,11 +33,13 @@ export class HomePage implements OnInit {
   days = signal<string[]>([]);
   tasksByDay = signal<Record<string, KidTask[]>>({});
   loading = signal<boolean>(false);
+  error = signal<string | null>(null);
+  currentView = signal<'day' | 'week'>('week'); // Aggiunto per sincronizzare la vista
   householdId: string | null = null;
   sidebarExpanded = signal<boolean>(true);
 
   constructor(
-    private scheduler: SchedulerService,
+    private calendarService: CalendarService,
     private api: ApiService
   ) {}
 
@@ -55,53 +61,63 @@ export class HomePage implements OnInit {
       const { value } = await Preferences.get({ key: 'householdId' });
       this.householdId = value;
       
-      // Fallback per sviluppo
+      // Fallback per sviluppo (usa l'householdId generato dal backend)
       if (!this.householdId) {
-        this.householdId = '67d0ac6a-ee3e-4c3b-b570-3d53d7f0e1f5';
+        this.householdId = 'a6d3faf1-8f56-4ab6-ab78-a87257eb085a';
         console.log('Usando householdId di fallback:', this.householdId);
       }
     } catch (error) {
       console.error('Errore nel caricamento householdId:', error);
-      this.householdId = '67d0ac6a-ee3e-4c3b-b570-3d53d7f0e1f5';
+      this.householdId = 'a6d3faf1-8f56-4ab6-ab78-a87257eb085a';
     }
   }
 
   private generateWeekDays() {
-    const today = new Date();
-    const weekDays: string[] = [];
-    
-    // Genera 7 giorni partendo da oggi
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today.getTime() + i * 86400000);
-      weekDays.push(date.toISOString().slice(0, 10));
-    }
-    
+    // Utilizza il metodo del CalendarService per generare la settimana
+    const weekDays = this.calendarService.generateWeekDays();
     this.days.set(weekDays);
-    console.log('Giorni generati:', weekDays);
+    console.log('📅 Giorni della settimana generati:', weekDays);
   }
 
-  private loadInitialData() {
+  private async loadInitialData() {
     if (!this.householdId) {
-      console.warn('Nessun householdId disponibile, caricamento dati saltato');
+      console.warn('⚠️ Nessun householdId disponibile, caricamento dati saltato');
+      this.error.set('Household ID non disponibile');
       return;
     }
 
     this.loading.set(true);
+    this.error.set(null);
     
-    const days = this.days();
-    const fromDate = days[0];
-    const toDate = days[days.length - 1];
-    
-    console.log('Caricamento dati dal', fromDate, 'al', toDate);
+    try {
+      const days = this.days();
+      if (days.length === 0) {
+        console.warn('⚠️ Nessun giorno disponibile per il caricamento');
+        return;
+      }
 
-    // Carica i dati tramite il servizio scheduler
-    this.scheduler.loadRange(this.householdId, fromDate, toDate);
-    
-    // Simula il caricamento per ora
-    setTimeout(() => {
+      // Carica il calendario settimanale dal backend usando il primo giorno
+      const firstDay = days[0];
+      console.log('🔄 Caricamento calendario settimanale per:', firstDay);
+      
+      const tasksByDay = await this.calendarService.loadWeekCalendar(this.householdId, firstDay);
+      
+      if (tasksByDay) {
+        this.tasksByDay.set(tasksByDay);
+        console.log('✅ Dati calendario caricati con successo');
+      } else {
+        console.warn('⚠️ Nessun dato ricevuto dal calendario, utilizzo dati mock');
+        this.loadMockData();
+      }
+      
+    } catch (error) {
+      console.error('❌ Errore nel caricamento calendario:', error);
+      this.error.set('Errore nel caricamento del calendario');
+      // Fallback ai dati mock in caso di errore
       this.loadMockData();
+    } finally {
       this.loading.set(false);
-    }, 1000);
+    }
   }
 
   private loadMockData() {
@@ -154,10 +170,136 @@ export class HomePage implements OnInit {
     this.sidebarExpanded.set(false);
   }
 
+  // Gestisce il completamento di una task
+  async onTaskDone(event: { instanceId: string; done: boolean }) {
+    if (!this.householdId) {
+      console.warn('⚠️ Nessun householdId per aggiornare la task');
+      return;
+    }
+
+    console.log('🔄 Aggiornamento task:', event);
+    
+    const success = await this.calendarService.markTaskDone(
+      this.householdId, 
+      event.instanceId, 
+      event.done
+    );
+
+    if (success) {
+      // Aggiorna lo stato locale
+      const currentTasks = this.tasksByDay();
+      for (const day in currentTasks) {
+        const taskIndex = currentTasks[day].findIndex(task => task.instanceId === event.instanceId);
+        if (taskIndex !== -1) {
+          currentTasks[day][taskIndex].done = event.done;
+          currentTasks[day][taskIndex].doneAt = event.done ? new Date().toISOString() : null;
+          this.tasksByDay.set({ ...currentTasks });
+          console.log('✅ Task aggiornata localmente');
+          break;
+        }
+      }
+    } else {
+      console.error('❌ Errore nell\'aggiornamento della task');
+    }
+  }
+
+  // Gestisce il cambio di vista dal calendario
+  async onViewChanged(event: { view: 'day' | 'week', date?: string }) {
+    if (!this.householdId) {
+      console.warn('⚠️ Nessun householdId per cambiare vista');
+      return;
+    }
+
+    console.log('🔄 Cambio vista:', event);
+    
+    // Aggiorna subito lo stato della vista
+    this.currentView.set(event.view);
+    
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      if (event.view === 'day' && event.date) {
+        // Carica solo il giorno specifico
+        const dayTasks = await this.calendarService.loadDayCalendar(this.householdId, event.date);
+        
+        if (dayTasks) {
+          const tasksByDay: Record<string, KidTask[]> = {};
+          tasksByDay[event.date] = dayTasks;
+          this.tasksByDay.set(tasksByDay);
+          
+          // Aggiorna i giorni per mostrare solo quello selezionato
+          this.days.set([event.date]);
+        } else {
+          this.error.set('Errore nel caricamento del giorno');
+        }
+      } else {
+        // Carica la settimana - rigenera i giorni della settimana
+        this.generateWeekDays();
+        await this.loadWeekData();
+      }
+    } catch (error) {
+      console.error('❌ Errore nel cambio vista:', error);
+      this.error.set('Errore nel cambio vista');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Gestisce la navigazione settimanale
+  async onDateChanged(event: { direction: 'prev' | 'next' }) {
+    if (!this.householdId) {
+      console.warn('⚠️ Nessun householdId per navigare');
+      return;
+    }
+
+    console.log('🔄 Navigazione settimanale:', event);
+    
+    // Calcola la nuova settimana
+    const currentFirstDay = new Date(this.days()[0]);
+    const newFirstDay = new Date(currentFirstDay);
+    
+    if (event.direction === 'prev') {
+      newFirstDay.setDate(currentFirstDay.getDate() - 7);
+    } else {
+      newFirstDay.setDate(currentFirstDay.getDate() + 7);
+    }
+
+    // Genera i nuovi giorni della settimana
+    const newWeekDays = this.calendarService.generateWeekDays(newFirstDay);
+    this.days.set(newWeekDays);
+
+    // Carica i dati per la nuova settimana
+    await this.loadWeekData(newFirstDay.toISOString().slice(0, 10));
+  }
+
+  // Carica i dati per una settimana specifica
+  private async loadWeekData(startDate?: string) {
+    if (!this.householdId) return;
+
+    this.loading.set(true);
+    
+    try {
+      const firstDay = startDate || this.days()[0];
+      const tasksByDay = await this.calendarService.loadWeekCalendar(this.householdId, firstDay);
+      
+      if (tasksByDay) {
+        this.tasksByDay.set(tasksByDay);
+      } else {
+        this.error.set('Errore nel caricamento della settimana');
+      }
+    } catch (error) {
+      console.error('❌ Errore nel caricamento settimana:', error);
+      this.error.set('Errore nel caricamento della settimana');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   // Metodo per ricaricare i dati (chiamato dal calendario)
-  reload() {
-    console.log('Ricaricamento dati richiesto');
-    this.loadInitialData();
+  async reload() {
+    console.log('🔄 Ricaricamento dati richiesto');
+    await this.loadInitialData();
   }
 
   // Getter per esporre i signals ai componenti child
@@ -171,5 +313,9 @@ export class HomePage implements OnInit {
 
   isLoading() {
     return this.loading();
+  }
+
+  getError() {
+    return this.error();
   }
 }
