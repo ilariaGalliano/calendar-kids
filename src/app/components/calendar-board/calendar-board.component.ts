@@ -46,11 +46,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     // Registra le icone
     addIcons({ calendar, today, chevronBack, chevronForward });
     
-    console.log('CalendarBoard initialized with:', {
-      days: this.days,
-      householdId: this.householdId
-    });
-
     // Imposta la data corrente (oggi)
     const todayDate = new Date().toISOString().slice(0, 10);
     this.currentDate.set(todayDate);
@@ -65,7 +60,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     // Sincronizza la vista con quella del parent
     if (this.initialView !== this.currentView()) {
       this.currentView.set(this.initialView);
-      console.log('🔄 Vista sincronizzata con parent:', this.initialView);
     }
   }
 
@@ -98,13 +92,10 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     }
     
     this.lists.set({ ...lists });
-    console.log('Task spostato:', { targetDay, lists: this.lists() });
   }
 
   // Gestione completamento task
   onDone(event: { instanceId: string; done: boolean }) {
-    console.log('✅ Task completato nel calendario:', event);
-    
     // Emette l'evento al componente parent (HomePage)
     this.taskDone.emit(event);
     
@@ -133,8 +124,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       // Emette evento per caricare la settimana
       this.viewChanged.emit({ view: 'week' });
     }
-    
-    console.log('📱 Vista cambiata:', newView);
   }
 
   // Naviga al giorno precedente/successivo
@@ -158,8 +147,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       // Per la vista settimanale, emette evento al parent
       this.dateChanged.emit({ direction });
     }
-    
-    console.log('📅 Navigazione:', direction, this.currentDate());
   }
 
   // Vai a oggi
@@ -172,8 +159,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     } else {
       this.viewChanged.emit({ view: 'week' });
     }
-    
-    console.log('🏠 Vai a oggi:', todayDate);
   }
 
   // Getter per i giorni da visualizzare in base alla vista
@@ -199,13 +184,4 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       return `${firstDay.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} - ${lastDay.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}`;
     }
   }
-
-  // Rimosse tutte le funzioni di caricamento dati (ora gestite da HomePage):
-  // - loadFromBackend()
-  // - initializeMockData() 
-  // - generateWeekDays()
-  // - setListsForCurrentDays()
-  // - convertBackendDataToTasksByDay()
-  // - useMockData()
-  // - generateMockTasks()
 }

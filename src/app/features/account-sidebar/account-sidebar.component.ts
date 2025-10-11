@@ -93,8 +93,6 @@ export class AccountSidebarComponent implements OnInit {
 
   selectProfile(profile: UserProfile) {
     this.selectedProfile.set(profile);
-    // Potresti voler salvare la selezione o fare altre azioni
-    console.log('Profilo selezionato:', profile);
   }
 
  logout() {

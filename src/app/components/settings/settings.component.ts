@@ -129,11 +129,9 @@ export class SettingsComponent implements OnInit {
   }
 
   addChild() {
-    console.log('Aggiungi bambino');
   }
 
   editChild(child: Child) {
-    console.log('Modifica bambino:', child);
   }
 
   addTask() {
@@ -207,11 +205,9 @@ export class SettingsComponent implements OnInit {
   }
 
   addRoutine(childId: string) {
-    console.log('Aggiungi routine per:', childId);
   }
 
   editRoutine(routine: Routine) {
-    console.log('Modifica routine:', routine);
   }
 
   updateRoutine(routine: Routine) {

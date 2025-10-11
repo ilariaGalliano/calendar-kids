@@ -56,11 +56,8 @@ export class LoginComponent {
   constructor(private router: Router) { }
 
   loginParent() {
-    console.log('Parent login:', { email: this.email, password: this.password });
-
     if (this.email && this.password) {
       setTimeout(() => {
-        console.log('Parent login successful!');
         this.router.navigate(['/home']);
       }, 800);
     } else {
@@ -69,10 +66,7 @@ export class LoginComponent {
   }
 
   loginKid(kid: any) {
-    console.log('Kid login:', kid.name);
-
     setTimeout(() => {
-      console.log(`${kid.name} login successful!`);
       this.router.navigate(['/home']);
     }, 500);
   }

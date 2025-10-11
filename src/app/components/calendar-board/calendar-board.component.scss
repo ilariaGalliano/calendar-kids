@@ -1,6 +1,5 @@
 .kids-page {
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  // Rimuovi min-height: 100vh per permettere scroll naturale
+  --background: var(--kids-bg-gradient); /* Usa la nuova palette premium */
   position: relative;
   overflow: visible; // Cambiato da hidden per permettere scroll
 }
@@ -59,7 +58,7 @@
     h1 {
       margin: 0;
       font-size: 1.8rem;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      background: linear-gradient(45deg, var(--kids-blue), var(--kids-pink));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -73,10 +72,10 @@
         --background: var(--kids-blue);
         --color: white;
         --border-radius: 12px;
-        --box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        --box-shadow: 0 4px 12px rgba(108, 140, 255, 0.3);
         
         &:hover {
-          --background: var(--kids-purple);
+          --background: var(--kids-pink);
         }
       }
     }
@@ -95,20 +94,20 @@
       h2 {
         margin: 0;
         font-size: 1.3rem;
-        color: purple;
+        color: var(--kids-text-dark);
         font-weight: 600;
       }
     }
 
     .view-selector {
-      --background: rgba(102, 126, 234, 0.1);
+      --background: rgba(108, 140, 255, 0.1);
       --indicator-color: var(--kids-blue);
       --color-checked: white;
       --border-radius: 15px;
       min-width: 180px;
 
       ion-segment-button {
-        --indicator-box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        --indicator-box-shadow: 0 4px 12px rgba(108, 140, 255, 0.3);
         --border-radius: 12px;
         font-weight: 600;
       }
@@ -215,9 +214,9 @@
   
   .day-header {
     text-align: center;
-    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    background: linear-gradient(45deg, rgba(255, 212, 122, 0.1), rgba(255, 155, 170, 0.1));
     padding: 20px 16px;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: 2px solid rgba(108, 140, 255, 0.2);
     border-radius: 20px 20px 0 0;
     
     .day-emoji {
@@ -254,7 +253,7 @@
   transition: all 0.3s ease;
   
   &.cdk-drop-list-dragging {
-    background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+    background: linear-gradient(45deg, rgba(108, 140, 255, 0.1), rgba(255, 155, 170, 0.1));
     border: 2px dashed var(--ion-color-primary);
   }
 }

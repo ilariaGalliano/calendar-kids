@@ -36,16 +36,23 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+/* ---------- Base palette (Kids Premium) ---------- */
+/* ---------- Base palette (Kids Premium) ---------- */
 :root {
-  --ion-color-primary: #6C8CFF;
-  --ion-color-secondary: #FFB5C2;
-  --ion-color-tertiary: #7ED8A4;
-  --ion-color-warning: #FFD56B;
-  --ion-color-success: #61D095;
-  --ion-color-medium: #94a3b8;
-  --ion-background-color: #f8fafc;
-  --ion-card-background: #ffffff;
-  --ion-text-color: #0f172a;
+  --ion-color-primary:   #6C8CFF; /* azzurro lavanda */
+  --ion-color-secondary: #FFD47A; /* giallo miele */
+  --ion-color-tertiary:  #FF9BAA; /* rosa pesca */
+  --ion-color-success:   #7ED8A4; /* verde positivo */
+  --ion-color-warning:   #FFD56B;
+  --ion-color-danger:    #FFB5C2;
+  --ion-color-medium:    #94A3B8; /* slate/medium */
+  --ion-color-dark:      #2C2C54;
+
+  --ion-background-color:        #F8FAFF; /* sfondo app */
+  --ion-text-color:              #0F172A; /* slate-900 */
+  --ion-card-background:         #FFFFFF;
+  --ion-toolbar-background:      #FFFFFF;
+  --ion-item-background:         #FFFFFF;
 }
 
 /* Card Ionic più tonde di default */
@@ -66,15 +73,16 @@ ion-card {
   user-select: none;
 }
 
-// Variabili colore per bambini
+// Variabili colore per bambini (Kids Premium Palette)
 :root {
-  --kids-bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --kids-card-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  --kids-bg-gradient: linear-gradient(135deg, #6C8CFF 0%, #FF9BAA 100%);
+  --kids-card-shadow: 0 8px 25px rgba(108, 140, 255, 0.15);
   --kids-border-radius: 20px;
-  --kids-pink: linear-gradient(45deg, #ff9a9e, #fecfef);
-  --kids-blue: linear-gradient(45deg, #a8edea, #fed6e3);
-  --kids-green: linear-gradient(45deg, #84fab0, #8fd3f4);
-  --kids-orange: linear-gradient(45deg, #ffecd2, #fcb69f);
+  --kids-pink: var(--ion-color-tertiary);    /* #FF9BAA rosa pesca */
+  --kids-blue: var(--ion-color-primary);     /* #6C8CFF azzurro lavanda */
+  --kids-green: var(--ion-color-success);    /* #7ED8A4 verde positivo */
+  --kids-yellow: var(--ion-color-secondary); /* #FFD47A giallo miele */
+  --kids-text-dark: var(--ion-color-dark);   /* #2C2C54 */
 }
 
 // Animazioni per elementi fluttuanti

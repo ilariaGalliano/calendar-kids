@@ -41,7 +41,6 @@ export class CalendarService {
         );
       });
 
-      console.log('📅 Calendario settimanale caricato:', { weekData, tasksByDay });
       return tasksByDay;
 
     } catch (error) {
@@ -68,7 +67,6 @@ export class CalendarService {
       }
 
       this.currentMonth.set(monthData);
-      console.log('📅 Calendario mensile caricato:', monthData);
       return monthData;
 
     } catch (error) {
@@ -95,7 +93,6 @@ export class CalendarService {
       }
 
       const tasks = dayData.tasks.map(task => calendarTaskToKidTask(task, dayData.date));
-      console.log('📅 Calendario giornaliero caricato:', { date, tasks });
       return tasks;
 
     } catch (error) {
@@ -113,7 +110,6 @@ export class CalendarService {
   async markTaskDone(householdId: string, instanceId: string, done: boolean): Promise<boolean> {
     try {
       await this.api.setInstanceDone(householdId, instanceId, done).toPromise();
-      console.log('✅ Task aggiornata:', { instanceId, done });
       return true;
     } catch (error) {
       console.error('❌ Errore nell\'aggiornamento task:', error);

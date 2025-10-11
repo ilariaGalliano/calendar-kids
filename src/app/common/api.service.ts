@@ -29,7 +29,6 @@ export class ApiService {
 
   // Calendario settimanale
   getWeekCalendar(householdId: string, date: string) {
-    console.log('[API CALL]', 'calendar/week', { householdId, date });
     const params = new HttpParams()
       .set('householdId', householdId)
       .set('date', date);
@@ -39,7 +38,6 @@ export class ApiService {
 
   // Calendario giornaliero
   getDayCalendar(householdId: string, date: string) {
-    console.log('[API CALL]', 'calendar/day', { householdId, date });
     const params = new HttpParams()
       .set('householdId', householdId)
       .set('date', date);
@@ -49,7 +47,6 @@ export class ApiService {
 
   // METODI LEGACY (mantenuti per compatibilità)
   getCalendar(householdId: string, fromISO: string, toISO: string) {
-    console.log('[API CALL]', 'calendar (legacy)', { householdId, fromISO, toISO });
     const params = new HttpParams()
       .set('householdId', householdId)
       .set('from', fromISO)
@@ -60,7 +57,6 @@ export class ApiService {
 
   // Segna task come completata
   setInstanceDone(householdId: string, instanceId: string, done: boolean) {
-    console.log('[API CALL]', 'setInstanceDone', { instanceId, done });
     return this.http.patch<TaskInstance>(`${this.base}/calendar/${instanceId}/done`, { done });
   }
 
