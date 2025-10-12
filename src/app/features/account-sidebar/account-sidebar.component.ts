@@ -13,6 +13,7 @@ interface UserProfile {
   email: string;
   avatar?: string;
   role: 'parent' | 'child';
+  sex?: 'male' | 'female';
 }
 
 @Component({
@@ -75,14 +76,16 @@ export class AccountSidebarComponent implements OnInit {
         name: 'Giulia',
         // avatar: 'assets/avatars/girl.png',
         email: '',
-        role: 'child'
+        role: 'child',
+        sex: 'female'
       },
       {
         id: '4',
         name: 'Marco',
         // avatar: 'assets/avatars/boy.png',
         email: '',
-        role: 'child'
+        role: 'child',
+        sex: 'male'
       }
     ]);
   }

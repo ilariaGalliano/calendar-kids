@@ -5,11 +5,11 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonContent, 
   IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonHeader, IonToolbar, IonTitle
 } from '@ionic/angular/standalone';
-import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragPlaceholder, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { KidTaskCardComponent } from '../kid-task-card/kid-task-card.component';
 import { KidTask } from 'src/app/models/kid.models';
 import { addIcons } from 'ionicons';
-import { calendar, today, chevronBack, chevronForward } from 'ionicons/icons';
+import { calendar, today, chevronBack, chevronForward, moveOutline, calendarOutline, reorderTwoOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-calendar-board',
@@ -18,7 +18,7 @@ import { calendar, today, chevronBack, chevronForward } from 'ionicons/icons';
     CommonModule, DatePipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
     IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon,
-    CdkDropList, CdkDrag, KidTaskCardComponent
+    CdkDropList, CdkDrag, CdkDragPlaceholder, KidTaskCardComponent
   ],
   templateUrl: './calendar-board.component.html',
   styleUrls: ['./calendar-board.component.scss']
@@ -44,7 +44,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     // Registra le icone
-    addIcons({ calendar, today, chevronBack, chevronForward });
+    addIcons({ calendar, today, chevronBack, chevronForward, moveOutline, calendarOutline, reorderTwoOutline });
     
     // Imposta la data corrente (oggi)
     const todayDate = new Date().toISOString().slice(0, 10);
@@ -79,19 +79,38 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     return 'danger';
   }
 
-  // Drag & Drop (rimane uguale)
+  // Drag & Drop migliorato per riordino interno
   drop(event: CdkDragDrop<KidTask[]>, targetDay: string) {
+    console.log('Drop event:', {
+      previousContainer: event.previousContainer.id,
+      container: event.container.id,
+      sameContainer: event.previousContainer === event.container,
+      previousIndex: event.previousIndex,
+      currentIndex: event.currentIndex,
+      targetDay
+    });
+
     const lists = this.lists();
     const prev = event.previousContainer.data;
     const curr = event.container.data;
 
     if (event.previousContainer === event.container) {
+      // Riordino interno nello stesso giorno
+      console.log('Riordino interno in corso...');
+      console.log('Tasks prima:', curr.map(t => t.title));
+      
       moveItemInArray(curr, event.previousIndex, event.currentIndex);
+      
+      console.log('Tasks dopo:', curr.map(t => t.title));
     } else {
+      // Trasferimento tra giorni diversi
+      console.log('Trasferimento tra giorni...');
       transferArrayItem(prev, curr, event.previousIndex, event.currentIndex);
     }
     
+    // Aggiorna il signal con una nuova referenza dell'oggetto
     this.lists.set({ ...lists });
+    console.log('Lista aggiornata per', targetDay, ':', lists[targetDay]?.map(t => t.title));
   }
 
   // Gestione completamento task
@@ -183,5 +202,11 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       const lastDay = new Date(this.days[this.days.length - 1]);
       return `${firstDay.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} - ${lastDay.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}`;
     }
+  }
+
+  // Restituisce l'array di drop lists connessi per permettere il drag tra giorni
+  getConnectedDropLists(currentDay: string): string[] {
+    return this.getDisplayDays()
+      .map(day => `drop-list-${day}`);
   }
 }

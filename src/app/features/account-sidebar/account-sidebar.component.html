@@ -14,15 +14,23 @@
             @if (user.avatar) {
               <img [src]="user.avatar" [alt]="user.name">
             } @else {
-              <div class="avatar-placeholder">
-                <ion-icon name="person-outline"></ion-icon>
+              <div class="avatar-placeholder" 
+                   [class.parent]="user.role === 'parent'"
+                   [class.child-male]="user.role === 'child' && user.sex === 'male'"
+                   [class.child-female]="user.role === 'child' && user.sex === 'female'">
+                <ion-icon [name]="user.role === 'parent' ? 'person-outline' : 'happy-outline'"></ion-icon>
               </div>
             }
           </ion-avatar>
           <ion-label>
             <h2>{{ user.name }}</h2>
             <p>{{ user.email }}</p>
-            <p class="role-badge" [class]="user.role">{{ user.role === 'parent' ? 'Genitore' : 'Bambino' }}</p>
+            <p class="role-badge" 
+               [class.parent]="user.role === 'parent'"
+               [class.child-male]="user.role === 'child' && user.sex === 'male'"
+               [class.child-female]="user.role === 'child' && user.sex === 'female'">
+              {{ user.role === 'parent' ? 'Genitore' : (user.sex === 'male' ? 'Bambino' : 'Bambina') }}
+            </p>
           </ion-label>
         </ion-item>
       </div>
@@ -51,7 +59,10 @@
               @if (profile.avatar) {
                 <img [src]="profile.avatar" [alt]="profile.name">
               } @else {
-                <div class="avatar-placeholder" [class]="profile.role">
+                <div class="avatar-placeholder" 
+                     [class.parent]="profile.role === 'parent'"
+                     [class.child-male]="profile.role === 'child' && profile.sex === 'male'"
+                     [class.child-female]="profile.role === 'child' && profile.sex === 'female'">
                   <ion-icon [name]="profile.role === 'parent' ? 'person-outline' : 'happy-outline'"></ion-icon>
                 </div>
               }
@@ -62,8 +73,11 @@
               @if (profile.email) {
                 <p>{{ profile.email }}</p>
               }
-              <p class="role-badge" [class]="profile.role">
-                {{ profile.role === 'parent' ? 'Genitore' : 'Bambino' }}
+              <p class="role-badge" 
+                 [class.parent]="profile.role === 'parent'"
+                 [class.child-male]="profile.role === 'child' && profile.sex === 'male'"
+                 [class.child-female]="profile.role === 'child' && profile.sex === 'female'">
+                {{ profile.role === 'parent' ? 'Genitore' : (profile.sex === 'male' ? 'Bambino' : 'Bambina') }}
               </p>
             </ion-label>
 

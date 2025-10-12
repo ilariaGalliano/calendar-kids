@@ -1,58 +1,32 @@
-<ion-content class="kids-page">
-  <!-- Decorazioni fluttuanti -->
-  <div class="floating-decorations">
-    <div class="decoration">🌟</div>
-    <div class="decoration">🎨</div>
-    <div class="decoration">🦄</div>
-    <div class="decoration">🎈</div>
-    <div class="decoration">⭐</div>
-    <div class="decoration">🌈</div>
-  </div>
+<ion-content class="planner-page">
+
+  <!-- (RIMOSSO) floating-decorations -->
 
   <div class="calendar-container">
-    <!-- Header con controlli -->
+
     <div class="calendar-header">
       <div class="header-top">
-        <h1>Il Tuo Calendario Magico</h1>
-        
-        <!-- Controlli di navigazione -->
+        <h1>Planner di Famiglia</h1>
+
         <div class="nav-controls">
-          <ion-button 
-            fill="clear" 
-            size="small" 
-            (click)="goToToday()" 
-            class="today-btn">
+          <ion-button fill="clear" size="small" (click)="goToToday()" class="today-btn">
             <ion-icon name="today" slot="icon-only"></ion-icon>
           </ion-button>
-          
-          <ion-button 
-            fill="clear" 
-            size="small" 
-            (click)="navigateDate('prev')" 
-            class="nav-btn">
+          <ion-button fill="clear" size="small" (click)="navigateDate('prev')" class="nav-btn">
             <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
           </ion-button>
-          
-          <ion-button 
-            fill="clear" 
-            size="small" 
-            (click)="navigateDate('next')" 
-            class="nav-btn">
+          <ion-button fill="clear" size="small" (click)="navigateDate('next')" class="nav-btn">
             <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
       </div>
 
-      <!-- Selettore vista e titolo data -->
       <div class="header-bottom">
         <div class="date-title">
           <h2>{{ getDateTitle() }}</h2>
         </div>
-        
-        <ion-segment 
-          [value]="currentView()" 
-          (ionChange)="onViewChange($event)" 
-          class="view-selector">
+
+        <ion-segment [value]="currentView()" (ionChange)="onViewChange($event)" class="view-selector">
           <ion-segment-button value="day">
             <ion-label>Oggi</ion-label>
           </ion-segment-button>
@@ -63,41 +37,54 @@
       </div>
     </div>
 
-    <!-- Griglia dei giorni -->
     <div class="days-grid" [class.single-day]="currentView() === 'day'">
       @for (d of getDisplayDays(); track d) {
-        <ion-card class="day-card kids-card">
+        <ion-card class="day-card">
           <ion-card-header class="day-header">
-            <div class="day-emoji">{{ getDayEmoji(d) }}</div>
+            <!-- (RIMOSSO) day-emoji -->
             <ion-card-title>{{ d | date:'EEE' }}</ion-card-title>
             <p class="day-date">{{ d | date:'dd/MM' }}</p>
             <ion-badge class="task-counter" [color]="getTaskCountColor(d)">
-              {{ (lists()[d] || []).length }} compiti
+              {{ (lists()[d] || []).length }} attività
             </ion-badge>
           </ion-card-header>
 
           <ion-card-content>
-            <div
-              cdkDropList
-              [cdkDropListData]="lists()[d] || []"
-              (cdkDropListDropped)="drop($event, d)"
-              class="drop-zone">
+            <div cdkDropList 
+                 [id]="'drop-list-' + d"
+                 [cdkDropListData]="lists()[d] || []"
+                 (cdkDropListDropped)="drop($event, d)" 
+                 class="drop-zone"
+                 cdkDropListSortingDisabled="false"
+                 [cdkDropListConnectedTo]="getConnectedDropLists(d)">
 
               @for (task of lists()[d]; track task.id) {
-                <div cdkDrag class="task-wrapper">
-                  <app-kid-task-card
-                    [task]="task"
-                    (doneChange)="onDone($event)">
-                  </app-kid-task-card>
+                <div cdkDrag 
+                     [cdkDragData]="task"
+                     [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                     class="task-wrapper">
+                  <div class="task-content">
+                    <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
+                    <div class="drag-handle-wrapper" cdkDragHandle>
+                      <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+                    </div>
+                  </div>
+                  <div *cdkDragPlaceholder class="drag-placeholder">
+                    <div class="placeholder-content">
+                      <ion-icon name="move-outline"></ion-icon>
+                      <span>Rilascia qui</span>
+                    </div>
+                  </div>
                 </div>
               }
 
-              <!-- @if (!(lists()[d].length)) {
-                <div class="empty-day">
-                  <div class="empty-emoji">😴</div>
-                  <p>Nessun compito oggi!</p>
+              @if ((lists()[d] || []).length === 0) {
+                <div class="empty-drop-zone">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <p>Trascina qui le attività</p>
                 </div>
-              } -->
+              }
+
             </div>
           </ion-card-content>
         </ion-card>

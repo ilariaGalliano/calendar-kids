@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { IonItem, IonLabel, IonBadge, IonIcon, IonCheckbox } from '@ionic/angular/standalone';
-import { CdkDrag } from '@angular/cdk/drag-drop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KidTask } from 'src/app/models/kid.models';
@@ -8,9 +7,9 @@ import { KidTask } from 'src/app/models/kid.models';
 @Component({
   selector: 'app-kid-task-card',
   standalone: true,
-  imports: [IonItem, IonLabel, IonBadge, CdkDrag, DatePipe, IonIcon, IonCheckbox, FormsModule],
+  imports: [IonItem, IonLabel, IonBadge, DatePipe, IonIcon, IonCheckbox, FormsModule],
   templateUrl: './kid-task-card.component.html',
-  styleUrls: ['./kid-task-card.component.css']
+  styleUrls: ['./kid-task-card.component.scss']
 })
 export class KidTaskCardComponent {
   @Input() task!: KidTask;

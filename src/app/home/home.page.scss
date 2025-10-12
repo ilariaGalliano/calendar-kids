@@ -19,10 +19,40 @@
 .sidebar-container {
   width: 320px;
   min-width: 320px;
-  background: var(--ion-color-light);
-  border-left: 1px solid var(--ion-color-medium); // Cambiato da border-right a border-left
+  background: var(--ion-card-background);
+  border-left: 1px solid var(--ion-color-medium);
   overflow-y: auto;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1); // Ombra a sinistra invece che a destra
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  
+  &.sidebar-closed {
+    right: 20px;
+  }
+  
+  .toggle-btn {
+    --background: var(--kids-blue);
+    --color: white;
+    --border-radius: 50%;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --box-shadow: 0 4px 12px rgba(108, 140, 255, 0.4);
+    width: 48px;
+    height: 48px;
+    
+    .toggle-icon {
+      font-size: 1.2rem;
+    }
+    
+    &:hover {
+      --background: var(--kids-pink);
+    }
+  }
 }
 
 /* Responsive per tablet/mobile */

@@ -37,7 +37,6 @@
 @import '@ionic/angular/css/palettes/dark.system.css';
 
 /* ---------- Base palette (Kids Premium) ---------- */
-/* ---------- Base palette (Kids Premium) ---------- */
 :root {
   --ion-color-primary:   #6C8CFF; /* azzurro lavanda */
   --ion-color-secondary: #FFD47A; /* giallo miele */
@@ -71,6 +70,44 @@ ion-card {
 .task-card, .drag-handle {
   -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Migliora il drag and drop per touch devices */
+.cdk-drag {
+  touch-action: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cdk-drag-handle {
+  cursor: grab;
+  touch-action: none;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: var(--kids-border-radius);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  transform: rotate(5deg);
+  z-index: 1000;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+  background: rgba(108, 140, 255, 0.1);
+  border: 2px dashed var(--kids-blue);
+  border-radius: var(--kids-border-radius);
 }
 
 // Variabili colore per bambini (Kids Premium Palette)
