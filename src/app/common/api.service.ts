@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { TaskInstance } from '../models/task.models';
 import { Profile } from './profile.models';
-import { CalendarResponse, CalendarWeek, CalendarDay } from '../models/calendar.models';
+import { CalendarResponse, CalendarWeek, CalendarDay, CurrentTimeWindowResponse } from '../models/calendar.models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -43,6 +43,17 @@ export class ApiService {
       .set('date', date);
 
     return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
+  }
+
+  // Vista "Ora Corrente" - attività nelle prossime/precedenti 2 ore
+  getCurrentTimeWindow(householdId: string, datetime?: string) {
+    let params = new HttpParams().set('householdId', householdId);
+    
+    if (datetime) {
+      params = params.set('datetime', datetime);
+    }
+
+    return this.http.get<CurrentTimeWindowResponse>(`${this.base}/calendar/now`, { params });
   }
 
   // METODI LEGACY (mantenuti per compatibilità)

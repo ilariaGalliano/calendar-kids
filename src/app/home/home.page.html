@@ -33,6 +33,8 @@
             [tasksByDay]="tasksByDay()" 
             [householdId]="householdId || ''"
             [initialView]="currentView()"
+            [timeWindowInput]="timeWindowData()"
+            [activeKidProfile]="getActiveKidProfile()"
             (taskDone)="onTaskDone($event)"
             (viewChanged)="onViewChanged($event)"
             (dateChanged)="onDateChanged($event)">

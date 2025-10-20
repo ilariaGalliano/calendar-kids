@@ -120,6 +120,16 @@ ion-card {
   --kids-green: var(--ion-color-success);    /* #7ED8A4 verde positivo */
   --kids-yellow: var(--ion-color-secondary); /* #FFD47A giallo miele */
   --kids-text-dark: var(--ion-color-dark);   /* #2C2C54 */
+  
+  // Variabili dinamiche per i temi dei bambini
+  --kid-primary: var(--kids-blue);
+  --kid-secondary: #C2E5F7;
+  --kid-accent: var(--kids-blue);
+  --kid-background: #F0F8FF;
+  --kid-surface: #FFFFFF;
+  --kid-text: #4A6B8A;
+  --kid-gradient: linear-gradient(135deg, #A8D8F0 0%, #C2E5F7 50%, #E1F2FA 100%);
+  --kid-shadow: rgba(168, 216, 240, 0.3);
 }
 
 // Animazioni per elementi fluttuanti

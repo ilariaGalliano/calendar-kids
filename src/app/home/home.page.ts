@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonButton,
@@ -10,7 +10,10 @@ import { CalendarBoardComponent } from '../components/calendar-board/calendar-bo
 import { AccountSidebarComponent } from '../features/account-sidebar/account-sidebar.component';
 import { CalendarService } from '../services/calendar.service';
 import { ApiService } from '../common/api.service';
+import { KidProfileService } from '../services/kid-profile.service';
 import { KidTask } from '../models/kid.models';
+import { CurrentTimeWindowData } from '../models/calendar.models';
+import { KidProfile } from '../models/avatar.models';
 import { Preferences } from '@capacitor/preferences';
 
 @Component({
@@ -28,30 +31,61 @@ import { Preferences } from '@capacitor/preferences';
     AccountSidebarComponent
   ],
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, AfterViewInit {
+  @ViewChild(CalendarBoardComponent) calendarBoard!: CalendarBoardComponent;
+  
   // Signals per gestire lo stato
   days = signal<string[]>([]);
   tasksByDay = signal<Record<string, KidTask[]>>({});
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
-  currentView = signal<'day' | 'week'>('week'); // Aggiunto per sincronizzare la vista
+  currentView = signal<'day' | 'week' | 'now'>('week'); // Aggiunto per sincronizzare la vista
+  timeWindowData = signal<CurrentTimeWindowData | null>(null);
   householdId: string | null = null;
   sidebarExpanded = signal<boolean>(true);
+  
+  // Profile del bambino attivo
+  activeKidProfile = signal<KidProfile | null>(null);
 
   constructor(
     private calendarService: CalendarService,
-    private api: ApiService
+    private api: ApiService,
+    private kidProfileService: KidProfileService
   ) {}
 
   async ngOnInit() {
+    console.log('🏠 HomePage ngOnInit - Inizializzazione...');
+    
     // Carica householdId dalle preferenze
     await this.loadHouseholdId();
+    
+    // Ricarica sempre il profilo bambino (per catturare i cambiamenti)
+    this.refreshKidProfile();
     
     // Genera i giorni della settimana
     this.generateWeekDays();
     
     // Carica i dati iniziali
     this.loadInitialData();
+    
+    console.log('✅ HomePage inizializzata');
+  }
+  
+  private initializeKidProfile() {
+    // Carica il profilo attivo una volta sola
+    const activeProfile = this.kidProfileService.getActiveKidProfile()();
+    this.activeKidProfile.set(activeProfile);
+    
+    if (activeProfile) {
+      console.log('👦 Profilo bambino attivo:', activeProfile.name, activeProfile.selectedAvatar.name);
+    } else {
+      console.log('� Nessun profilo bambino attivo - modalità genitore');
+    }
+  }
+
+  ngAfterViewInit() {
+    // ViewChild ora è disponibile
+    console.log('📱 CalendarBoard component inizializzato:', !!this.calendarBoard);
   }
 
   private async loadHouseholdId() {
@@ -97,7 +131,9 @@ export class HomePage implements OnInit {
       const tasksByDay = await this.calendarService.loadWeekCalendar(this.householdId, firstDay);
       
       if (tasksByDay) {
-        this.tasksByDay.set(tasksByDay);
+        // Filtra i task per il bambino attivo (se presente)
+        const filteredTasks = this.filterTasksForActiveKid(tasksByDay);
+        this.tasksByDay.set(filteredTasks);
       } else {
         console.warn('⚠️ Nessun dato ricevuto dal calendario, utilizzo dati mock');
         this.loadMockData();
@@ -192,7 +228,7 @@ export class HomePage implements OnInit {
   }
 
   // Gestisce il cambio di vista dal calendario
-  async onViewChanged(event: { view: 'day' | 'week', date?: string }) {
+  async onViewChanged(event: { view: 'day' | 'week' | 'now', date?: string }) {
     if (!this.householdId) {
       console.warn('⚠️ Nessun householdId per cambiare vista');
       return;
@@ -219,6 +255,9 @@ export class HomePage implements OnInit {
         } else {
           this.error.set('Errore nel caricamento del giorno');
         }
+      } else if (event.view === 'now') {
+        // Carica la vista "Ora Corrente"
+        await this.loadCurrentTimeWindow();
       } else {
         // Carica la settimana - rigenera i giorni della settimana
         this.generateWeekDays();
@@ -280,6 +319,28 @@ export class HomePage implements OnInit {
     }
   }
 
+  // Carica i dati per la vista "Ora Corrente"
+  private async loadCurrentTimeWindow() {
+    if (!this.householdId) return;
+
+    try {
+      const timeWindowData = await this.calendarService.loadCurrentTimeWindow(this.householdId);
+      
+      if (timeWindowData) {
+        console.log('🕘 Vista Ora Corrente caricata:', timeWindowData);
+        this.timeWindowData.set(timeWindowData);
+      }
+      
+      // Resettiamo le altre viste dato che questa è una vista speciale
+      this.tasksByDay.set({});
+      this.days.set([]);
+      
+    } catch (error) {
+      console.error('❌ Errore nel caricamento vista oraria:', error);
+      this.error.set('Errore nel caricamento della vista oraria');
+    }
+  }
+
   // Metodo per ricaricare i dati (chiamato dal calendario)
   async reload() {
     await this.loadInitialData();
@@ -300,5 +361,65 @@ export class HomePage implements OnInit {
 
   getError() {
     return this.error();
+  }
+
+  // Filtra i task per il bambino attivo
+  private filterTasksForActiveKid(tasksByDay: Record<string, KidTask[]>): Record<string, KidTask[]> {
+    const activeProfile = this.activeKidProfile();
+    
+    // Se non c'è un profilo attivo (modalità genitore), mostra tutti i task
+    if (!activeProfile) {
+      return tasksByDay;
+    }
+    
+    console.log('🔍 Filtraggio task per bambino:', activeProfile.name);
+    
+    const filteredTasks: Record<string, KidTask[]> = {};
+    
+    for (const [day, tasks] of Object.entries(tasksByDay)) {
+      // Filtra i task per l'ID del profilo attivo
+      // Nota: bisogna mappare il nostro ID locale con quello del backend
+      const kidTasks = tasks.filter(task => {
+        // Per ora, dato che stiamo usando mock data, filtriamo in base al nome
+        // In produzione, dovrebbe utilizzare assigneeProfileId
+        const taskAssignee = task.assigneeProfileId;
+        
+        // Fallback: se non abbiamo assignee info, mostra il task
+        if (!taskAssignee) {
+          return true;
+        }
+        
+        // Verifica se il task è assegnato al bambino attivo
+        // Qui potremmo dover mappare il nome del profilo con l'ID del backend
+        return taskAssignee === activeProfile.id;
+      });
+      
+      filteredTasks[day] = kidTasks;
+    }
+    
+    return filteredTasks;
+  }
+  
+  // Getter per il profilo attivo (esposto ai componenti child)
+  getActiveKidProfile() {
+    return this.activeKidProfile();
+  }
+
+  // Metodo per ricaricare il profilo (chiamato dopo login)
+  refreshKidProfile() {
+    console.log('🔄 Ricaricando profilo bambino...');
+    const activeProfile = this.kidProfileService.getActiveKidProfile()();
+    this.activeKidProfile.set(activeProfile);
+    
+    if (activeProfile) {
+      console.log('👦 Nuovo profilo attivo:', activeProfile.name, activeProfile.selectedAvatar.name);
+      
+      // Ricarica anche i task filtrati
+      if (this.tasksByDay()) {
+        const currentTasks = this.tasksByDay();
+        const filteredTasks = this.filterTasksForActiveKid(currentTasks);
+        this.tasksByDay.set(filteredTasks);
+      }
+    }
   }
 }

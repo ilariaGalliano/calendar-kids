@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiService } from '../common/api.service';
-import { CalendarResponse, CalendarWeek, CalendarDay, calendarTaskToKidTask } from '../models/calendar.models';
+import { CalendarResponse, CalendarWeek, CalendarDay, calendarTaskToKidTask, CurrentTimeWindowData } from '../models/calendar.models';
 import { KidTask } from '../models/kid.models';
 import { catchError, map, of } from 'rxjs';
 
@@ -115,6 +115,41 @@ export class CalendarService {
       console.error('❌ Errore nell\'aggiornamento task:', error);
       this.error.set(error instanceof Error ? error.message : 'Errore nell\'aggiornamento');
       return false;
+    }
+  }
+
+  /**
+   * Carica le attività nella finestra temporale corrente (±2 ore)
+   */
+  async loadCurrentTimeWindow(householdId: string, datetime?: string): Promise<CurrentTimeWindowData | null> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      const timeWindowData = await this.api.getCurrentTimeWindow(householdId, datetime).toPromise();
+      
+      if (!timeWindowData) {
+        throw new Error('Nessun dato ricevuto dal server');
+      }
+
+      return {
+        currentTime: timeWindowData.currentTime,
+        currentDate: timeWindowData.currentDate,
+        timeWindow: timeWindowData.timeWindow,
+        tasks: timeWindowData.tasks.map((task: any) => ({
+          ...calendarTaskToKidTask(task, timeWindowData.currentDate),
+          timeStatus: task.timeStatus,
+          minutesFromNow: task.minutesFromNow
+        })),
+        summary: timeWindowData.summary
+      };
+
+    } catch (error) {
+      console.error('❌ Errore nel caricamento finestra temporale:', error);
+      this.error.set(error instanceof Error ? error.message : 'Errore sconosciuto');
+      return null;
+    } finally {
+      this.loading.set(false);
     }
   }
 

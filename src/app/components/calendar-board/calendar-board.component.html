@@ -4,6 +4,31 @@
 
   <div class="calendar-container">
 
+    <!-- Header profilo bambino (se attivo) -->
+    @if (activeKidProfile) {
+      <div class="kid-profile-header">
+        <div class="kid-welcome">
+          <div class="kid-avatar-circle" [style.background]="activeKidProfile.selectedAvatar.palette.gradient">
+            <span class="kid-emoji">{{ activeKidProfile.selectedAvatar.emoji }}</span>
+          </div>
+          <div class="kid-info">
+            <h2>Ciao {{ activeKidProfile.name }}!</h2>
+            <p class="kid-theme">{{ activeKidProfile.selectedAvatar.name }} • {{ activeKidProfile.selectedAvatar.palette.name }}</p>
+          </div>
+        </div>
+        <div class="kid-stats">
+          <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
+            <span class="stat-number">{{ getTotalTasksCount() }}</span>
+            <span class="stat-label">Task</span>
+          </div>
+          <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
+            <span class="stat-number">{{ getCompletedTasksCount() }}</span>
+            <span class="stat-label">Fatte</span>
+          </div>
+        </div>
+      </div>
+    }
+
     <div class="calendar-header">
       <div class="header-top">
         <h1>Planner di Famiglia</h1>
@@ -27,6 +52,9 @@
         </div>
 
         <ion-segment [value]="currentView()" (ionChange)="onViewChange($event)" class="view-selector">
+          <ion-segment-button value="now">
+            <ion-label>Ora</ion-label>
+          </ion-segment-button>
           <ion-segment-button value="day">
             <ion-label>Oggi</ion-label>
           </ion-segment-button>
@@ -37,8 +65,95 @@
       </div>
     </div>
 
-    <div class="days-grid" [class.single-day]="currentView() === 'day'">
-      @for (d of getDisplayDays(); track d) {
+    <!-- Vista "Ora Corrente" con design coerente -->
+    @if (currentView() === 'now') {
+      <div class="days-grid now-view">
+        @if (timeWindowData()) {
+          <ion-card class="day-card now-card">
+            <ion-card-header class="day-header now-header">
+              <div class="current-time-section">
+                <div class="time-emoji">🕘</div>
+                <ion-card-title>{{ timeWindowData()!.currentTime }}</ion-card-title>
+                <p class="day-date">{{ formatCurrentDate(timeWindowData()!.currentDate) }}</p>
+                <div class="time-window-badge">
+                  <ion-badge color="primary">
+                    {{ timeWindowData()!.timeWindow.start }} - {{ timeWindowData()!.timeWindow.end }}
+                  </ion-badge>
+                </div>
+                <ion-badge class="task-counter" [color]="getNowTaskCountColor()">
+                  {{ timeWindowData()!.summary.total }} attività
+                </ion-badge>
+              </div>
+              
+              <!-- Statistiche in stile compatto -->
+              @if (timeWindowData()!.summary) {
+                <div class="now-stats">
+                  <div class="stat-chip current">
+                    <span class="stat-icon">⚡</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.current }} ora</span>
+                  </div>
+                  <div class="stat-chip upcoming">
+                    <span class="stat-icon">⏰</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.upcoming }} prox</span>
+                  </div>
+                  <div class="stat-chip completed">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.completed }} fatte</span>
+                  </div>
+                </div>
+              }
+            </ion-card-header>
+
+            <ion-card-content>
+              <div class="drop-zone now-drop-zone">
+                @for (task of timeWindowData()!.tasks; track task.instanceId) {
+                  <div class="task-wrapper now-task-wrapper" [attr.data-time-status]="task.timeStatus">
+                    <div class="now-task-header">
+                      <div class="time-status-badge" [class]="'status-' + task.timeStatus">
+                        @if (task.timeStatus === 'current') {
+                          <ion-icon name="play-circle"></ion-icon>
+                          <span>ORA</span>
+                        } @else if (task.timeStatus === 'upcoming') {
+                          <ion-icon name="time"></ion-icon>
+                          <span>{{ formatMinutes(task.minutesFromNow) }}</span>
+                        } @else {
+                          <ion-icon name="checkmark-circle"></ion-icon>
+                          <span>FATTO</span>
+                        }
+                      </div>
+                      <div class="task-time-info">
+                        {{ task.start | date:'shortTime' }} - {{ task.end | date:'shortTime' }}
+                      </div>
+                    </div>
+                    <div class="task-card-content">
+                      <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="empty-now-message">
+                    <div class="empty-emoji">😊</div>
+                    <p>Nessuna attività in questa fascia oraria</p>
+                    <small>Goditi questo momento libero!</small>
+                  </div>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+        } @else {
+          <ion-card class="day-card loading-card">
+            <ion-card-content>
+              <div class="loading-content">
+                <ion-spinner name="crescent"></ion-spinner>
+                <p>Caricamento vista oraria...</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    } @else {
+      <!-- Vista normale giorni -->
+      <div class="days-grid" [class.single-day]="currentView() === 'day'">
+        @for (d of getDisplayDays(); track d) {
         <ion-card class="day-card">
           <ion-card-header class="day-header">
             <!-- (RIMOSSO) day-emoji -->
@@ -58,7 +173,7 @@
                  cdkDropListSortingDisabled="false"
                  [cdkDropListConnectedTo]="getConnectedDropLists(d)">
 
-              @for (task of lists()[d]; track task.id) {
+              @for (task of lists()[d]; track task.instanceId) {
                 <div cdkDrag 
                      [cdkDragData]="task"
                      [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
@@ -88,7 +203,9 @@
             </div>
           </ion-card-content>
         </ion-card>
-      }
-    </div>
+        }
+      </div>
+    }
+
   </div>
 </ion-content>

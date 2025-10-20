@@ -41,6 +41,49 @@ export interface CalendarResponse {
   dailyView: CalendarDay[];
 }
 
+// Interfacce per la vista "Ora Corrente"
+export interface CurrentTimeWindowTask extends CalendarTask {
+  timeStatus: 'past' | 'current' | 'upcoming';
+  minutesFromNow: number;
+}
+
+export interface CurrentTimeWindowResponse {
+  currentTime: string;
+  currentDate: string;
+  timeWindow: {
+    start: string;
+    end: string;
+  };
+  tasks: CurrentTimeWindowTask[];
+  summary: {
+    total: number;
+    completed: number;
+    pending: number;
+    current: number;
+    upcoming: number;
+  };
+}
+
+export interface CurrentTimeWindowData {
+  currentTime: string;
+  currentDate: string;
+  timeWindow: {
+    start: string;
+    end: string;
+  };
+  tasks: (import('./kid.models').KidTask & {
+    timeStatus: 'past' | 'current' | 'upcoming';
+    minutesFromNow: number;
+  })[];
+  summary: {
+    total: number;
+    completed: number;
+    pending: number;
+    current: number;
+    upcoming: number;
+  };
+}
+
 // Utility per convertire CalendarTask in KidTask (compatibilità)
 export function calendarTaskToKidTask(calendarTask: CalendarTask, date: string): import('./kid.models').KidTask {
   return {

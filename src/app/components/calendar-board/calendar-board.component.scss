@@ -32,6 +32,11 @@
   50% { transform: translateY(-15px) rotate(5deg); }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 .calendar-container {
   position: relative;
   z-index: 2;
@@ -40,10 +45,95 @@
   margin: 0 auto;
 }
 
+// Header profilo bambino
+.kid-profile-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 20px 20px 0 0;
+  margin-bottom: 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  
+  .kid-welcome {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .kid-avatar-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+      
+      .kid-emoji {
+        font-size: 2rem;
+      }
+    }
+    
+    .kid-info {
+      h2 {
+        margin: 0 0 4px 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--ion-color-dark);
+      }
+      
+      .kid-theme {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--ion-color-medium);
+        font-style: italic;
+      }
+    }
+  }
+  
+  .kid-stats {
+    display: flex;
+    gap: 24px;
+    
+    .stat-item {
+      text-align: center;
+      
+      .stat-number {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+      
+      .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        opacity: 0.8;
+        margin-top: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}
+
 .calendar-header {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  border-radius: 0 0 20px 20px; // Solo angoli inferiori arrotondati quando c'è il kid-header sopra
   padding: 20px;
+  
+  // Se non c'è kid-profile-header, mantieni il border radius completo
+  &:first-child {
+    border-radius: 20px;
+  }
   margin-bottom: 25px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
@@ -160,6 +250,213 @@
               transform: scale(1.05);
             }
           }
+        }
+      }
+    }
+  }
+
+  &.now-view {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+    margin: 0 auto;
+    
+    .now-card {
+      min-height: 500px;
+      
+      .now-header {
+        .current-time-section {
+          text-align: center;
+          
+          .time-emoji {
+            font-size: 3rem;
+            margin-bottom: 8px;
+          }
+          
+          ion-card-title {
+            font-size: 2rem;
+            color: var(--kids-blue);
+            font-weight: 700;
+            margin: 8px 0 4px 0;
+          }
+          
+          .day-date {
+            font-size: 1rem;
+            margin-bottom: 12px;
+          }
+          
+          .time-window-badge {
+            margin-bottom: 12px;
+            
+            ion-badge {
+              font-size: 0.85rem;
+              padding: 6px 12px;
+            }
+          }
+        }
+        
+        .now-stats {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 16px;
+          
+          .stat-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            
+            .stat-icon {
+              font-size: 0.9rem;
+            }
+            
+            &.current {
+              background: rgba(126, 216, 164, 0.15);
+              color: var(--kids-green);
+            }
+            
+            &.upcoming {
+              background: rgba(108, 140, 255, 0.15);
+              color: var(--kids-blue);
+            }
+            
+            &.completed {
+              background: rgba(148, 163, 184, 0.15);
+              color: var(--ion-color-medium);
+            }
+          }
+        }
+      }
+      
+      ion-card-content {
+        padding: 20px;
+        
+        .now-drop-zone {
+          min-height: 300px;
+          
+          .now-task-wrapper {
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+            
+            &[data-time-status="current"] {
+              border-left-color: var(--kids-green);
+              background: rgba(126, 216, 164, 0.08);
+              box-shadow: 0 2px 8px rgba(126, 216, 164, 0.2);
+            }
+            
+            &[data-time-status="upcoming"] {
+              border-left-color: var(--kids-blue);
+              background: rgba(108, 140, 255, 0.05);
+            }
+            
+            &[data-time-status="past"] {
+              border-left-color: var(--ion-color-medium);
+              opacity: 0.7;
+            }
+            
+            .now-task-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 8px;
+              
+              .time-status-badge {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                
+                &.status-current {
+                  background: var(--kids-green);
+                  color: white;
+                  animation: pulse 2s infinite;
+                }
+                
+                &.status-upcoming {
+                  background: rgba(108, 140, 255, 0.15);
+                  color: var(--kids-blue);
+                }
+                
+                &.status-past {
+                  background: rgba(148, 163, 184, 0.2);
+                  color: var(--ion-color-medium);
+                }
+                
+                ion-icon {
+                  font-size: 0.8rem;
+                }
+              }
+              
+              .task-time-info {
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: var(--ion-color-medium);
+                background: rgba(255, 255, 255, 0.8);
+                padding: 2px 8px;
+                border-radius: 8px;
+              }
+            }
+            
+            .task-card-content {
+              app-kid-task-card {
+                width: 100%;
+              }
+            }
+          }
+          
+          .empty-now-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ion-color-medium);
+            
+            .empty-emoji {
+              font-size: 3rem;
+              margin-bottom: 16px;
+            }
+            
+            p {
+              margin: 0 0 8px 0;
+              font-size: 1rem;
+              font-weight: 600;
+            }
+            
+            small {
+              font-size: 0.9rem;
+              opacity: 0.8;
+            }
+          }
+        }
+      }
+    }
+    
+    .loading-card {
+      .loading-content {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--ion-color-medium);
+        
+        ion-spinner {
+          margin-bottom: 16px;
+        }
+        
+        p {
+          margin: 0;
+          font-size: 1rem;
         }
       }
     }
@@ -390,9 +687,9 @@
       }
 
       .view-selector {
-        min-width: 160px;
+        min-width: 200px;
         width: 100%;
-        max-width: 200px;
+        max-width: 250px;
       }
     }
   }
