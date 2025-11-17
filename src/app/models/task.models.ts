@@ -3,6 +3,7 @@ export interface Child {
   name: string;
   avatar?: string;
   age: number;
+  createdAt: Date;
 }
 
 export interface Routine {

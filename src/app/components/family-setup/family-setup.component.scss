@@ -1,0 +1,359 @@
+.family-setup-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+
+  .setup-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .step-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  // Headers comuni per ogni step
+  .welcome-header,
+  .step-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+
+    .family-emoji,
+    .step-emoji {
+      font-size: 4rem;
+      margin-bottom: 15px;
+    }
+
+    h1, h2 {
+      margin: 0 0 10px 0;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+  }
+
+  // Cards comuni
+  .setup-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+
+    ion-card-header {
+      text-align: center;
+      padding-bottom: 10px;
+
+      ion-card-title {
+        color: #333;
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Custom items
+  .custom-item,
+  .name-item {
+    --background: transparent;
+    --border-color: #e0e0e0;
+    --border-radius: 10px;
+    margin-bottom: 15px;
+
+    ion-input {
+      --color: #333;
+      font-size: 1rem;
+    }
+
+    &.item-invalid {
+      --border-color: #ff6b6b;
+      
+      ion-input {
+        --color: #ff6b6b;
+      }
+    }
+  }
+
+  // Pulsanti
+  .continue-btn,
+  .create-btn {
+    margin-top: 20px;
+    --border-radius: 12px;
+    font-weight: 600;
+    height: 50px;
+  }
+
+  // Bottom actions
+  .bottom-action {
+    text-align: center;
+    margin-top: 30px;
+  }
+}
+
+// Step specifici
+
+// Step 2: Count selection
+.count-step {
+  .count-card {
+    text-align: center;
+
+    .count-display {
+      margin: 20px 0 30px 0;
+
+      .count-number {
+        font-size: 4rem;
+        font-weight: bold;
+        color: var(--ion-color-primary);
+        line-height: 1;
+      }
+
+      .count-label {
+        font-size: 1.2rem;
+        color: #666;
+        margin-top: 5px;
+      }
+    }
+
+    .range-item {
+      --background: transparent;
+      margin: 20px 0;
+
+      ion-range {
+        padding: 20px 0;
+      }
+    }
+
+    .children-preview {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 30px 0 20px 0;
+
+      .child-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+        min-width: 70px;
+
+        .child-icon {
+          font-size: 2rem;
+          margin-bottom: 5px;
+        }
+
+        small {
+          color: #666;
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+}
+
+// Step 3: Names entry
+.names-step {
+  .names-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .name-input-container {
+    position: relative;
+
+    .child-number {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+
+      .number-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--ion-color-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+    }
+
+    .name-suggestions {
+      margin-top: 10px;
+      text-align: center;
+
+      small {
+        color: #666;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .suggestion-chips {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        ion-button {
+          --height: 30px;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}
+
+// Step 4: Review
+.review-step {
+  .review-card {
+    .family-icon {
+      margin-right: 10px;
+      color: var(--ion-color-primary);
+    }
+
+    .family-member {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background: rgba(102, 126, 234, 0.05);
+
+      .member-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--ion-color-primary-tint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 15px;
+      }
+
+      .member-info {
+        flex: 1;
+
+        h3 {
+          margin: 0 0 5px 0;
+          color: #333;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 0.9rem;
+        }
+      }
+
+      &.parent-member {
+        border: 2px solid var(--ion-color-primary);
+        
+        .member-avatar {
+          background: var(--ion-color-primary);
+          color: white;
+        }
+      }
+    }
+
+    .children-list {
+      margin: 20px 0;
+    }
+
+    .existing-family-actions {
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(255, 193, 7, 0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+
+      p {
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .family-setup-page {
+    .setup-container {
+      padding: 15px;
+    }
+
+    .welcome-header,
+    .step-header {
+      .family-emoji,
+      .step-emoji {
+        font-size: 3rem;
+      }
+
+      h1, h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .count-step {
+      .count-display {
+        .count-number {
+          font-size: 3rem;
+        }
+      }
+
+      .children-preview {
+        .child-placeholder {
+          min-width: 60px;
+          padding: 10px;
+
+          .child-icon {
+            font-size: 1.5rem;
+          }
+        }
+      }
+    }
+
+    .names-step {
+      .name-suggestions {
+        .suggestion-chips {
+          ion-button {
+            --height: 28px;
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animazioni per transizioni tra step
+.step-container {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

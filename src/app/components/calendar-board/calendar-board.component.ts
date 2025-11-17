@@ -30,6 +30,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   @Input() tasksByDay: Record<string, KidTask[]> = {};
   @Input() householdId: string = '';
   @Input() initialView: 'day' | 'week' | 'now' = 'week';
+  @Input() currentViewInput: 'day' | 'week' | 'now' = 'week'; // Nuovo input per la vista corrente
   @Input() timeWindowInput: CurrentTimeWindowData | null = null;
   @Input() activeKidProfile: any | null = null; // KidProfile dal parent
 
@@ -64,8 +65,9 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     }
     
     // Sincronizza la vista con quella del parent
-    if (this.initialView !== this.currentView()) {
-      this.currentView.set(this.initialView);
+    if (this.currentViewInput && this.currentViewInput !== this.currentView()) {
+      this.currentView.set(this.currentViewInput);
+      console.log('📱 Vista aggiornata a:', this.currentViewInput);
     }
     
     // Aggiorna i dati della vista "Ora Corrente" quando cambiano
@@ -263,6 +265,59 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     }
   }
 
+  // Nuovi metodi per organizzare le attività per bambino
+  getChildrenWithTasksForDay(day: string): Array<{id: string, name: string, avatar: string, tasks: any[]}> {
+    const tasks = this.lists()[day] || [];
+    const childrenMap = new Map();
+
+    // Raggruppa le attività per bambino
+    tasks.forEach(task => {
+      // Estrai l'ID del bambino dall'attività (assumendo che sia in task.childId o task.assigneeProfileId)
+      const childId = (task as any).childId || (task as any).assigneeProfileId;
+      const childName = (task as any).childName || 'Bambino';
+      const childAvatar = this.getChildAvatar(childId);
+
+      if (!childrenMap.has(childId)) {
+        childrenMap.set(childId, {
+          id: childId,
+          name: childName,
+          avatar: childAvatar,
+          tasks: []
+        });
+      }
+
+      childrenMap.get(childId).tasks.push(task);
+    });
+
+    return Array.from(childrenMap.values());
+  }
+
+  private getChildAvatar(childId: string): string {
+    // Se abbiamo il profilo attivo del bambino
+    if (this.activeKidProfile && this.activeKidProfile.id === childId) {
+      return this.activeKidProfile.selectedAvatar.emoji;
+    }
+
+    // Lista di avatar predefiniti per bambini diversi
+    const avatars = ['👧', '👦', '👶', '🧒', '👨‍🦱', '👩‍🦱', '🧑‍🦲', '👨‍🦰'];
+    // Usa l'ID per determinare un avatar consistente
+    const index = childId ? childId.charCodeAt(childId.length - 1) % avatars.length : 0;
+    return avatars[index];
+  }
+
+  getTasksForChild(day: string, childId: string): any[] {
+    const tasks = this.lists()[day] || [];
+    return tasks.filter(task => 
+      ((task as any).childId === childId) || 
+      ((task as any).assigneeProfileId === childId)
+    );
+  }
+
+  getCompletedTasksForChild(day: string, childId: string): number {
+    const tasks = this.getTasksForChild(day, childId);
+    return tasks.filter(task => task.done).length;
+  }
+
   // Metodo per aggiornare i dati della vista "Ora Corrente"
   updateTimeWindowData(data: CurrentTimeWindowData | null) {
     this.timeWindowData.set(data);
@@ -270,8 +325,30 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   // Restituisce l'array di drop lists connessi per permettere il drag tra giorni
   getConnectedDropLists(currentDay: string): string[] {
-    return this.getDisplayDays()
-      .map(day => `drop-list-${day}`);
+    if (this.currentView() === 'day') {
+      // Per la vista giornaliera con bambini, permetti il trasferimento tra tutti i bambini dello stesso giorno
+      // e anche verso gli altri giorni
+      const connectedLists: string[] = [];
+      
+      // Aggiungi tutte le drop list dei bambini per il giorno corrente
+      const children = this.getChildrenWithTasksForDay(currentDay);
+      children.forEach(child => {
+        connectedLists.push(`drop-list-${currentDay}-${child.id}`);
+      });
+      
+      // Aggiungi le drop list degli altri giorni (per vista settimana/mese)
+      this.getDisplayDays().forEach(day => {
+        if (day !== currentDay) {
+          connectedLists.push(`drop-list-${day}`);
+        }
+      });
+      
+      return connectedLists;
+    } else {
+      // Vista normale settimana/mese
+      return this.getDisplayDays()
+        .map(day => `drop-list-${day}`);
+    }
   }
 
   // Metodi per le statistiche del bambino attivo

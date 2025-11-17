@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { 
@@ -23,6 +23,7 @@ import {
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
 import { KidProfileService } from '../../services/kid-profile.service';
 import { KidAvatar } from '../../models/avatar.models';
+import { AuthService } from '../../common/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -62,14 +63,15 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private kidProfileService: KidProfileService
+    private kidProfileService: KidProfileService,
+    private authService: AuthService = inject(AuthService)
   ) { }
 
   ngOnInit() {
     console.log('🔄 Login Component ngOnInit - URL attuale:', this.router.url);
   }
 
-  loginParent() {
+  async loginParent() {
     if (this.email && this.password) {
       // Logout completo da eventuali profili bambini attivi
       console.log('🚪 Logout profili bambini...');
@@ -79,8 +81,13 @@ export class LoginComponent implements OnInit {
       this.selectedKidName = null;
       this.showAvatarSelector = false;
       
+      // Salva un token fittizio per l'autenticazione (modalità mock)
+      await this.authService.setToken('mock-parent-token');
+      console.log('🔑 Token di autenticazione salvato');
+      
+      // Naviga al setup famiglia invece che direttamente alla home
       setTimeout(() => {
-        this.router.navigate(['/home']);
+        this.router.navigate(['/family-setup']);
       }, 800);
     } else {
       alert('📧 Inserisci email e password!');
@@ -162,7 +169,7 @@ export class LoginComponent implements OnInit {
   }
 
   // il punto UNICO in cui resetti lo stato e navighi
-  onAvatarDidDismiss(ev: CustomEvent) {
+  async onAvatarDidDismiss(ev: CustomEvent) {
     console.log('🔄 Modal didDismiss chiamato:', ev.detail);
     
     // Reset stato
@@ -175,7 +182,10 @@ export class LoginComponent implements OnInit {
     console.log('📊 Role:', role, 'Data:', data);
 
     if (role === 'confirm') {
-      // Modal chiuso con conferma - naviga alla home
+      // Modal chiuso con conferma - salva token per bambini e naviga alla home
+      console.log('🔑 Salvando token per bambino...');
+      await this.authService.setToken('mock-kid-token');
+      
       console.log('🏠 Navigando alla home...');
       setTimeout(() => {
         this.router.navigate(['/home']);

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import {
   IonSegment, IonSegmentButton, IonBadge, IonAvatar
 } from '@ionic/angular/standalone';
 import { Child, Routine, Task } from 'src/app/models/task.models';
+import { AuthService } from '../../common/auth.service';
 
 @Component({
   selector: 'app-settings',
@@ -51,7 +52,10 @@ export class SettingsComponent implements OnInit {
     '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService = inject(AuthService)
+  ) {}
 
   ngOnInit() {
     this.loadMockData();
@@ -60,8 +64,8 @@ export class SettingsComponent implements OnInit {
   private loadMockData() {
     // Mock children
     this.children.set([
-      { id: '1', name: 'Giulia', age: 7 },
-      { id: '2', name: 'Marco', age: 5 }
+      { id: '1', name: 'Giulia', age: 7, createdAt: new Date() },
+      { id: '2', name: 'Marco', age: 5, createdAt: new Date() }
     ]);
 
     // Mock tasks
@@ -126,6 +130,11 @@ export class SettingsComponent implements OnInit {
   // Actions
   goBack() {
     this.router.navigate(['/home']);
+  }
+
+  async logout() {
+    await this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   addChild() {

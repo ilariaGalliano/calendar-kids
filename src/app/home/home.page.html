@@ -1,64 +1,193 @@
-<ion-content class="ion-no-padding">
-    <div class="app-layout">
-      <!-- Contenuto principale -->
-      <div class="main-container" [class.sidebar-closed]="!sidebarExpanded()">
-        
-        <!-- Stato di caricamento -->
-        @if (isLoading()) {
-          <div class="loading-container">
-            <ion-spinner name="crescent" color="primary"></ion-spinner>
-            <ion-text color="medium">
-              <p>Caricamento calendario...</p>
-            </ion-text>
+<!-- Modern Skylight Calendar Max inspired layout -->
+<div class="app-layout">
+  <!-- Main calendar container -->
+  <div class="main-container" [class.sidebar-closed]="!isSidebarOpen()">
+    <ion-content [fullscreen]="true">
+      <div class="home-container">
+        <!-- Clean, modern header -->
+        <header class="home-header">
+          <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">
+            <ion-icon name="menu-outline"></ion-icon>
+          </ion-button>
+          
+          <h2 class="family-title">
+            <span *ngIf="currentFamily()">{{ currentFamily()?.parentName }} Family</span>
+            <span *ngIf="!currentFamily()">CalendarKids</span>
+          </h2>
+        </header>
+
+        <!-- Loading state -->
+        <div *ngIf="loading()" class="loading-container">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <p>Caricamento calendario...</p>
+        </div>
+
+        <!-- Error state -->
+        <div *ngIf="error() && !loading()" class="error-container">
+          <ion-text color="danger">
+            <h2>Ops! Qualcosa è andato storto</h2>
+            <p>{{ error() }}</p>
+          </ion-text>
+          <ion-button fill="solid" color="primary" (click)="reload()">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Riprova
+          </ion-button>
+        </div>
+
+        <!-- Main content when family exists -->
+        <div *ngIf="currentFamily() && !loading() && !error()">
+          <!-- Modern child selector -->
+          <div class="child-selector">
+            <div class="selector-header">
+              <h3>Visualizza calendario di:</h3>
+              
+              <!-- View selector -->
+              <div class="view-selector-mini">
+                <ion-segment [value]="currentCalendarView()" (ionChange)="onViewSelectorChange($event)">
+                  <ion-segment-button value="now">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <ion-label>Ora</ion-label>
+                  </ion-segment-button>
+                  <ion-segment-button value="day">
+                    <ion-icon name="today"></ion-icon>
+                    <ion-label>Giorno</ion-label>
+                  </ion-segment-button>
+                  <ion-segment-button value="week">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <ion-label>Settimana</ion-label>
+                  </ion-segment-button>
+                </ion-segment>
+              </div>
+            </div>
+            
+            <div class="child-tabs">
+              <ion-button
+                [fill]="!currentSelectedChild() ? 'solid' : 'outline'"
+                [color]="!currentSelectedChild() ? 'primary' : 'medium'"
+                size="small"
+                (click)="selectChild(null)">
+                <ion-icon name="people-outline" slot="start"></ion-icon>
+                Tutti
+              </ion-button>
+              
+              <ion-button
+                *ngFor="let child of currentFamily()?.children"
+                [fill]="currentSelectedChild()?.id === child.id ? 'solid' : 'outline'"
+                [color]="currentSelectedChild()?.id === child.id ? 'primary' : 'medium'"
+                size="small"
+                (click)="selectChild(child.id)">
+                <span class="child-emoji">{{ child.avatar }}</span>
+                {{ child.name }}
+              </ion-button>
+              
+              <!-- Pulsante per rigenerare attività (temporaneo per test) -->
+              <ion-button
+                fill="clear"
+                color="medium"
+                size="small"
+                (click)="regenerateActivities()">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Nuove attività
+              </ion-button>
+            </div>
           </div>
-        }
-        
-        <!-- Stato di errore -->
-        @else if (getError()) {
-          <div class="error-container">
-            <ion-text color="danger">
-              <h2>⚠️ Errore</h2>
-              <p>{{ getError() }}</p>
-            </ion-text>
-            <ion-button fill="solid" color="primary" (click)="reload()">
-              🔄 Riprova
-            </ion-button>
-          </div>
-        }
-        
-        <!-- Calendario principale -->
-        @else {
+
+          <!-- Calendar view using CalendarBoardComponent -->
           <app-calendar-board 
-            [days]="days()" 
-            [tasksByDay]="tasksByDay()" 
-            [householdId]="householdId || ''"
-            [initialView]="currentView()"
-            [timeWindowInput]="timeWindowData()"
+            [days]="days"
+            [tasksByDay]="tasksByDay()"
+            [householdId]="currentFamily()?.id || ''"
+            [currentViewInput]="currentCalendarView()"
             [activeKidProfile]="getActiveKidProfile()"
             (taskDone)="onTaskDone($event)"
             (viewChanged)="onViewChanged($event)"
             (dateChanged)="onDateChanged($event)">
           </app-calendar-board>
-        }
+        </div>
+
+        <!-- No family state with modern welcome design -->
+        <div *ngIf="!currentFamily() && !loading()" class="no-family-container">
+          <div class="welcome-message">
+            <h2>👨‍👩‍👧‍👦 Benvenuto in CalendarKids</h2>
+            <p>Il calendario intelligente per organizzare la vita della tua famiglia. Crea routine, assegna attività e tieni traccia dei progressi dei tuoi bambini.</p>
+            <ion-button fill="solid" color="primary" (click)="goToLogin()">
+              <ion-icon name="rocket-outline" slot="start"></ion-icon>
+              Inizia ora
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ion-content>
+  </div>
+
+  <!-- Modern sidebar with enhanced family management -->
+  <div class="sidebar-container" *ngIf="currentFamily()">
+    <aside class="sidebar" [class.expanded]="isSidebarOpen()">
+      <div class="sidebar-content">
+        <!-- Enhanced family info section -->
+        <div class="family-info">
+          <h4>👨‍👩‍👧‍👦 {{ currentFamily()?.parentName }} Family</h4>
+          <p>{{ (currentFamily()?.children?.length || 0) }} {{ (currentFamily()?.children?.length || 0) === 1 ? 'bambino' : 'bambini' }}</p>
+          
+          <!-- Modern children list -->
+          <div class="family-children-list">
+            <div 
+              *ngFor="let child of currentFamily()?.children" 
+              class="family-child-item"
+              [class.selected]="currentSelectedChild()?.id === child.id"
+              (click)="selectChild(child.id)">
+              <div class="child-avatar-small">{{ child.avatar }}</div>
+              <span class="child-name">{{ child.name }}</span>
+              <div class="child-tasks-count">
+                {{ getTotalTasksForChild(child.id) }}
+              </div>
+            </div>
+          </div>
+        </div>
         
-      </div>
-
-      <!-- Pulsante toggle sidebar -->
-      <div class="sidebar-toggle" [class.sidebar-closed]="!sidebarExpanded()">
-        <ion-button fill="solid" size="small" color="white" (click)="toggleSidebar()" class="toggle-btn">
-          @if (sidebarExpanded()) {
-          <span class="toggle-icon">✖️</span>
-          } @else {
-          <span class="toggle-icon">⚙️</span>
-          }
-        </ion-button>
-      </div>
-
-      <!-- Sidebar che si chiude completamente -->
-      @if (sidebarExpanded()) {
-      <div class="sidebar-container">
+        <!-- Original AccountSidebar component -->
         <app-account-sidebar (closeSidebar)="toggleSidebar()"></app-account-sidebar>
+        
+        <!-- Enhanced family actions -->
+        <div class="family-actions">
+          <ion-button 
+            fill="outline" 
+            color="primary"
+            routerLink="/family-setup">
+            <ion-icon name="settings-outline" slot="start"></ion-icon>
+            Gestisci Famiglia
+          </ion-button>
+          
+          <ion-button 
+            fill="outline" 
+            color="danger"
+            (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Esci
+          </ion-button>
+        </div>
       </div>
-      }
-    </div>
-  </ion-content>
+      
+      <ion-button
+        fill="clear"
+        color="medium"
+        class="close-sidebar-btn"
+        (click)="closeSidebar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </aside>
+  </div>
+</div>
+
+<!-- Modern sidebar toggle button -->
+<div class="sidebar-toggle" [class.sidebar-closed]="!isSidebarOpen()">
+  <ion-button 
+    class="toggle-btn"
+    (click)="toggleSidebar()"
+    [attr.aria-label]="isSidebarOpen() ? 'Chiudi sidebar' : 'Apri sidebar'">
+    <ion-icon 
+      class="toggle-icon"
+      [name]="isSidebarOpen() ? 'chevron-forward' : 'chevron-back'">
+    </ion-icon>
+  </ion-button>
+</div>

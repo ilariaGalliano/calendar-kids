@@ -1,10 +1,17 @@
-<ion-content class="planner-page">
+<ion-content class="kids-page">
 
-  <!-- (RIMOSSO) floating-decorations -->
+  <!-- Floating decorations for subtle ambiance -->
+  <div class="floating-decorations">
+    <div class="decoration">📅</div>
+    <div class="decoration">⭐</div>
+    <div class="decoration">🎯</div>
+    <div class="decoration">✨</div>
+    <div class="decoration">🌟</div>
+  </div>
 
   <div class="calendar-container">
 
-    <!-- Header profilo bambino (se attivo) -->
+    <!-- Modern family member header -->
     @if (activeKidProfile) {
       <div class="kid-profile-header">
         <div class="kid-welcome">
@@ -12,30 +19,32 @@
             <span class="kid-emoji">{{ activeKidProfile.selectedAvatar.emoji }}</span>
           </div>
           <div class="kid-info">
-            <h2>Ciao {{ activeKidProfile.name }}!</h2>
+            <h2>{{ activeKidProfile.name }}</h2>
             <p class="kid-theme">{{ activeKidProfile.selectedAvatar.name }} • {{ activeKidProfile.selectedAvatar.palette.name }}</p>
           </div>
         </div>
         <div class="kid-stats">
           <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
             <span class="stat-number">{{ getTotalTasksCount() }}</span>
-            <span class="stat-label">Task</span>
+            <span class="stat-label">Attività</span>
           </div>
           <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
             <span class="stat-number">{{ getCompletedTasksCount() }}</span>
-            <span class="stat-label">Fatte</span>
+            <span class="stat-label">Completate</span>
           </div>
         </div>
       </div>
     }
 
+    <!-- Clean, professional calendar header -->
     <div class="calendar-header">
       <div class="header-top">
-        <h1>Planner di Famiglia</h1>
+        <h1>Calendario Famiglia</h1>
 
         <div class="nav-controls">
           <ion-button fill="clear" size="small" (click)="goToToday()" class="today-btn">
-            <ion-icon name="today" slot="icon-only"></ion-icon>
+            <ion-icon name="today" slot="start"></ion-icon>
+            Oggi
           </ion-button>
           <ion-button fill="clear" size="small" (click)="navigateDate('prev')" class="nav-btn">
             <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
@@ -53,12 +62,15 @@
 
         <ion-segment [value]="currentView()" (ionChange)="onViewChange($event)" class="view-selector">
           <ion-segment-button value="now">
+            <ion-icon name="time-outline"></ion-icon>
             <ion-label>Ora</ion-label>
           </ion-segment-button>
           <ion-segment-button value="day">
-            <ion-label>Oggi</ion-label>
+            <ion-icon name="today"></ion-icon>
+            <ion-label>Giorno</ion-label>
           </ion-segment-button>
           <ion-segment-button value="week">
+            <ion-icon name="calendar-outline"></ion-icon>
             <ion-label>Settimana</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -151,56 +163,131 @@
         }
       </div>
     } @else {
-      <!-- Vista normale giorni -->
+      <!-- Vista normale giorni con design moderno -->
       <div class="days-grid" [class.single-day]="currentView() === 'day'">
         @for (d of getDisplayDays(); track d) {
         <ion-card class="day-card">
           <ion-card-header class="day-header">
-            <!-- (RIMOSSO) day-emoji -->
-            <ion-card-title>{{ d | date:'EEE' }}</ion-card-title>
-            <p class="day-date">{{ d | date:'dd/MM' }}</p>
+            <div class="day-emoji">{{ getDayEmoji(d) }}</div>
+            <ion-card-title>{{ d | date:'EEEE' }}</ion-card-title>
+            <p class="day-date">{{ d | date:'dd MMMM' }}</p>
             <ion-badge class="task-counter" [color]="getTaskCountColor(d)">
-              {{ (lists()[d] || []).length }} attività
+              {{ (lists()[d] || []).length }} {{ (lists()[d] || []).length === 1 ? 'attività' : 'attività' }}
             </ion-badge>
           </ion-card-header>
 
           <ion-card-content>
-            <div cdkDropList 
-                 [id]="'drop-list-' + d"
-                 [cdkDropListData]="lists()[d] || []"
-                 (cdkDropListDropped)="drop($event, d)" 
-                 class="drop-zone"
-                 cdkDropListSortingDisabled="false"
-                 [cdkDropListConnectedTo]="getConnectedDropLists(d)">
-
-              @for (task of lists()[d]; track task.instanceId) {
-                <div cdkDrag 
-                     [cdkDragData]="task"
-                     [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
-                     class="task-wrapper">
-                  <div class="task-content">
-                    <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
-                    <div class="drag-handle-wrapper" cdkDragHandle>
-                      <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+            @if (currentView() === 'day') {
+              <!-- Vista giornaliera organizzata per bambino -->
+              @for (child of getChildrenWithTasksForDay(d); track child.id) {
+                <div class="child-section">
+                  <div class="child-header">
+                    <div class="child-avatar-container">
+                      <div class="child-avatar">{{ child.avatar }}</div>
+                      <div class="child-info">
+                        <h4 class="child-name">{{ child.name }}</h4>
+                        <p class="child-progress">
+                          {{ getCompletedTasksForChild(d, child.id) }}/{{ child.tasks.length }} completate
+                        </p>
+                      </div>
                     </div>
+                    <ion-badge 
+                      [color]="getCompletedTasksForChild(d, child.id) === child.tasks.length ? 'success' : 'medium'"
+                      class="completion-badge">
+                      @if (getCompletedTasksForChild(d, child.id) === child.tasks.length) {
+                        <ion-icon name="checkmark-circle"></ion-icon>
+                        Tutto fatto!
+                      } @else {
+                        {{ child.tasks.length - getCompletedTasksForChild(d, child.id) }} rimanenti
+                      }
+                    </ion-badge>
                   </div>
-                  <div *cdkDragPlaceholder class="drag-placeholder">
-                    <div class="placeholder-content">
-                      <ion-icon name="move-outline"></ion-icon>
-                      <span>Rilascia qui</span>
-                    </div>
+
+                  <div cdkDropList 
+                       [id]="'drop-list-' + d + '-' + child.id"
+                       [cdkDropListData]="child.tasks"
+                       (cdkDropListDropped)="drop($event, d)" 
+                       class="child-drop-zone"
+                       cdkDropListSortingDisabled="false"
+                       [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+
+                    @for (task of child.tasks; track task.instanceId) {
+                      <div cdkDrag 
+                           [cdkDragData]="task"
+                           [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                           class="task-wrapper child-task">
+                        <div class="task-content">
+                          <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
+                          <div class="drag-handle-wrapper" cdkDragHandle>
+                            <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+                          </div>
+                        </div>
+                        <div *cdkDragPlaceholder class="drag-placeholder">
+                          <div class="placeholder-content">
+                            <ion-icon name="move-outline"></ion-icon>
+                            <span>Rilascia qui</span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (child.tasks.length === 0) {
+                      <div class="empty-child-zone">
+                        <ion-icon name="happy-outline"></ion-icon>
+                        <p>Nessuna attività per {{ child.name }}</p>
+                      </div>
+                    }
+
                   </div>
                 </div>
               }
 
-              @if ((lists()[d] || []).length === 0) {
+              @if (getChildrenWithTasksForDay(d).length === 0) {
                 <div class="empty-drop-zone">
                   <ion-icon name="calendar-outline"></ion-icon>
-                  <p>Trascina qui le attività</p>
+                  <p>Nessuna attività programmata</p>
                 </div>
               }
 
-            </div>
+            } @else {
+              <!-- Vista normale per settimana/mese -->
+              <div cdkDropList 
+                   [id]="'drop-list-' + d"
+                   [cdkDropListData]="lists()[d] || []"
+                   (cdkDropListDropped)="drop($event, d)" 
+                   class="drop-zone"
+                   cdkDropListSortingDisabled="false"
+                   [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+
+                @for (task of lists()[d]; track task.instanceId) {
+                  <div cdkDrag 
+                       [cdkDragData]="task"
+                       [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                       class="task-wrapper">
+                    <div class="task-content">
+                      <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
+                      <div class="drag-handle-wrapper" cdkDragHandle>
+                        <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+                      </div>
+                    </div>
+                    <div *cdkDragPlaceholder class="drag-placeholder">
+                      <div class="placeholder-content">
+                        <ion-icon name="move-outline"></ion-icon>
+                        <span>Rilascia qui</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                @if ((lists()[d] || []).length === 0) {
+                  <div class="empty-drop-zone">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <p>Nessuna attività programmata</p>
+                  </div>
+                }
+
+              </div>
+            }
           </ion-card-content>
         </ion-card>
         }

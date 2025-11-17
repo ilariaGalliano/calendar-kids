@@ -1,0 +1,259 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-back-button 
+      slot="start" 
+      (click)="goBack()" 
+      *ngIf="step() !== 'welcome'">
+    </ion-back-button>
+    <ion-title>
+      <span *ngIf="step() === 'welcome'">👨‍👩‍👧‍👦 Configurazione Famiglia</span>
+      <span *ngIf="step() === 'select-count'">Quanti bambini?</span>
+      <span *ngIf="step() === 'enter-names'">Nomi dei bambini</span>
+      <span *ngIf="step() === 'review'">Riepilogo Famiglia</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="family-setup-page">
+  <div class="setup-container">
+
+    <!-- Step 1: Welcome / Existing Family -->
+    <div *ngIf="step() === 'welcome'" class="step-container welcome-step">
+      <div class="welcome-header">
+        <div class="family-emoji">👨‍👩‍👧‍👦</div>
+        <h1>Crea la tua famiglia</h1>
+        <p>Configura il calendario per tutta la famiglia!</p>
+      </div>
+
+      <ion-card class="setup-card">
+        <ion-card-header>
+          <ion-card-title>Iniziamo!</ion-card-title>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <ion-item class="custom-item">
+            <ion-input
+              label="👤 Il tuo nome (genitore)"
+              labelPlacement="stacked"
+              [(ngModel)]="parentName"
+              placeholder="Es: Maria, Giovanni..."
+              maxlength="30">
+            </ion-input>
+          </ion-item>
+          
+          <ion-button 
+            expand="block" 
+            color="primary"
+            (click)="startFamilySetup()"
+            [disabled]="parentName().trim().length < 2"
+            class="continue-btn">
+            <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            Continua
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Pulsante per tornare al login -->
+      <div class="bottom-action">
+        <ion-button fill="clear" color="medium" (click)="goToLogin()">
+          <ion-icon name="arrow-back" slot="start"></ion-icon>
+          Torna al Login
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Step 2: Select number of children -->
+    <div *ngIf="step() === 'select-count'" class="step-container count-step">
+      <div class="step-header">
+        <div class="step-emoji">🧒</div>
+        <h2>Quanti bambini hai?</h2>
+        <p>Puoi sempre modificare questa informazione in seguito</p>
+      </div>
+
+      <ion-card class="setup-card count-card">
+        <ion-card-content>
+          <div class="count-display">
+            <div class="count-number">{{ numberOfChildren() }}</div>
+            <div class="count-label">
+              {{ numberOfChildren() === 1 ? 'bambino' : 'bambini' }}
+            </div>
+          </div>
+
+          <ion-item class="range-item">
+            <ion-range 
+              [min]="1" 
+              [max]="6" 
+              [value]="numberOfChildren()"
+              (ionInput)="numberOfChildren.set(+$event.detail.value)"
+              color="primary"
+              [pin]="true">
+              <ion-label slot="start">1</ion-label>
+              <ion-label slot="end">6</ion-label>
+            </ion-range>
+          </ion-item>
+
+          <!-- Visualizzazione anteprima -->
+          <div class="children-preview">
+            <div 
+              *ngFor="let child of [].constructor(numberOfChildren()); let i = index" 
+              class="child-placeholder">
+              <div class="child-icon">{{ i % 2 === 0 ? '👦' : '👧' }}</div>
+              <small>Bambino {{ i + 1 }}</small>
+            </div>
+          </div>
+
+          <ion-button 
+            expand="block" 
+            color="primary"
+            (click)="proceedToNamesEntry()"
+            [disabled]="!canProceedToNames()"
+            class="continue-btn">
+            <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            Avanti
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 3: Enter children names -->
+    <div *ngIf="step() === 'enter-names'" class="step-container names-step">
+      <div class="step-header">
+        <div class="step-emoji">✏️</div>
+        <h2>Inserisci i nomi</h2>
+        <p>Come si chiamano i tuoi bambini?</p>
+      </div>
+
+      <ion-card class="setup-card">
+        <ion-card-content>
+          <div class="names-grid">
+            <div 
+              *ngFor="let form of childrenForms(); let i = index" 
+              class="name-input-container">
+              
+              <div class="child-number">
+                <div class="number-circle">{{ i + 1 }}</div>
+              </div>
+              
+              <ion-item class="name-item" [class.item-invalid]="!form.isValid && form.name.length > 0">
+                <ion-input
+                  [label]="'👶 Bambino ' + (i + 1)"
+                  labelPlacement="stacked"
+                  [value]="form.name"
+                  (ionInput)="onChildNameChange(i, $event.detail.value!)"
+                  placeholder="Inserisci nome..."
+                  maxlength="25">
+                </ion-input>
+              </ion-item>
+
+              <!-- Suggerimenti nomi -->
+              <div class="name-suggestions" *ngIf="form.name.length === 0">
+                <small>Suggerimenti:</small>
+                <div class="suggestion-chips">
+                  <ion-button 
+                    *ngFor="let name of suggestedNames.boys.slice(0, 3)" 
+                    size="small" 
+                    fill="outline" 
+                    color="primary"
+                    (click)="useSuggestedName(i, name)">
+                    {{ name }}
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ion-button 
+            expand="block" 
+            color="primary"
+            (click)="proceedToReview()"
+            [disabled]="!allNamesValid()"
+            class="continue-btn">
+            <ion-icon name="checkmark" slot="end"></ion-icon>
+            Conferma Nomi
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 4: Review and create -->
+    <div *ngIf="step() === 'review'" class="step-container review-step">
+      <div class="step-header">
+        <div class="step-emoji">📋</div>
+        <h2>Riepilogo Famiglia</h2>
+        <p>Controlla che tutto sia corretto</p>
+      </div>
+
+      <ion-card class="setup-card review-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="home" class="family-icon"></ion-icon>
+            Famiglia {{ parentName() }}
+          </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <!-- Genitore -->
+          <div class="family-member parent-member">
+            <div class="member-avatar">👤</div>
+            <div class="member-info">
+              <h3>{{ parentName() }}</h3>
+              <p>Genitore</p>
+            </div>
+          </div>
+
+          <!-- Bambini -->
+          <div class="children-list">
+            <div 
+              *ngFor="let form of childrenForms(); let i = index" 
+              class="family-member child-member">
+              <div class="member-avatar">{{ i % 2 === 0 ? '👦' : '👧' }}</div>
+              <div class="member-info">
+                <h3>{{ form.name }}</h3>
+                <p>Bambino {{ i + 1 }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Azioni famiglia esistente -->
+          <div *ngIf="existingFamily()" class="existing-family-actions">
+            <ion-text color="primary">
+              <p><ion-icon name="information-circle"></ion-icon> Stai modificando una famiglia esistente</p>
+            </ion-text>
+            
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="danger"
+              (click)="resetFamily()">
+              <ion-icon name="trash" slot="start"></ion-icon>
+              Reset Famiglia
+            </ion-button>
+          </div>
+
+          <!-- Pulsante di creazione -->
+          <ion-button 
+            expand="block" 
+            color="success"
+            (click)="createFamily()"
+            [disabled]="isLoading()"
+            class="create-btn">
+            <ion-icon 
+              [name]="isLoading() ? 'hourglass' : 'checkmark-circle'" 
+              slot="start">
+            </ion-icon>
+            {{ isLoading() ? 'Creazione...' : (existingFamily() ? 'Aggiorna Famiglia' : 'Crea Famiglia') }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- Alert per messaggi -->
+<ion-alert
+  [isOpen]="showAlert()"
+  [message]="alertMessage()"
+  [buttons]="[{text: 'OK', role: 'cancel'}]"
+  (didDismiss)="showAlert.set(false)">
+</ion-alert>

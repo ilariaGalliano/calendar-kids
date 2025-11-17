@@ -11,12 +11,23 @@ export class AuthService {
   async setToken(token: string) {
     await Preferences.set({ key: this.key, value: token });
   }
+  
   async getToken(): Promise<string | null> {
     const { value } = await Preferences.get({ key: this.key });
     return value ?? null;
   }
+  
   async clearToken() {
     await Preferences.remove({ key: this.key });
+  }
+
+  async isAuthenticated(): Promise<boolean> {
+    const token = await this.getToken();
+    return !!token;
+  }
+
+  async logout() {
+    await this.clearToken();
   }
 
   register(email: string, password: string, householdName: string) {

@@ -1,69 +1,341 @@
+// Modern Skylight Calendar Max inspired layout
 .app-layout {
   display: flex;
-  min-height: 100vh; // Cambiato da height: 100vh
+  min-height: 100vh;
   width: 100%;
   position: relative;
+  background: linear-gradient(135deg, #f8fafb 0%, #f1f5f9 50%, #e2e8f0 100%);
 }
 
 .main-container {
   flex: 1;
-  // Rimuovi overflow-y: auto se presente
-  background: transparent; // Lascia che il calendario mostri il suo sfondo
+  background: transparent;
   transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &.sidebar-closed {
     margin-right: 0;
   }
+  
+  .home-container {
+    padding: 0;
+    
+    .home-header {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      padding: 20px 32px;
+      margin: 24px 24px 0 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(226, 232, 240, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      
+      .menu-btn {
+        --background: transparent;
+        --color: #3730a3;
+        --border-radius: 12px;
+        --box-shadow: 0 2px 8px rgba(55, 48, 163, 0.1);
+        
+        &:hover {
+          --background: rgba(55, 48, 163, 0.06);
+        }
+      }
+      
+      .family-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -0.025em;
+        flex: 1;
+      }
+    }
+  }
 }
 
+// Modern sidebar design
 .sidebar-container {
-  width: 320px;
-  min-width: 320px;
-  background: var(--ion-card-background);
-  border-left: 1px solid var(--ion-color-medium);
+  width: 360px;
+  min-width: 360px;
+  background: rgba(255, 255, 255, 0.98);
+  border-left: 1px solid rgba(226, 232, 240, 0.8);
   overflow-y: auto;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.sidebar {
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.expanded {
+    transform: translateX(0);
+  }
+  
+  .sidebar-content {
+    padding: 32px 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    
+    .family-info {
+      background: rgba(55, 48, 163, 0.06);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(55, 48, 163, 0.12);
+      
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      
+      p {
+        margin: 0 0 20px 0;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+      
+      .family-children-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        
+        .family-child-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid rgba(226, 232, 240, 0.6);
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          }
+          
+          &.selected {
+            background: rgba(55, 48, 163, 0.1);
+            border-color: #3730a3;
+            
+            .child-name {
+              color: #3730a3;
+              font-weight: 600;
+            }
+          }
+          
+          .child-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 1.2rem;
+            color: white;
+          }
+          
+          .child-name {
+            flex: 1;
+            font-weight: 500;
+            color: #1e293b;
+          }
+          
+          .child-tasks-count {
+            font-size: 0.8rem;
+            color: #64748b;
+            background: rgba(100, 116, 139, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+    
+    .family-actions {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      
+      ion-button {
+        --border-radius: 12px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        font-weight: 600;
+        
+        &[color="primary"] {
+          --background: #3730a3;
+          --box-shadow: 0 4px 12px rgba(55, 48, 163, 0.25);
+          
+          &:hover {
+            --background: #4338ca;
+          }
+        }
+        
+        &[color="danger"] {
+          --border-color: #dc2626;
+          --color: #dc2626;
+          
+          &:hover {
+            --background: rgba(220, 38, 38, 0.06);
+          }
+        }
+      }
+    }
+  }
+  
+  .close-sidebar-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    --background: transparent;
+    --color: #64748b;
+    
+    &:hover {
+      --background: rgba(100, 116, 139, 0.1);
+    }
+  }
 }
 
 .sidebar-toggle {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 32px;
+  right: 32px;
   z-index: 1000;
   
   &.sidebar-closed {
-    right: 20px;
+    right: 32px;
   }
   
   .toggle-btn {
-    --background: var(--kids-blue);
+    --background: #3730a3;
     --color: white;
     --border-radius: 50%;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --box-shadow: 0 4px 12px rgba(108, 140, 255, 0.4);
-    width: 48px;
-    height: 48px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --box-shadow: 0 8px 24px rgba(55, 48, 163, 0.3);
+    width: 56px;
+    height: 56px;
     
     .toggle-icon {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
     }
     
     &:hover {
-      --background: var(--kids-pink);
+      --background: #4338ca;
+      transform: scale(1.05);
     }
   }
 }
 
-/* Responsive per tablet/mobile */
-@media (max-width: 768px) {
-  .sidebar-container {
-    width: 280px;
-    min-width: 280px;
+// Modern content areas
+.child-selector {
+  margin: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  backdrop-filter: blur(16px);
+  
+  .selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    
+    .view-selector-mini {
+      ion-segment {
+        --background: #f8fafc;
+        --indicator-color: #3730a3;
+        --color-checked: white;
+        --border-radius: 12px;
+        min-width: 200px;
+        border: 1px solid #e2e8f0;
+
+        ion-segment-button {
+          --indicator-box-shadow: 0 2px 12px rgba(55, 48, 163, 0.2);
+          --border-radius: 10px;
+          font-weight: 600;
+          --color: #64748b;
+          font-size: 0.9rem;
+          
+          ion-icon {
+            font-size: 1rem;
+            margin-bottom: 2px;
+          }
+          
+          ion-label {
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+  }
+  
+  .child-tabs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    
+    ion-button {
+      --border-radius: 12px;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      font-weight: 600;
+      
+      .child-emoji {
+        margin-right: 8px;
+        font-size: 1.1rem;
+      }
+      
+      &[fill="solid"] {
+        --background: #3730a3;
+        --color: white;
+        --box-shadow: 0 4px 12px rgba(55, 48, 163, 0.25);
+      }
+      
+      &[fill="outline"] {
+        --border-color: #e2e8f0;
+        --color: #64748b;
+        
+        &:hover {
+          --background: rgba(55, 48, 163, 0.06);
+          --color: #3730a3;
+        }
+      }
+      
+      &[fill="clear"] {
+        --color: #64748b;
+        
+        &:hover {
+          --background: rgba(100, 116, 139, 0.1);
+        }
+      }
+    }
   }
 }
 
-/* Stati di caricamento ed errore */
+// Loading and error states with modern styling
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -73,17 +345,16 @@
   padding: 2rem;
   
   ion-spinner {
-    margin-bottom: 1rem;
-    --color: var(--ion-color-primary);
+    margin-bottom: 1.5rem;
+    --color: #3730a3;
+    transform: scale(1.2);
   }
   
-  ion-text {
-    text-align: center;
-    
-    p {
-      margin: 0;
-      font-size: 1.1rem;
-    }
+  p {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #64748b;
+    font-weight: 500;
   }
 }
 
@@ -97,27 +368,244 @@
   text-align: center;
   
   ion-text {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     
     h2 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
+      font-size: 1.6rem;
+      color: #dc2626;
+      font-weight: 700;
     }
     
     p {
       margin: 0;
-      font-size: 1rem;
-      line-height: 1.4;
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: #64748b;
     }
   }
   
   ion-button {
-    --padding-start: 1.5rem;
-    --padding-end: 1.5rem;
+    --background: #3730a3;
+    --border-radius: 12px;
+    --padding-start: 24px;
+    --padding-end: 24px;
+    --box-shadow: 0 4px 16px rgba(55, 48, 163, 0.25);
+    font-weight: 600;
   }
 }
 
-/* Mobile molto piccolo */
+.no-family-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 2rem;
+  
+  .welcome-message {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 20px;
+    padding: 48px 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    backdrop-filter: blur(16px);
+    max-width: 500px;
+    
+    h2 {
+      margin: 0 0 16px 0;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -0.025em;
+    }
+    
+    p {
+      margin: 0 0 32px 0;
+      font-size: 1.1rem;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    
+    ion-button {
+      --background: #3730a3;
+      --border-radius: 12px;
+      --padding-start: 32px;
+      --padding-end: 32px;
+      --box-shadow: 0 8px 24px rgba(55, 48, 163, 0.3);
+      font-weight: 700;
+      font-size: 1.1rem;
+      
+      &:hover {
+        --background: #4338ca;
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// Responsive design for modern layout
+@media (max-width: 768px) {
+  .sidebar-container {
+    width: 320px;
+    min-width: 320px;
+  }
+  
+  .main-container .home-container {
+    .home-header {
+      margin: 16px;
+      padding: 16px 20px;
+      
+      .family-title {
+        font-size: 1.3rem;
+      }
+    }
+  }
+  
+  .child-selector {
+    margin: 16px;
+    padding: 20px;
+    
+    .selector-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      
+      h3 {
+        font-size: 1rem;
+      }
+      
+      .view-selector-mini {
+        width: 100%;
+        
+        ion-segment {
+          min-width: 100%;
+          
+          ion-segment-button {
+            font-size: 0.85rem;
+            
+            ion-icon {
+              font-size: 0.9rem;
+            }
+            
+            ion-label {
+              font-size: 0.8rem;
+            }
+          }
+        }
+      }
+    }
+    
+    .child-tabs {
+      gap: 8px;
+      
+      ion-button {
+        --padding-start: 12px;
+        --padding-end: 12px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  .calendar-container {
+    margin: 0 16px 16px 16px;
+    
+    .day-section {
+      margin-bottom: 20px;
+      
+      .day-header {
+        padding: 16px 20px;
+        
+        h3 {
+          font-size: 1.2rem;
+        }
+      }
+      
+      .day-children-tasks .child-tasks-section {
+        .child-header {
+          padding: 16px 20px;
+          
+          .child-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+          }
+          
+          .child-info h4 {
+            font-size: 1rem;
+          }
+        }
+        
+        .child-tasks-list {
+          padding: 16px 20px;
+          
+          .task-item {
+            padding: 12px;
+            gap: 12px;
+            
+            .task-time {
+              font-size: 0.8rem;
+              padding: 4px 8px;
+              min-width: 50px;
+            }
+            
+            .task-content {
+              h5 {
+                font-size: 0.95rem;
+              }
+              
+              p {
+                font-size: 0.8rem;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .sidebar .sidebar-content {
+    padding: 24px 20px;
+    
+    .family-info {
+      padding: 20px;
+      margin-bottom: 24px;
+      
+      h4 {
+        font-size: 1.1rem;
+      }
+      
+      .family-children-list .family-child-item {
+        padding: 10px;
+        
+        .child-avatar-small {
+          width: 36px;
+          height: 36px;
+          font-size: 1.1rem;
+        }
+        
+        .child-name {
+          font-size: 0.95rem;
+        }
+      }
+    }
+  }
+  
+  .sidebar-toggle {
+    top: 24px;
+    right: 24px;
+    
+    .toggle-btn {
+      width: 48px;
+      height: 48px;
+      
+      .toggle-icon {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .app-layout {
     flex-direction: column;
@@ -125,21 +613,79 @@
 
   .sidebar-container {
     width: 100%;
-    height: 200px;
-    min-height: 200px;
+    height: 300px;
+    min-height: 300px;
     border-left: none;
-    border-top: 1px solid var(--ion-color-medium);
-    order: 2; // Sidebar in fondo su mobile
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    order: 2;
   }
 
   .main-container {
     flex: 1;
-    order: 1; // Calendar in alto su mobile
+    order: 1;
+    
+    .home-container .home-header {
+      margin: 12px;
+      padding: 12px 16px;
+      
+      .family-title {
+        font-size: 1.2rem;
+      }
+    }
+  }
+  
+  .child-selector {
+    margin: 12px;
+    padding: 16px;
+    
+    .selector-header {
+      .view-selector-mini ion-segment {
+        ion-segment-button {
+          --padding-start: 8px;
+          --padding-end: 8px;
+          
+          ion-label {
+            display: none; // Nascondi le label su mobile molto piccolo
+          }
+          
+          ion-icon {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
+  
+  .calendar-container {
+    margin: 0 12px 12px 12px;
   }
   
   .loading-container,
   .error-container {
     height: 50vh;
     padding: 1rem;
+  }
+  
+  .no-family-container .welcome-message {
+    padding: 32px 24px;
+    margin: 12px;
+    
+    h2 {
+      font-size: 1.5rem;
+    }
+    
+    p {
+      font-size: 1rem;
+    }
+  }
+  
+  .sidebar-toggle {
+    top: 20px;
+    right: 20px;
+    
+    .toggle-btn {
+      width: 44px;
+      height: 44px;
+    }
   }
 }

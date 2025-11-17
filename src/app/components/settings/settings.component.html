@@ -10,9 +10,14 @@
   <div class="settings-container">
     <!-- Header -->
     <div class="page-header">
-      <ion-button fill="clear" (click)="goBack()" class="back-btn">
-        ← Indietro
-      </ion-button>
+      <div class="header-buttons">
+        <ion-button fill="clear" (click)="goBack()" class="back-btn">
+          ← Indietro
+        </ion-button>
+        <ion-button fill="outline" color="danger" (click)="logout()" class="logout-btn">
+          🚪 Logout
+        </ion-button>
+      </div>
       <h1>⚙️ Impostazioni Famiglia</h1>
       <p>Gestisci routine e task per i tuoi bambini</p>
     </div>
