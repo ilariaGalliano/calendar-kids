@@ -1,0 +1,81 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Setup Famiglia</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="setup-container">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>👨‍👩‍👧‍👦 Crea la tua famiglia</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-text color="medium">
+          <p>Configura la tua famiglia per iniziare a usare CalendarKids</p>
+        </ion-text>
+
+        <!-- Nome genitore -->
+        <ion-item>
+          <ion-label position="stacked">Nome Genitore</ion-label>
+          <ion-input 
+            [(ngModel)]="parentName"
+            placeholder="Es. Mamma, Papà, Maria..."
+            type="text"
+            required>
+          </ion-input>
+        </ion-item>
+
+        <!-- Numero di bambini -->
+        <ion-item>
+          <ion-label position="stacked">Quanti bambini hai?</ion-label>
+          <ion-select 
+            [ngModel]="numberOfChildren()"
+            (ionChange)="onChildrenCountChange($event)"
+            placeholder="Seleziona">
+            <ion-select-option value="1">1 bambino</ion-select-option>
+            <ion-select-option value="2">2 bambini</ion-select-option>
+            <ion-select-option value="3">3 bambini</ion-select-option>
+            <ion-select-option value="4">4 bambini</ion-select-option>
+            <ion-select-option value="5">5 bambini</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Preview -->
+        <div class="preview-section" *ngIf="numberOfChildren() > 0">
+          <ion-text color="primary">
+            <h3>👶 Verrà creata una famiglia con:</h3>
+          </ion-text>
+          <ul>
+            <li><strong>Genitore:</strong> {{ parentName() || 'Nome da inserire' }}</li>
+            <li><strong>Bambini:</strong> {{ numberOfChildren() }} {{ numberOfChildren() === 1 ? 'bambino' : 'bambini' }}</li>
+          </ul>
+          <ion-text color="medium">
+            <p><small>Potrai personalizzare i nomi e gli avatar dei bambini dopo la creazione.</small></p>
+          </ion-text>
+        </div>
+
+        <!-- Pulsanti -->
+        <div class="button-section">
+          <ion-button 
+            fill="outline" 
+            color="medium" 
+            (click)="goBack()"
+            [disabled]="isLoading()">
+            ← Indietro
+          </ion-button>
+          
+          <ion-button 
+            fill="solid" 
+            color="primary" 
+            (click)="createFamily()"
+            [disabled]="!parentName() || isLoading()">
+            <span *ngIf="!isLoading()">Crea Famiglia</span>
+            <span *ngIf="isLoading()">Creando...</span>
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

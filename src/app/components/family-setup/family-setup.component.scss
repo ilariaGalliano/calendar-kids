@@ -1,0 +1,44 @@
+.setup-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+
+  ion-card {
+    margin: 20px 0;
+  }
+
+  .preview-section {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: var(--ion-color-light);
+    border-radius: 8px;
+
+    h3 {
+      margin: 0 0 10px 0;
+    }
+
+    ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  }
+
+  .button-section {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: space-between;
+
+    ion-button {
+      flex: 1;
+    }
+  }
+
+  ion-item {
+    margin: 15px 0;
+  }
+}

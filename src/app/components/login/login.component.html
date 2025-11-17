@@ -8,28 +8,31 @@
   <div class="login-container">
     <!-- Header con emoji -->
     <div class="welcome-header">
-      <h1>Calendario</h1>
-      <p>Benvenuto nel tuo calendario magico!</p>
+      <h1>👨‍👩‍👧‍👦 CalendarKids</h1>
+      <p>Il calendario per tutta la famiglia!</p>
     </div>
 
-    <!-- Card di login colorata -->
+    <!-- Card di login per genitori -->
     <ion-card class="login-card">
       <ion-card-header>
-        <div class="card-emoji">🎨</div>
-        <ion-card-title>Accedi alla tua famiglia</ion-card-title>
+        <div class="card-emoji">�</div>
+        <ion-card-title>Accedi come Genitore</ion-card-title>
       </ion-card-header>
       
       <ion-card-content>
+        <ion-text color="medium">
+          <p>Gestisci il calendario di tutta la famiglia</p>
+        </ion-text>
+
         <!-- Login per genitori -->
-        <div class="login-section parent-section">
-          <h3>👨‍👩‍👧‍👦 Genitori</h3>
+        <div class="login-section">
           <ion-item class="custom-item">
             <ion-input
               label="📧 Email"
               labelPlacement="stacked"
               type="email"
               [(ngModel)]="email"
-              placeholder="mamma@esempio.com">
+              placeholder="genitore@esempio.com">
             </ion-input>
           </ion-item>
           
@@ -47,9 +50,9 @@
             expand="block" 
             color="primary"
             (click)="loginParent()"
-            class="login-btn parent-btn">
+            class="login-btn">
             <ion-icon name="log-in-outline" slot="start"></ion-icon>
-            Accedi come Genitore
+            Accedi
           </ion-button>
         </div>
 
@@ -58,50 +61,36 @@
           <span>oppure</span>
         </div>
 
-        <!-- Login veloce per bambini -->
-        <div class="login-section kids-section">
-          <h3>🧒 Bambini</h3>
-          <p class="kids-subtitle">Scegli il tuo nome e personalizza il tuo avatar!</p>
-          
-          <ion-grid class="kids-grid">
-            <ion-row>
-              <ion-col size="6" size-md="4" *ngFor="let kidName of kidsNames">
-                <div class="kid-name-card" (click)="startKidLogin(kidName)">
-                  <div class="name-circle">
-                    <span class="name-initial">{{ kidName.charAt(0) }}</span>
-                  </div>
-                  <p>{{ kidName }}</p>
-                  <small>Tocca per scegliere avatar</small>
-                </div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
+        <!-- Pulsanti di accesso rapido -->
+        <div class="quick-access">
+          <ion-button 
+            expand="block" 
+            fill="outline"
+            color="secondary"
+            (click)="goToFamilySetup()"
+            class="setup-btn">
+            <ion-icon name="people-outline" slot="start"></ion-icon>
+            Crea Nuova Famiglia
+          </ion-button>
+
+          <ion-button 
+            expand="block" 
+            fill="clear"
+            color="tertiary"
+            (click)="createDemoFamily()"
+            class="demo-btn">
+            <ion-icon name="flash-outline" slot="start"></ion-icon>
+            Famiglia Demo (3 bambini)
+          </ion-button>
         </div>
       </ion-card-content>
     </ion-card>
 
-    <!-- Footer carino -->
+    <!-- Footer informativo -->
     <div class="footer">
-      <p>✨ Organizziamo insieme la giornata! ✨</p>
+      <ion-text color="medium">
+        <p>✨ Organizza le attività di tutti i tuoi bambini in un solo posto! ✨</p>
+      </ion-text>
     </div>
   </div>
 </ion-content>
-
-<!-- Modal per selezione avatar -->
-<ion-modal
-  #avatarModal
-  [isOpen]="showAvatarSelector"
-  [canDismiss]="true"
-  class="avatar-modal"
-  (didDismiss)="onAvatarDidDismiss($event)"
->
-  <ng-template>
-    <ion-content class="modal-content" [scrollY]="true">
-      <app-avatar-selector
-        [kidName]="selectedKidName ?? ''"
-        (avatarSelected)="onAvatarSelected($event)"
-        (cancelled)="onAvatarCancelled()"
-      ></app-avatar-selector>
-    </ion-content>
-  </ng-template>
-</ion-modal>

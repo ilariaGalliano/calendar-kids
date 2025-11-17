@@ -1,13 +1,13 @@
+// Layout originale mantenuto + aggiunte per il sistema famiglia
 .app-layout {
   display: flex;
-  min-height: 100vh; // Cambiato da height: 100vh
+  min-height: 100vh;
   width: 100%;
   position: relative;
 }
 
 .main-container {
   flex: 1;
-  // Rimuovi overflow-y: auto se presente
   background: transparent; // Lascia che il calendario mostri il suo sfondo
   transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
@@ -16,6 +16,135 @@
   }
 }
 
+// Mantenuto il tuo layout ma aggiunto per il caso famiglia
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-btn {
+  margin-right: 15px;
+  --color: white;
+}
+
+.family-title {
+  color: white;
+  margin: 0;
+  font-weight: bold;
+  flex: 1;
+}
+
+// Child Selector per il nuovo sistema famiglia
+.child-selector {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px;
+  margin-bottom: 20px;
+}
+
+.child-selector h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.child-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.child-tabs ion-button {
+  --border-radius: 20px;
+  font-size: 14px;
+  text-transform: none;
+}
+
+// Calendar View per il sistema famiglia  
+.calendar-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 0 20px 20px 20px;
+}
+
+.day-section {
+  margin-bottom: 30px;
+}
+
+.day-header {
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 15px;
+}
+
+.day-header h3 {
+  margin: 0;
+  padding-bottom: 10px;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.task-item:hover {
+  transform: translateY(-1px);
+}
+
+.task-item.completed {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.task-content {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.task-content h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.task-time {
+  margin: 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.no-tasks {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+// Sidebar - mantengo il tuo stile originale ma aggiornato per famiglia
 .sidebar-container {
   width: 320px;
   min-width: 320px;
@@ -25,6 +154,57 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  
+  &.expanded {
+    right: 0;
+  }
+}
+
+.sidebar-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.family-info {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.family-info h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.family-info p {
+  margin: 0;
+  color: #666;
+}
+
+.family-actions {
+  margin-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+}
+
+.close-sidebar-btn {
+  margin: 10px;
+  align-self: flex-end;
+}
+
+// Mantengo il toggle button originale
 .sidebar-toggle {
   position: fixed;
   top: 20px;
@@ -55,15 +235,35 @@
   }
 }
 
-/* Responsive per tablet/mobile */
-@media (max-width: 768px) {
-  .sidebar-container {
-    width: 280px;
-    min-width: 280px;
-  }
+// No Family State
+.no-family-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  margin: 20px;
 }
 
-/* Stati di caricamento ed errore */
+.welcome-message {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 15px;
+  max-width: 400px;
+}
+
+.welcome-message h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.welcome-message p {
+  margin: 0 0 30px 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+// Stati di caricamento ed errore - mantenuti dal tuo originale
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -71,6 +271,7 @@
   justify-content: center;
   height: 60vh;
   padding: 2rem;
+  color: white;
   
   ion-spinner {
     margin-bottom: 1rem;
@@ -92,9 +293,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 60vh;
+  min-height: 200px;
   padding: 2rem;
   text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  margin: 20px;
   
   ion-text {
     margin-bottom: 1.5rem;
@@ -117,13 +321,46 @@
   }
 }
 
-/* Mobile molto piccolo */
+// Responsive per tablet/mobile - mantenuto dal tuo originale
+@media (max-width: 768px) {
+  .sidebar-container,
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+  
+  .home-header {
+    padding: 15px;
+  }
+  
+  .child-selector,
+  .calendar-container {
+    margin: 15px;
+  }
+  
+  .child-tabs {
+    justify-content: center;
+  }
+  
+  .task-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .task-content {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
+
+// Mobile molto piccolo - mantenuto dal tuo originale
 @media (max-width: 480px) {
   .app-layout {
     flex-direction: column;
   }
 
-  .sidebar-container {
+  .sidebar-container,
+  .sidebar {
     width: 100%;
     height: 200px;
     min-height: 200px;
@@ -141,5 +378,10 @@
   .error-container {
     height: 50vh;
     padding: 1rem;
+  }
+  
+  .child-selector,
+  .calendar-container {
+    margin: 10px;
   }
 }

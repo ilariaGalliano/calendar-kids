@@ -1,10 +1,24 @@
 import { Component, OnInit, OnDestroy, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonContent, IonButton, IonIcon, IonSpinner, IonText
+  IonContent, IonButton, IonIcon, IonSp  selectChild(childId: string | null) {
+    if (childId === null) {
+      this.selectedChild.set(null);
+    } else {
+      const family = this.activeFamily();
+      if (family) {
+        const child = family.children.find((c: Child) => c.id === childId);
+        this.selectedChild.set(child || null);
+      }
+    }
+  }
+
+  getTasksForDay(day: string): TaskInstance[] {
+    const tasks = this.tasksByDay();
+    return tasks[day] || [];
+  }ext
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
 
 // Services
 import { CalendarService } from '../services/calendar.service';
@@ -12,6 +26,8 @@ import { FamilyService } from '../services/family.service';
 
 // Components  
 import { AccountSidebarComponent } from '../features/account-sidebar/account-sidebar.component';
+
+import { AlertController } from '@ionic/angular';
 
 // Types
 import { Family, Child } from '../models/family.models';
@@ -55,13 +71,9 @@ export class HomePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private alertController = inject(AlertController);
 
-  // Family state - esposte come computed per il template
+  // Family state
   activeFamily = this.familyService.currentFamily;
   selectedChild = signal<Child | null>(null);
-
-  // Computed properties for template access
-  currentFamily = computed(() => this.activeFamily());
-  currentSelectedChild = computed(() => this.selectedChild());
 
   // Calendar state
   loading = signal<boolean>(true);
@@ -74,7 +86,6 @@ export class HomePage implements OnInit, OnDestroy {
 
   // UI state
   sidebarExpanded = signal<boolean>(false);
-  isSidebarOpen = computed(() => this.sidebarExpanded());
 
   // Calendar data
   days = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
@@ -192,15 +203,10 @@ export class HomePage implements OnInit, OnDestroy {
     } else {
       const family = this.activeFamily();
       if (family) {
-        const child = family.children.find((c: Child) => c.id === childId);
+        const child = family.children.find(c => c.id === childId);
         this.selectedChild.set(child || null);
       }
     }
-  }
-
-  getTasksForDay(day: string): TaskInstance[] {
-    const tasks = this.tasksByDay();
-    return tasks[day] || [];
   }
 
   toggleSidebar() {

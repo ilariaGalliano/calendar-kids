@@ -1,7 +1,7 @@
 <!-- Perfetto: ho mantenuto il tuo layout originale e integrato il sistema famiglia -->
 <div class="app-layout">
   <!-- Container principale del calendario -->
-  <div class="main-container" [class.sidebar-closed]="!isSidebarOpen()">
+  <div class="main-container" [class.sidebar-closed]="!sidebarExpanded()">
     <ion-content [fullscreen]="true">
       <div class="home-container">
         <header class="home-header">
@@ -10,8 +10,8 @@
           </ion-button>
           
           <h2 class="family-title">
-            <span *ngIf="currentFamily()">Famiglia {{ currentFamily()?.parentName }}</span>
-            <span *ngIf="!currentFamily()">Benvenuto</span>
+            <span *ngIf="activeFamily()">Famiglia {{ activeFamily()?.parentName }}</span>
+            <span *ngIf="!activeFamily()">Benvenuto</span>
           </h2>
         </header>
 
@@ -32,23 +32,23 @@
         </div>
 
         <!-- Main content when family exists -->
-        <div *ngIf="currentFamily() && !loading() && !error()">
+        <div *ngIf="activeFamily() && !loading() && !error()">
           <!-- Child selector tabs -->
           <div class="child-selector">
             <h3>Seleziona bambino:</h3>
             <div class="child-tabs">
               <ion-button
-                [fill]="!currentSelectedChild() ? 'solid' : 'outline'"
-                [color]="!currentSelectedChild() ? 'primary' : 'medium'"
+                [fill]="!selectedChild() ? 'solid' : 'outline'"
+                [color]="!selectedChild() ? 'primary' : 'medium'"
                 size="small"
                 (click)="selectChild(null)">
                 Tutti
               </ion-button>
               
               <ion-button
-                *ngFor="let child of currentFamily()?.children"
-                [fill]="currentSelectedChild()?.id === child.id ? 'solid' : 'outline'"
-                [color]="currentSelectedChild()?.id === child.id ? 'primary' : 'medium'"
+                *ngFor="let child of activeFamily()?.children"
+                [fill]="selectedChild()?.id === child.id ? 'solid' : 'outline'"
+                [color]="selectedChild()?.id === child.id ? 'primary' : 'medium'"
                 size="small"
                 (click)="selectChild(child.id)">
                 {{ child.name }}
@@ -58,8 +58,8 @@
 
           <!-- Calendar view con il tuo layout giorni/settimana originale -->
           <div class="calendar-container">
-            <div *ngIf="hasTasks">
-              <div *ngFor="let day of days" class="day-section">
+            <div *ngIf="hasTasks()">
+              <div *ngFor="let day of days()" class="day-section">
                 <div class="day-header">
                   <h3>{{ day }}</h3>
                 </div>
@@ -98,7 +98,7 @@
         </div>
 
         <!-- No family state -->
-        <div *ngIf="!currentFamily() && !loading()" class="no-family-container">
+        <div *ngIf="!activeFamily() && !loading()" class="no-family-container">
           <div class="welcome-message">
             <h2>👨‍👩‍👧‍👦 Benvenuto in CalendarKids!</h2>
             <p>Per iniziare, crea la tua famiglia e aggiungi i tuoi bambini.</p>
@@ -112,13 +112,13 @@
   </div>
 
   <!-- Sidebar container - mantiene il tuo layout originale con sidebar-container -->
-  <div class="sidebar-container" *ngIf="currentFamily()">
-    <aside class="sidebar" [class.expanded]="isSidebarOpen()">
+  <div class="sidebar-container" *ngIf="activeFamily()">
+    <aside class="sidebar" [class.expanded]="sidebarExpanded()">
       <div class="sidebar-content">
         <!-- Family info section -->
         <div class="family-info">
-          <h4>👨‍👩‍👧‍👦 {{ currentFamily()?.parentName }}</h4>
-          <p>{{ (currentFamily()?.children?.length || 0) }} bambini</p>
+          <h4>👨‍👩‍👧‍👦 {{ activeFamily()?.parentName }}</h4>
+          <p>{{ activeFamily()?.children.length }} bambini</p>
         </div>
         
         <!-- Original AccountSidebar component - questo mantiene il contenuto originale -->
@@ -148,14 +148,14 @@
 </div>
 
 <!-- Sidebar Toggle Button - mantiene il tuo stile originale -->
-<div class="sidebar-toggle" [class.sidebar-closed]="!isSidebarOpen()">
+<div class="sidebar-toggle" [class.sidebar-closed]="!sidebarExpanded()">
   <ion-button 
     class="toggle-btn"
     (click)="toggleSidebar()"
-    [attr.aria-label]="isSidebarOpen() ? 'Chiudi sidebar' : 'Apri sidebar'">
+    [attr.aria-label]="sidebarExpanded() ? 'Chiudi sidebar' : 'Apri sidebar'">
     <ion-icon 
       class="toggle-icon"
-      [name]="isSidebarOpen() ? 'chevron-forward' : 'chevron-back'">
+      [name]="sidebarExpanded() ? 'chevron-forward' : 'chevron-back'">
     </ion-icon>
   </ion-button>
 </div>

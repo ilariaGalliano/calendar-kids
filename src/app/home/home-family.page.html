@@ -1,0 +1,135 @@
+<ion-content [fullscreen]="true">
+  <div class="home-container">
+    <header class="home-header">
+      <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-button>
+      
+      <h2 class="family-title">
+        <span *ngIf="activeFamily">Famiglia {{ activeFamily.parentName }}</span>
+        <span *ngIf="!activeFamily">Benvenuto</span>
+      </h2>
+    </header>
+
+    <main class="main-container" [class.sidebar-closed]="!sidebarExpanded">
+      <!-- Loading state -->
+      <div *ngIf="loading" class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Caricamento calendario...</p>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="error && !loading" class="error-container">
+        <ion-text color="danger">
+          <p>{{ error }}</p>
+        </ion-text>
+        <ion-button fill="solid" color="primary" (click)="reload()">
+          Riprova
+        </ion-button>
+      </div>
+
+      <!-- Main content when family exists -->
+      <div *ngIf="activeFamily && !loading && !error">
+        <!-- Child selector tabs -->
+        <div class="child-selector">
+          <h3>Seleziona bambino:</h3>
+          <div class="child-tabs">
+            <ion-button
+              [fill]="!selectedChild ? 'solid' : 'outline'"
+              [color]="!selectedChild ? 'primary' : 'medium'"
+              size="small"
+              (click)="selectChild(null)">
+              Tutti
+            </ion-button>
+            
+            <ion-button
+              *ngFor="let child of activeFamily.children"
+              [fill]="selectedChild?.id === child.id ? 'solid' : 'outline'"
+              [color]="selectedChild?.id === child.id ? 'primary' : 'medium'"
+              size="small"
+              (click)="selectChild(child.id)">
+              {{ child.name }}
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Calendar view -->
+        <div class="calendar-container">
+          <div *ngIf="hasTasks">
+            <div *ngFor="let day of days" class="day-section">
+              <div class="day-header">
+                <h3>{{ day }}</h3>
+              </div>
+              
+              <div class="tasks-container" *ngIf="tasksByDay[day] && tasksByDay[day].length > 0">
+                <div
+                  *ngFor="let task of tasksByDay[day]"
+                  class="task-item"
+                  [class.completed]="task.done"
+                  [style.border-left]="'4px solid ' + task.color">
+                  
+                  <div class="task-content">
+                    <h4>{{ task.title }}</h4>
+                    <p class="task-time">
+                      {{ task.start | date:'HH:mm' }} - {{ task.end | date:'HH:mm' }}
+                    </p>
+                  </div>
+                  
+                  <ion-button
+                    fill="clear"
+                    [color]="task.done ? 'success' : 'medium'"
+                    (click)="onTaskDone({instanceId: task.instanceId, done: !task.done})">
+                    <ion-icon [name]="task.done ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+              
+              <div *ngIf="!tasksByDay[day] || tasksByDay[day].length === 0" class="no-tasks">
+                <p>Nessuna attività per oggi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No family state -->
+      <div *ngIf="!activeFamily && !loading" class="no-family-container">
+        <div class="welcome-message">
+          <h2>👨‍👩‍👧‍👦 Benvenuto in CalendarKids!</h2>
+          <p>Per iniziare, crea la tua famiglia e aggiungi i tuoi bambini.</p>
+          <ion-button fill="solid" color="primary" (click)="goToLogin()">
+            Inizia ora
+          </ion-button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" [class.expanded]="sidebarExpanded">
+      <div class="sidebar-content">
+        <div class="family-info" *ngIf="activeFamily">
+          <h4>👨‍👩‍👧‍👦 {{ activeFamily.parentName }}</h4>
+          <p>{{ activeFamily.children.length }} bambini</p>
+        </div>
+        
+        <div class="sidebar-actions">
+          <ion-button 
+            fill="outline" 
+            color="danger"
+            (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Logout
+          </ion-button>
+        </div>
+      </div>
+      
+      <ion-button
+        fill="clear"
+        color="medium"
+        class="close-sidebar-btn"
+        (click)="closeSidebar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </aside>
+  </div>
+</ion-content>
