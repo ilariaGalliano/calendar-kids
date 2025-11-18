@@ -18,6 +18,8 @@ import { AlertController } from '@ionic/angular';
 
 import { AccountSidebarComponent } from '../features/account-sidebar/account-sidebar.component';
 import { CalendarBoardComponent } from '../components/calendar-board/calendar-board.component';
+import { PointsAnimationComponent } from '../components/points-animation/points-animation.component';
+import { ChildRewardsComponent } from '../components/child-rewards/child-rewards.component';
 
 import { CalendarService } from '../services/calendar.service';
 import { FamilyService } from '../services/family.service';
@@ -58,8 +60,9 @@ interface DayTasks {
     IonSegment,
     IonSegmentButton,
     IonLabel,
-    AccountSidebarComponent,
     CalendarBoardComponent
+    // PointsAnimationComponent,
+    // ChildRewardsComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
@@ -81,6 +84,7 @@ export class HomePage implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   tasksByDay = signal<DayTasks>({});
   currentCalendarView = signal<'day' | 'week' | 'now'>('week'); // Nuovo signal per la vista
+  timeWindowData: any = null; // Dati per la vista "ora corrente"
   hasTasks = computed(() => {
     const tasks = this.tasksByDay();
     return Object.values(tasks).some(dayTasks => dayTasks.length > 0);
@@ -133,7 +137,32 @@ export class HomePage implements OnInit, OnDestroy {
         return;
       }
 
-      // Generate tasks for each day of the week using date strings
+      // Prova prima a caricare dal BE, se fallisce usa i mock
+      console.log('🌐 Tentativo di caricamento dal BE per famiglia:', family.id);
+      
+      try {
+        // Carica i dati dalla vista corrente
+        const currentView = this.currentCalendarView();
+        
+        if (currentView === 'now') {
+          await this.loadCurrentTimeWindow(family.id);
+        } else if (currentView === 'day') {
+          const today = new Date().toISOString().slice(0, 10);
+          await this.loadDayCalendar(family.id, today);
+        } else {
+          await this.loadWeekCalendar(family.id);
+        }
+        
+        console.log('✅ Dati caricati dal BE con successo');
+        return; // Se il BE funziona, esci qui
+        
+      } catch (beError) {
+        console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);
+        // Se il BE fallisce, usa i mock come fallback
+      }
+
+      // Fallback: Generate tasks for each day of the week using mock data
+      console.log('🔄 Caricamento dati mock come fallback');
       const weekTasks: DayTasks = {};
       const weekDates = this.getWeekDates();
 
@@ -143,11 +172,13 @@ export class HomePage implements OnInit, OnDestroy {
       });
 
       this.tasksByDay.set(weekTasks);
-      this.loading.set(false);
+      console.log('✅ Dati mock caricati');
+      
     } catch (err) {
       this.error.set('Errore nel caricamento delle attività');
-      this.loading.set(false);
       console.error('Error loading tasks:', err);
+    } finally {
+      this.loading.set(false);
     }
   }
 
@@ -379,16 +410,22 @@ export class HomePage implements OnInit, OnDestroy {
     const newView = event.view as 'day' | 'week' | 'now';
     this.currentCalendarView.set(newView);
     
-    // Se necessario, ricarica i dati per la nuova vista
+    const family = this.currentFamily();
+    if (!family) {
+      console.warn('❌ Nessuna famiglia attiva per caricare i dati');
+      return;
+    }
+    
+    // Carica i dati specifici per la nuova vista
     if (newView === 'now') {
-      // Per la vista "now" potresti voler caricare dati specifici
       console.log('📅 Caricamento vista "Ora corrente"');
+      this.loadCurrentTimeWindow(family.id);
     } else if (newView === 'day' && event.date) {
-      // Per la vista giorno con data specifica
       console.log('📅 Caricamento vista giorno per:', event.date);
+      this.loadDayCalendar(family.id, event.date);
     } else {
-      // Per la vista settimana
       console.log('📅 Caricamento vista settimana');
+      this.loadWeekCalendar(family.id);
     }
   }
 
@@ -406,5 +443,116 @@ export class HomePage implements OnInit, OnDestroy {
     } else {
       // Sposta alla settimana successiva
     }
+  }
+
+  // logout() {
+  //   // this.auth.logout();
+  //   this.router.navigate(['/login']);
+  // }
+
+  // Metodi per caricare dati dal BE
+  async loadWeekCalendar(householdId: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const tasksByDay = await this.calendarService.loadWeekCalendar(householdId, todayStr);
+      
+      if (tasksByDay) {
+        // Converte KidTask[] in TaskInstance[]
+        const convertedTasks: DayTasks = {};
+        const family = this.currentFamily();
+        
+        for (const [day, kidTasks] of Object.entries(tasksByDay)) {
+          convertedTasks[day] = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
+        }
+        
+        this.tasksByDay.set(convertedTasks);
+        // Genera i giorni della settimana
+        this.days = this.calendarService.generateWeekDays();
+        console.log('✅ Calendario settimanale caricato dal BE:', convertedTasks);
+      }
+    } catch (error) {
+      console.error('❌ Errore caricamento calendario settimanale:', error);
+      this.error.set('Errore nel caricamento del calendario');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadDayCalendar(householdId: string, date: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    try {
+      const kidTasks = await this.calendarService.loadDayCalendar(householdId, date);
+      
+      if (kidTasks) {
+        const family = this.currentFamily();
+        const tasks = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
+        const dayTasks = { [date]: tasks };
+        
+        this.tasksByDay.set(dayTasks);
+        this.days = [date];
+        console.log('✅ Calendario giornaliero caricato dal BE:', dayTasks);
+      }
+    } catch (error) {
+      console.error('❌ Errore caricamento calendario giornaliero:', error);
+      this.error.set('Errore nel caricamento del calendario');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadCurrentTimeWindow(householdId: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    try {
+      const timeWindowData = await this.calendarService.loadCurrentTimeWindow(householdId);
+      
+      if (timeWindowData) {
+        // Per la vista "now" non usiamo tasksByDay ma passiamo i dati direttamente al calendario
+        this.timeWindowData = timeWindowData;
+        console.log('✅ Vista "Ora corrente" caricata dal BE:', timeWindowData);
+      }
+    } catch (error) {
+      console.error('❌ Errore caricamento vista "Ora corrente":', error);
+      this.error.set('Errore nel caricamento della vista corrente');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Converte KidTask in TaskInstance per compatibilità
+  private convertKidTaskToTaskInstance(kidTask: any, family: Family | null): TaskInstance {
+    const childId = kidTask.assigneeProfileId || kidTask.childId || 'unknown';
+    let childName = 'Bambino';
+    
+    if (family) {
+      const child = family.children.find((c: Child) => c.id === childId);
+      if (child) {
+        childName = child.name;
+      }
+    }
+    
+    return {
+      id: kidTask.id,
+      instanceId: kidTask.instanceId,
+      title: kidTask.title,
+      color: kidTask.color,
+      start: kidTask.start,
+      end: kidTask.end,
+      done: kidTask.done,
+      doneAt: kidTask.doneAt,
+      description: kidTask.description,
+      childId: childId,
+      childName: childName
+    };
+  }
+
+  goToSettings() {
+    this.router.navigate(['/settings']);
   }
 }

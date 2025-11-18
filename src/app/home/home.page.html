@@ -1,19 +1,18 @@
 <!-- Modern Skylight Calendar Max inspired layout -->
 <div class="app-layout">
   <!-- Main calendar container -->
-  <div class="main-container" [class.sidebar-closed]="!isSidebarOpen()">
+  <div class="main-container">
     <ion-content [fullscreen]="true">
       <div class="home-container">
         <!-- Clean, modern header -->
-        <header class="home-header">
-          <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">
-            <ion-icon name="menu-outline"></ion-icon>
-          </ion-button>
-          
+        <header class="home-header">  
           <h2 class="family-title">
             <span *ngIf="currentFamily()">{{ currentFamily()?.parentName }} Family</span>
             <span *ngIf="!currentFamily()">CalendarKids</span>
           </h2>
+          <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">
+            <ion-icon name="menu-outline"></ion-icon>
+          </ion-button>
         </header>
 
         <!-- Loading state -->
@@ -98,6 +97,7 @@
             [tasksByDay]="tasksByDay()"
             [householdId]="currentFamily()?.id || ''"
             [currentViewInput]="currentCalendarView()"
+            [timeWindowInput]="timeWindowData"
             [activeKidProfile]="getActiveKidProfile()"
             (taskDone)="onTaskDone($event)"
             (viewChanged)="onViewChanged($event)"
@@ -120,40 +120,38 @@
     </ion-content>
   </div>
 
+  <!-- Overlay per la sidebar -->
+  <div class="sidebar-overlay" *ngIf="isSidebarOpen()" (click)="closeSidebar()"></div>
+
   <!-- Modern sidebar with enhanced family management -->
-  <div class="sidebar-container" *ngIf="currentFamily()">
-    <aside class="sidebar" [class.expanded]="isSidebarOpen()">
+  <div class="sidebar-container" *ngIf="currentFamily()" [class.expanded]="isSidebarOpen()">
+    <aside class="sidebar">
       <div class="sidebar-content">
         <!-- Enhanced family info section -->
         <div class="family-info">
           <h4>👨‍👩‍👧‍👦 {{ currentFamily()?.parentName }} Family</h4>
           <p>{{ (currentFamily()?.children?.length || 0) }} {{ (currentFamily()?.children?.length || 0) === 1 ? 'bambino' : 'bambini' }}</p>
-          
-          <!-- Modern children list -->
-          <div class="family-children-list">
-            <div 
-              *ngFor="let child of currentFamily()?.children" 
-              class="family-child-item"
-              [class.selected]="currentSelectedChild()?.id === child.id"
-              (click)="selectChild(child.id)">
-              <div class="child-avatar-small">{{ child.avatar }}</div>
-              <span class="child-name">{{ child.name }}</span>
-              <div class="child-tasks-count">
-                {{ getTotalTasksForChild(child.id) }}
-              </div>
-            </div>
-          </div>
         </div>
         
-        <!-- Original AccountSidebar component -->
-        <app-account-sidebar (closeSidebar)="toggleSidebar()"></app-account-sidebar>
+        <!-- Sezione ricompense bambini -->
+        <div class="children-rewards-section">
+          <h4 class="rewards-title">🌟 Ricompense</h4>
+          <!-- Temporaneamente commentato per debug -->
+          <!--
+          <app-child-rewards 
+            *ngFor="let child of currentFamily()?.children" 
+            [child]="child">
+          </app-child-rewards>
+          -->
+          <p>Sistema ricompense in caricamento...</p>
+        </div>
         
         <!-- Enhanced family actions -->
         <div class="family-actions">
           <ion-button 
             fill="outline" 
             color="primary"
-            routerLink="/family-setup">
+            routerLink="/family-setup" (click)="goToSettings()">
             <ion-icon name="settings-outline" slot="start"></ion-icon>
             Gestisci Famiglia
           </ion-button>
@@ -177,17 +175,8 @@
       </ion-button>
     </aside>
   </div>
-</div>
 
-<!-- Modern sidebar toggle button -->
-<div class="sidebar-toggle" [class.sidebar-closed]="!isSidebarOpen()">
-  <ion-button 
-    class="toggle-btn"
-    (click)="toggleSidebar()"
-    [attr.aria-label]="isSidebarOpen() ? 'Chiudi sidebar' : 'Apri sidebar'">
-    <ion-icon 
-      class="toggle-icon"
-      [name]="isSidebarOpen() ? 'chevron-forward' : 'chevron-back'">
-    </ion-icon>
-  </ion-button>
+  <!-- Animazioni punti volanti -->
+  <!-- Temporaneamente commentato per debug -->
+  <!-- <app-points-animation></app-points-animation> -->
 </div>

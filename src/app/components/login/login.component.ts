@@ -40,9 +40,6 @@ import { AuthService } from '../../common/auth.service';
     IonInput,
     IonButton,
     IonIcon,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonModal,
     AvatarSelectorComponent
   ],

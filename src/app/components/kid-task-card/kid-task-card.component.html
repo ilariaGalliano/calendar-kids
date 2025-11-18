@@ -11,6 +11,12 @@
       <p class="task-time">{{ task.start | date:'shortTime' }} → {{ task.end | date:'shortTime' }}</p>
     </ion-label>
 
+    <!-- Icona stella con punti -->
+    <div class="reward-star" [class.earned]="task.done">
+      <ion-icon name="star" class="star-icon"></ion-icon>
+      <span class="star-points">+10</span>
+    </div>
+
     <ion-icon name="reorder-two-outline" class="drag-handle" cdkDragHandle aria-label="Trascina"></ion-icon>
     <ion-badge class="task-badge" [style.background]="task.color"></ion-badge>
   </ion-item>
