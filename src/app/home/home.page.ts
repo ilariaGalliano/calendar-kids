@@ -60,9 +60,9 @@ interface DayTasks {
     IonSegment,
     IonSegmentButton,
     IonLabel,
-    CalendarBoardComponent
-    // PointsAnimationComponent,
-    // ChildRewardsComponent
+    CalendarBoardComponent,
+    PointsAnimationComponent,
+    ChildRewardsComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {

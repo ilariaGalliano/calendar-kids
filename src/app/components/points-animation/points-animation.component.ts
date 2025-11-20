@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { RewardsService, PointsAnimation } from '../../services/rewards.service';
@@ -84,12 +84,12 @@ import { RewardsService, PointsAnimation } from '../../services/rewards.service'
     }
   `]
 })
-export class PointsAnimationComponent implements OnInit {
+export class PointsAnimationComponent {
   private rewardsService = inject(RewardsService);
   
   pointsAnimations = signal<PointsAnimation[]>([]);
 
-  ngOnInit() {
+  constructor() {
     // React to changes in the pointsAnimations signal from the service
     effect(() => {
       this.pointsAnimations.set(this.rewardsService.pointsAnimations());
