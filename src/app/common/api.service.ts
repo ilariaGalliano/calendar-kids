@@ -24,7 +24,11 @@ export class ApiService {
       .set('year', year.toString())
       .set('month', month.toString());
 
-    return this.http.get<CalendarResponse>(`${this.base}/calendar/month`, { params });
+      if (this.useMock) {
+        // Not implemented in mock, fallback to week
+        return this.getWeekCalendar(householdId, `${year}-${month.toString().padStart(2, '0')}-01`);
+      }
+      return this.http.get<CalendarResponse>(`${this.base}/calendar/month`, { params });
   }
 
   // Calendario settimanale
@@ -33,7 +37,10 @@ export class ApiService {
       .set('householdId', householdId)
       .set('date', date);
 
-    return this.http.get<CalendarWeek>(`${this.base}/calendar/week`, { params });
+      if (this.useMock) {
+        return this.http.get<any>(`${this.base}/mock/calendar/week`, { params });
+      }
+      return this.http.get<CalendarWeek>(`${this.base}/calendar/week`, { params });
   }
 
   // Calendario giornaliero
@@ -42,7 +49,10 @@ export class ApiService {
       .set('householdId', householdId)
       .set('date', date);
 
-    return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
+      if (this.useMock) {
+        return this.http.get<any>(`${this.base}/mock/calendar/day`, { params });
+      }
+      return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
   }
 
   // Vista "Ora Corrente" - attività nelle prossime/precedenti 2 ore
@@ -53,7 +63,10 @@ export class ApiService {
       params = params.set('datetime', datetime);
     }
 
-    return this.http.get<CurrentTimeWindowResponse>(`${this.base}/calendar/now`, { params });
+      if (this.useMock) {
+        return this.http.get<any>(`${this.base}/mock/calendar/now`, { params });
+      }
+      return this.http.get<CurrentTimeWindowResponse>(`${this.base}/calendar/now`, { params });
   }
 
   // METODI LEGACY (mantenuti per compatibilità)
@@ -80,7 +93,13 @@ export class ApiService {
   }
 
   // Tasks
+  // Toggle this flag to use mock API
+  private useMock = environment.useMockApi;
+
   getTasks(householdId: string) {
+    if (this.useMock) {
+      return this.http.get<Task[]>(`${this.base}/mock/tasks/${householdId}`);
+    }
     return this.http.get<Task[]>(`${this.base}/households/${householdId}/tasks`);
   }
   createTask(householdId: string, dto: Partial<Task>) {

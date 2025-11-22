@@ -139,11 +139,11 @@ export class HomePage implements OnInit, OnDestroy {
 
       // Prova prima a caricare dal BE, se fallisce usa i mock
       console.log('🌐 Tentativo di caricamento dal BE per famiglia:', family.id);
-      
+
       try {
         // Carica i dati dalla vista corrente
         const currentView = this.currentCalendarView();
-        
+
         if (currentView === 'now') {
           await this.loadCurrentTimeWindow(family.id);
         } else if (currentView === 'day') {
@@ -152,10 +152,10 @@ export class HomePage implements OnInit, OnDestroy {
         } else {
           await this.loadWeekCalendar(family.id);
         }
-        
+
         console.log('✅ Dati caricati dal BE con successo');
         return; // Se il BE funziona, esci qui
-        
+
       } catch (beError) {
         console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);
         // Se il BE fallisce, usa i mock come fallback
@@ -173,7 +173,7 @@ export class HomePage implements OnInit, OnDestroy {
 
       this.tasksByDay.set(weekTasks);
       console.log('✅ Dati mock caricati');
-      
+
     } catch (err) {
       this.error.set('Errore nel caricamento delle attività');
       console.error('Error loading tasks:', err);
@@ -318,13 +318,24 @@ export class HomePage implements OnInit, OnDestroy {
     const currentTasks = this.tasksByDay();
     const updatedTasks: DayTasks = { ...currentTasks };
 
-    // Find and update the task
     Object.keys(updatedTasks).forEach(day => {
       const dayTasks = updatedTasks[day];
       const taskIndex = dayTasks.findIndex(t => t.instanceId === event.instanceId);
 
       if (taskIndex >= 0) {
+        // Update task done status
         dayTasks[taskIndex] = { ...dayTasks[taskIndex], done: event.done };
+
+        // Find the child and add points if task is marked done
+        if (event.done) {
+          const family = this.currentFamily();
+          if (family) {
+            const child = family.children.find(c => c.id === dayTasks[taskIndex].childId);
+            if (child) {
+              child.point = (child.point ?? 0) + 10;
+            }
+          }
+        }
       }
     });
 
@@ -337,7 +348,6 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   regenerateActivities() {
-    console.log('🔄 Rigenerazione attività...');
     this.familyService.regenerateExampleFamily();
     this.loadTasks();
   }
@@ -405,17 +415,17 @@ export class HomePage implements OnInit, OnDestroy {
 
   onViewChanged(event: { view: string, date?: string }) {
     console.log('🔄 Vista cambiata:', event);
-    
+
     // Aggiorna la vista corrente
     const newView = event.view as 'day' | 'week' | 'now';
     this.currentCalendarView.set(newView);
-    
+
     const family = this.currentFamily();
     if (!family) {
       console.warn('❌ Nessuna famiglia attiva per caricare i dati');
       return;
     }
-    
+
     // Carica i dati specifici per la nuova vista
     if (newView === 'now') {
       console.log('📅 Caricamento vista "Ora corrente"');
@@ -454,20 +464,20 @@ export class HomePage implements OnInit, OnDestroy {
   async loadWeekCalendar(householdId: string) {
     this.loading.set(true);
     this.error.set(null);
-    
+
     try {
       const todayStr = new Date().toISOString().slice(0, 10);
       const tasksByDay = await this.calendarService.loadWeekCalendar(householdId, todayStr);
-      
+
       if (tasksByDay) {
         // Converte KidTask[] in TaskInstance[]
         const convertedTasks: DayTasks = {};
         const family = this.currentFamily();
-        
+
         for (const [day, kidTasks] of Object.entries(tasksByDay)) {
           convertedTasks[day] = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
         }
-        
+
         this.tasksByDay.set(convertedTasks);
         // Genera i giorni della settimana
         this.days = this.calendarService.generateWeekDays();
@@ -484,15 +494,15 @@ export class HomePage implements OnInit, OnDestroy {
   async loadDayCalendar(householdId: string, date: string) {
     this.loading.set(true);
     this.error.set(null);
-    
+
     try {
       const kidTasks = await this.calendarService.loadDayCalendar(householdId, date);
-      
+
       if (kidTasks) {
         const family = this.currentFamily();
         const tasks = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
         const dayTasks = { [date]: tasks };
-        
+
         this.tasksByDay.set(dayTasks);
         this.days = [date];
         console.log('✅ Calendario giornaliero caricato dal BE:', dayTasks);
@@ -508,10 +518,10 @@ export class HomePage implements OnInit, OnDestroy {
   async loadCurrentTimeWindow(householdId: string) {
     this.loading.set(true);
     this.error.set(null);
-    
+
     try {
       const timeWindowData = await this.calendarService.loadCurrentTimeWindow(householdId);
-      
+
       if (timeWindowData) {
         // Per la vista "now" non usiamo tasksByDay ma passiamo i dati direttamente al calendario
         this.timeWindowData = timeWindowData;
@@ -529,14 +539,14 @@ export class HomePage implements OnInit, OnDestroy {
   private convertKidTaskToTaskInstance(kidTask: any, family: Family | null): TaskInstance {
     const childId = kidTask.assigneeProfileId || kidTask.childId || 'unknown';
     let childName = 'Bambino';
-    
+
     if (family) {
       const child = family.children.find((c: Child) => c.id === childId);
       if (child) {
         childName = child.name;
       }
     }
-    
+
     return {
       id: kidTask.id,
       instanceId: kidTask.instanceId,

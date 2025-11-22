@@ -35,8 +35,8 @@ export class CalendarService {
       // Converte i dati del backend nel formato richiesto dal frontend
       const tasksByDay: Record<string, KidTask[]> = {};
       
-      weekData.days.forEach(day => {
-        tasksByDay[day.date] = day.tasks.map(task => 
+      weekData.days.forEach((day: CalendarDay) => {
+        tasksByDay[day.date] = day.tasks.map((task: CalendarDay['tasks'][number]) => 
           calendarTaskToKidTask(task, day.date)
         );
       });
@@ -92,7 +92,7 @@ export class CalendarService {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
-      const tasks = dayData.tasks.map(task => calendarTaskToKidTask(task, dayData.date));
+      const tasks = dayData.tasks.map((task: CalendarDay['tasks'][number]) => calendarTaskToKidTask(task, dayData.date));
       return tasks;
 
     } catch (error) {
