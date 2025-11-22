@@ -11,6 +11,7 @@ export interface Child {
   name: string;
   avatar: string;
   createdAt: Date;
+  sex: string;
 }
 
 export interface ChildTask {

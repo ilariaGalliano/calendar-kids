@@ -33,6 +33,7 @@ interface ChildForm {
   id: string;
   name: string;
   isValid: boolean;
+  sex: string;
 }
 
 @Component({
@@ -119,7 +120,8 @@ export class FamilySetupComponent implements OnInit {
     const forms = family.children.map((child: Child) => ({
       id: child.id,
       name: child.name,
-      isValid: true
+      isValid: true,
+      sex: child.sex
     }));
     this.childrenForms.set(forms);
     this.numberOfChildren.set(family.children.length);
@@ -148,6 +150,7 @@ export class FamilySetupComponent implements OnInit {
       forms.push({
         id: `child-${i + 1}`,
         name: '',
+        sex: 'male', 
         isValid: false
       });
     }
@@ -219,7 +222,8 @@ export class FamilySetupComponent implements OnInit {
         name: name,
         avatar: existingChild?.avatar || this.getRandomAvatar(),
         createdAt: existingChild?.createdAt || new Date(),
-        age: existingChild?.age ?? null
+        age: existingChild?.age ?? null,
+        sex: existingChild.sex
       };
     });
 
@@ -239,6 +243,7 @@ export class FamilySetupComponent implements OnInit {
     forms[index] = {
       ...forms[index],
       name: name,
+      sex: forms[index].sex,
       isValid: name.trim().length >= 2
     };
     this.childrenForms.set([...forms]);

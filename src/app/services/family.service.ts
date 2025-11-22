@@ -64,6 +64,7 @@ export class FamilyService {
           name: 'Sofia',
           avatar: '👧',
           age: 8,
+          sex: 'female',
           createdAt: new Date()
         },
         {
@@ -71,6 +72,7 @@ export class FamilyService {
           name: 'Marco',
           avatar: '👦',
           age: 6,
+          sex: 'male',
           createdAt: new Date()
         },
         {
@@ -78,6 +80,7 @@ export class FamilyService {
           name: 'Emma',
           avatar: '👶',
           age: 3,
+          sex: 'female',
           createdAt: new Date()
         }
       ],
@@ -105,7 +108,8 @@ export class FamilyService {
         name: `Bambino ${i}`,
         avatar: this.getRandomAvatar() ?? '',
         age: null, // valore di default, da aggiornare quando l'utente imposta l'età
-        createdAt: new Date()
+        createdAt: new Date(),
+        sex: ''
       };
       family.children.push(child);
     }
@@ -133,6 +137,7 @@ export class FamilyService {
       name,
       avatar: this.getRandomAvatar() ?? '',
       age: null,
+      sex: '', 
       createdAt: new Date()
     };
 

@@ -7,7 +7,7 @@
         <!-- Clean, modern header -->
         <header class="home-header">  
           <h2 class="family-title">
-            <span *ngIf="currentFamily()">{{ currentFamily()?.parentName }} Family</span>
+            <span *ngIf="currentFamily()">Famiglia {{ currentFamily()?.parentName }}</span>
             <span *ngIf="!currentFamily()">CalendarKids</span>
           </h2>
           <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">

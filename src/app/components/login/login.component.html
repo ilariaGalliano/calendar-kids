@@ -18,66 +18,33 @@
         <div class="card-emoji">🎨</div>
         <ion-card-title>Accedi alla tua famiglia</ion-card-title>
       </ion-card-header>
-      
-      <ion-card-content>
-        <!-- Login per genitori -->
-        <div class="login-section parent-section">
-          <h3>👨‍👩‍👧‍👦 Genitori</h3>
-          <ion-item class="custom-item">
-            <ion-input
-              label="📧 Email"
-              labelPlacement="stacked"
-              type="email"
-              [(ngModel)]="email"
-              placeholder="mamma@esempio.com">
-            </ion-input>
-          </ion-item>
-          
-          <ion-item class="custom-item">
-            <ion-input
-              label="🔒 Password"
-              labelPlacement="stacked"
-              type="password"
-              [(ngModel)]="password"
-              placeholder="••••••••">
-            </ion-input>
-          </ion-item>
-          
-          <ion-button 
-            expand="block" 
-            color="primary"
-            (click)="loginParent()"
-            class="login-btn parent-btn">
-            <ion-icon name="log-in-outline" slot="start"></ion-icon>
-            Accedi come Genitore
-          </ion-button>
-        </div>
 
-        <!-- Divisore -->
-        <!-- <div class="divider">
-          <span>oppure</span>
-        </div> -->
+      <form [formGroup]="loginForm">
+        <ion-card-content>
+          <!-- Login per genitori -->
+          <div class="login-section parent-section">
+            <h3>👨‍👩‍👧‍👦 Genitori</h3>
+            <ion-item class="custom-item">
+              <ion-input label="📧 Email" labelPlacement="stacked" type="email" placeholder="mamma@esempio.com"
+                formControlName="email" required>
+              </ion-input>
+              <!-- //TODO: aggiungere testo di controllo errore -->
+            </ion-item>
 
-        <!-- Login veloce per bambini -->
-        <!-- <div class="login-section kids-section">
-          <h3>🧒 Bambini</h3>
-          <p class="kids-subtitle">Scegli il tuo nome e personalizza il tuo avatar!</p>
-          
-          <ion-grid class="kids-grid">
-            <ion-row>
-              <ion-col size="6" size-md="4" *ngFor="let kidName of kidsNames">
-                <div class="kid-name-card" (click)="startKidLogin(kidName)">
-                  <div class="name-circle">
-                    <span class="name-initial">{{ kidName.charAt(0) }}</span>
-                  </div>
-                  <p>{{ kidName }}</p>
-                  <small>Tocca per scegliere avatar</small>
-                </div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </div> -->
-      </ion-card-content>
+            <ion-item class="custom-item">
+              <ion-input label="🔒 Password" labelPlacement="stacked" type="password" placeholder="••••••••"
+                formControlName="password" required>
+              </ion-input>
+            </ion-item>
+
+            <ion-button expand="block" color="primary" (click)="loginParent()" class="login-btn parent-btn"
+              [disabled]="loginForm.invalid">
+              <ion-icon name="log-in-outline" slot="start"></ion-icon>
+              Accedi come Genitore
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </form>
     </ion-card>
 
     <!-- Footer carino -->
@@ -86,22 +53,3 @@
     </div>
   </div>
 </ion-content>
-
-<!-- Modal per selezione avatar -->
-<ion-modal
-  #avatarModal
-  [isOpen]="showAvatarSelector"
-  [canDismiss]="true"
-  class="avatar-modal"
-  (didDismiss)="onAvatarDidDismiss($event)"
->
-  <ng-template>
-    <ion-content class="modal-content" [scrollY]="true">
-      <app-avatar-selector
-        [kidName]="selectedKidName ?? ''"
-        (avatarSelected)="onAvatarSelected($event)"
-        (cancelled)="onAvatarCancelled()"
-      ></app-avatar-selector>
-    </ion-content>
-  </ng-template>
-</ion-modal>
