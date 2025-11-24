@@ -119,7 +119,7 @@ export class HomePage implements OnInit, OnDestroy {
           },
           {
             id: 'kid2',
-            name: 'Bob',
+            name: 'Luca',
             avatar: '👦',
             point: 0,
             age: null,
@@ -131,7 +131,7 @@ export class HomePage implements OnInit, OnDestroy {
       };
   this.activeFamily.set(demoFamily);
     }
-    this.loadFamily();
+    //this.loadFamily();
     this.loadTasks();
   }
 

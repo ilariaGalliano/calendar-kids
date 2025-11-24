@@ -8,7 +8,7 @@ export class MockCalendarService {
       date: new Date().toISOString().slice(0, 10),
       tasks: [
         { id: 1, title: 'Mock Task 1', child: 'Alice', childId: 'kid1', childName: 'Alice', completed: false },
-        { id: 2, title: 'Mock Task 2', child: 'Bob', childId: 'kid2', childName: 'Bob', completed: true },
+        { id: 2, title: 'Mock Task 2', child: 'Marco', childId: 'kid2', childName: 'Bob', completed: true },
       ],
     });
   }

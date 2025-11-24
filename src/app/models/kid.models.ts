@@ -17,6 +17,7 @@ export interface KidTask {
   done: boolean;
   doneAt?: string | null;
   // altri campi opzionali dal BE
+  childId: string;
   taskId?: string;
   assigneeProfileId?: string;
   description?: string | null;
