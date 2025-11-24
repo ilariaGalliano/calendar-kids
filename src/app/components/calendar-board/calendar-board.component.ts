@@ -18,7 +18,7 @@ import { calendar, today, chevronBack, chevronForward, moveOutline, calendarOutl
   imports: [
     CommonModule, DatePipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
-    IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonSpinner,
+    IonSegment, IonSegmentButton, IonLabel, IonIcon, IonSpinner,
     CdkDropList, CdkDrag, CdkDragPlaceholder, KidTaskCardComponent
   ],
   templateUrl: './calendar-board.component.html',
@@ -37,7 +37,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   // Output per comunicare con il parent
   @Output() taskDone = new EventEmitter<{ instanceId: string; done: boolean }>();
   @Output() viewChanged = new EventEmitter<{ view: 'day' | 'week' | 'now', date?: string }>();
-  @Output() dateChanged = new EventEmitter<{ direction: 'prev' | 'next' }>();
 
   // Signal per la gestione della vista
   currentView = signal<'day' | 'week' | 'now'>('week');
@@ -67,13 +66,11 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     // Sincronizza la vista con quella del parent
     if (this.currentViewInput && this.currentViewInput !== this.currentView()) {
       this.currentView.set(this.currentViewInput);
-      console.log('📱 Vista aggiornata a:', this.currentViewInput);
     }
     
     // Aggiorna i dati della vista "Ora Corrente" quando cambiano
     if (this.timeWindowInput) {
       this.timeWindowData.set(this.timeWindowInput);
-      console.log('📥 Dati vista oraria ricevuti via Input:', this.timeWindowInput);
     }
   }
 
@@ -102,7 +99,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     
     if (total === 0) return 'medium';
     if (current > 0) return 'success'; // Verde se ci sono task in corso
-    if (total <= 3) return 'primary';   // Blu per poche task
+    if (total <= 3) return 'primary';   // Blu per poche task 
     return 'warning'; // Arancione per molte task
   }
 
@@ -123,21 +120,15 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
     if (event.previousContainer === event.container) {
       // Riordino interno nello stesso giorno
-      console.log('Riordino interno in corso...');
-      console.log('Tasks prima:', curr.map(t => t.title));
-      
       moveItemInArray(curr, event.previousIndex, event.currentIndex);
       
-      console.log('Tasks dopo:', curr.map(t => t.title));
     } else {
       // Trasferimento tra giorni diversi
-      console.log('Trasferimento tra giorni...');
       transferArrayItem(prev, curr, event.previousIndex, event.currentIndex);
     }
     
     // Aggiorna il signal con una nuova referenza dell'oggetto
     this.lists.set({ ...lists });
-    console.log('Lista aggiornata per', targetDay, ':', lists[targetDay]?.map(t => t.title));
   }
 
   // Gestione completamento task
@@ -171,43 +162,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       this.viewChanged.emit({ view: 'now' });
     } else {
       // Emette evento per caricare la settimana
-      this.viewChanged.emit({ view: 'week' });
-    }
-  }
-
-  // Naviga al giorno precedente/successivo
-  navigateDate(direction: 'prev' | 'next') {
-    if (this.currentView() === 'day') {
-      const current = new Date(this.currentDate());
-      const newDate = new Date(current);
-      
-      if (direction === 'prev') {
-        newDate.setDate(current.getDate() - 1);
-      } else {
-        newDate.setDate(current.getDate() + 1);
-      }
-      
-      const newDateStr = newDate.toISOString().slice(0, 10);
-      this.currentDate.set(newDateStr);
-      
-      // Emette evento al parent per caricare il nuovo giorno
-      this.viewChanged.emit({ view: 'day', date: newDateStr });
-    } else {
-      // Per la vista settimanale, emette evento al parent
-      this.dateChanged.emit({ direction });
-    }
-  }
-
-  // Vai a oggi
-  goToToday() {
-    const todayDate = new Date().toISOString().slice(0, 10);
-    this.currentDate.set(todayDate);
-    
-    if (this.currentView() === 'day') {
-      this.viewChanged.emit({ view: 'day', date: todayDate });
-    } else if (this.currentView() === 'now') {
-      this.viewChanged.emit({ view: 'now' });
-    } else {
       this.viewChanged.emit({ view: 'week' });
     }
   }

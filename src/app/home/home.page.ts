@@ -25,6 +25,7 @@ import { CalendarService } from '../services/calendar.service';
 import { FamilyService } from '../services/family.service';
 
 import { Family, Child } from '../models/family.models';
+import { environment } from '../../environments/environment';
 
 // Interfaces
 interface TaskInstance {
@@ -72,7 +73,7 @@ export class HomePage implements OnInit, OnDestroy {
   private alertController = inject(AlertController);
 
   // Signals
-  activeFamily = this.familyService.currentFamily;
+  activeFamily = this.familyService.getActiveFamily(); // writable signal
   selectedChild = signal<Child | null>(null);
 
   // Computed signals
@@ -101,6 +102,35 @@ export class HomePage implements OnInit, OnDestroy {
   private childColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726', '#66BB6A', '#AB47BC', '#F48FB1', '#81C784'];
 
   ngOnInit() {
+    if (environment.useMockApi) {
+      // Inject demo family with children for mock mode
+      const demoFamily: Family = {
+        id: 'mock-family',
+        parentName: 'Demo',
+        children: [
+          {
+            id: 'kid1',
+            name: 'Alice',
+            avatar: '👧',
+            point: 0,
+            age: null,
+            createdAt: new Date(),
+            sex: ''
+          },
+          {
+            id: 'kid2',
+            name: 'Bob',
+            avatar: '👦',
+            point: 0,
+            age: null,
+            createdAt: new Date(),
+            sex: ''
+          }
+        ],
+        createdAt: new Date(),
+      };
+  this.activeFamily.set(demoFamily);
+    }
     this.loadFamily();
     this.loadTasks();
   }
@@ -137,9 +167,6 @@ export class HomePage implements OnInit, OnDestroy {
         return;
       }
 
-      // Prova prima a caricare dal BE, se fallisce usa i mock
-      console.log('🌐 Tentativo di caricamento dal BE per famiglia:', family.id);
-
       try {
         // Carica i dati dalla vista corrente
         const currentView = this.currentCalendarView();
@@ -153,16 +180,13 @@ export class HomePage implements OnInit, OnDestroy {
           await this.loadWeekCalendar(family.id);
         }
 
-        console.log('✅ Dati caricati dal BE con successo');
-        return; // Se il BE funziona, esci qui
+        return; 
 
       } catch (beError) {
         console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);
         // Se il BE fallisce, usa i mock come fallback
       }
 
-      // Fallback: Generate tasks for each day of the week using mock data
-      console.log('🔄 Caricamento dati mock come fallback');
       const weekTasks: DayTasks = {};
       const weekDates = this.getWeekDates();
 

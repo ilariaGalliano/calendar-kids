@@ -4,11 +4,13 @@ import { environment } from '../../environments/environment';
 import { TaskInstance } from '../models/task.models';
 import { Profile } from './profile.models';
 import { CalendarResponse, CalendarWeek, CalendarDay, CurrentTimeWindowResponse } from '../models/calendar.models';
+import { MockCalendarService } from './mock-calendar.service';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
+  private mockCalendar = inject(MockCalendarService);
 
   login(email: string, password: string) {
     return this.http.post<{ accessToken: string }>(`${this.base}/auth/login`, { email, password });
@@ -24,11 +26,12 @@ export class ApiService {
       .set('year', year.toString())
       .set('month', month.toString());
 
-      if (this.useMock) {
-        // Not implemented in mock, fallback to week
-        return this.getWeekCalendar(householdId, `${year}-${month.toString().padStart(2, '0')}-01`);
-      }
-      return this.http.get<CalendarResponse>(`${this.base}/calendar/month`, { params });
+    if (this.useMock) {
+      // Not implemented in mock, fallback to week
+      const firstDay = `${year}-${month.toString().padStart(2, '0')}-01`;
+      return this.mockCalendar.getWeekCalendar(firstDay);
+    }
+    return this.http.get<CalendarResponse>(`${this.base}/calendar/month`, { params });
   }
 
   // Calendario settimanale
@@ -37,10 +40,10 @@ export class ApiService {
       .set('householdId', householdId)
       .set('date', date);
 
-      if (this.useMock) {
-        return this.http.get<any>(`${this.base}/mock/calendar/week`, { params });
-      }
-      return this.http.get<CalendarWeek>(`${this.base}/calendar/week`, { params });
+    if (this.useMock) {
+      return this.mockCalendar.getWeekCalendar(date);
+    }
+    return this.http.get<CalendarWeek>(`${this.base}/calendar/week`, { params });
   }
 
   // Calendario giornaliero
@@ -49,10 +52,10 @@ export class ApiService {
       .set('householdId', householdId)
       .set('date', date);
 
-      if (this.useMock) {
-        return this.http.get<any>(`${this.base}/mock/calendar/day`, { params });
-      }
-      return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
+    if (this.useMock) {
+      return this.mockCalendar.getDayCalendar(date);
+    }
+    return this.http.get<CalendarDay>(`${this.base}/calendar/day`, { params });
   }
 
   // Vista "Ora Corrente" - attività nelle prossime/precedenti 2 ore
@@ -63,10 +66,10 @@ export class ApiService {
       params = params.set('datetime', datetime);
     }
 
-      if (this.useMock) {
-        return this.http.get<any>(`${this.base}/mock/calendar/now`, { params });
-      }
-      return this.http.get<CurrentTimeWindowResponse>(`${this.base}/calendar/now`, { params });
+    if (this.useMock) {
+      return this.mockCalendar.getNowCalendar();
+    }
+    return this.http.get<CurrentTimeWindowResponse>(`${this.base}/calendar/now`, { params });
   }
 
   // METODI LEGACY (mantenuti per compatibilità)

@@ -24,19 +24,47 @@ export class CalendarService {
     this.error.set(null);
 
     try {
-      const weekData = await this.api.getWeekCalendar(householdId, date).toPromise();
-      
+      const weekResult = this.api.getWeekCalendar(householdId, date);
+      const weekData = weekResult instanceof Promise ? await weekResult : await weekResult.toPromise();
+
       if (!weekData) {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
-      this.currentWeek.set(weekData);
+      // If mock data, transform to CalendarWeek
+      let week: CalendarWeek;
+      if ('week' in weekData && 'tasks' in weekData) {
+        // Transform mock structure to CalendarWeek
+        week = {
+          weekStart: weekData.week[0],
+          weekEnd: weekData.week[weekData.week.length - 1],
+          weekNumber: 1,
+          days: weekData.week.map(date => {
+            const d = new Date(date);
+            return {
+              date,
+              dayOfWeek: d.getDay(),
+              isToday: date === new Date().toISOString().slice(0, 10),
+              tasks: weekData.tasks.filter(t => t.date === date).map((task: any) => ({
+                ...task,
+                taskId: String(task.id),
+                done: !!task.completed,
+                assigneeProfileId: 'mock',
+                childId: task.childId ?? 'kid1',
+                childName: task.childName ?? task.child ?? 'Bambino',
+              }))
+            };
+          })
+        };
+      } else {
+        week = weekData as CalendarWeek;
+      }
+      this.currentWeek.set(week);
 
-      // Converte i dati del backend nel formato richiesto dal frontend
+      // Converte i dati nel formato richiesto dal frontend
       const tasksByDay: Record<string, KidTask[]> = {};
-      
-      weekData.days.forEach((day: CalendarDay) => {
-        tasksByDay[day.date] = day.tasks.map((task: CalendarDay['tasks'][number]) => 
+      week.days.forEach((day: any) => {
+        tasksByDay[day.date] = day.tasks.map((task: any) => 
           calendarTaskToKidTask(task, day.date)
         );
       });
@@ -60,14 +88,66 @@ export class CalendarService {
     this.error.set(null);
 
     try {
-      const monthData = await this.api.getMonthCalendar(householdId, year, month).toPromise();
-      
+      const monthResult = this.api.getMonthCalendar(householdId, year, month);
+      const monthData = monthResult instanceof Promise ? await monthResult : await monthResult.toPromise();
+
       if (!monthData) {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
-      this.currentMonth.set(monthData);
-      return monthData;
+      // If mock data, transform to CalendarResponse
+      let monthResponse: CalendarResponse;
+      if ('week' in monthData && 'tasks' in monthData) {
+        // Fake a CalendarResponse from mock week
+        monthResponse = {
+          month: parseInt(monthData.week[0].slice(5, 7)),
+          year: parseInt(monthData.week[0].slice(0, 4)),
+          totalDays: monthData.week.length,
+          weeks: [
+            {
+              weekStart: monthData.week[0],
+              weekEnd: monthData.week[monthData.week.length - 1],
+              weekNumber: 1,
+              days: monthData.week.map(date => {
+                const d = new Date(date);
+                return {
+                  date,
+                  dayOfWeek: d.getDay(),
+                  isToday: date === new Date().toISOString().slice(0, 10),
+                  tasks: monthData.tasks.filter(t => t.date === date).map((task: any) => ({
+                    ...task,
+                    taskId: String(task.id),
+                    done: !!task.completed,
+                    assigneeProfileId: 'mock',
+                    childId: task.childId ?? 'kid1',
+                    childName: task.childName ?? task.child ?? 'Bambino',
+                  }))
+                };
+              })
+            }
+          ],
+          dailyView: monthData.week.map(date => {
+            const d = new Date(date);
+            return {
+              date,
+              dayOfWeek: d.getDay(),
+              isToday: date === new Date().toISOString().slice(0, 10),
+              tasks: monthData.tasks.filter(t => t.date === date).map((task: any) => ({
+                ...task,
+                taskId: String(task.id),
+                done: !!task.completed,
+                assigneeProfileId: 'mock',
+                childId: task.childId ?? 'kid1',
+                childName: task.childName ?? task.child ?? 'Bambino',
+              }))
+            };
+          })
+        };
+      } else {
+        monthResponse = monthData as CalendarResponse;
+      }
+      this.currentMonth.set(monthResponse);
+      return monthResponse;
 
     } catch (error) {
       console.error('❌ Errore nel caricamento calendario mensile:', error);
@@ -86,13 +166,36 @@ export class CalendarService {
     this.error.set(null);
 
     try {
-      const dayData = await this.api.getDayCalendar(householdId, date).toPromise();
-      
+      const dayResult = this.api.getDayCalendar(householdId, date);
+      const dayData = dayResult instanceof Promise ? await dayResult : await dayResult.toPromise();
+
       if (!dayData) {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
-      const tasks = dayData.tasks.map((task: CalendarDay['tasks'][number]) => calendarTaskToKidTask(task, dayData.date));
+      // If mock data, transform to expected shape
+      let tasks: KidTask[];
+      if ('tasks' in dayData && 'date' in dayData) {
+        tasks = dayData.tasks.map((task: any) => calendarTaskToKidTask({
+          ...task,
+          taskId: String(task.id),
+          done: !!task.completed,
+          assigneeProfileId: 'mock',
+          childId: task.childId ?? 'kid1',
+          childName: task.childName ?? task.child ?? 'Bambino',
+        }, dayData.date));
+      } else if ('tasks' in dayData) {
+        tasks = (dayData as any).tasks.map((task: any) => calendarTaskToKidTask({
+          ...task,
+          taskId: String(task.id),
+          done: !!task.completed,
+          assigneeProfileId: 'mock',
+          childId: task.childId ?? 'kid1',
+          childName: task.childName ?? task.child ?? 'Bambino',
+        }, date));
+      } else {
+        tasks = [];
+      }
       return tasks;
 
     } catch (error) {
@@ -109,7 +212,12 @@ export class CalendarService {
    */
   async markTaskDone(householdId: string, instanceId: string, done: boolean): Promise<boolean> {
     try {
-      await this.api.setInstanceDone(householdId, instanceId, done).toPromise();
+      const doneResult = this.api.setInstanceDone(householdId, instanceId, done);
+      if (doneResult instanceof Promise) {
+        await doneResult;
+      } else {
+        await doneResult.toPromise();
+      }
       return true;
     } catch (error) {
       console.error('❌ Errore nell\'aggiornamento task:', error);
@@ -126,12 +234,32 @@ export class CalendarService {
     this.error.set(null);
 
     try {
-      const timeWindowData = await this.api.getCurrentTimeWindow(householdId, datetime).toPromise();
-      
+      const timeResult = this.api.getCurrentTimeWindow(householdId, datetime);
+      const timeWindowData = timeResult instanceof Promise ? await timeResult : await timeResult.toPromise();
+
       if (!timeWindowData) {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
+      // If mock data, transform to expected shape
+      if ('date' in timeWindowData && 'tasks' in timeWindowData) {
+        return {
+          currentTime: '',
+          currentDate: timeWindowData.date,
+          timeWindow: { start: timeWindowData.date + 'T21:00:00', end: timeWindowData.date + 'T22:00:00' },
+          tasks: timeWindowData.tasks.map((task: any) => ({
+            ...calendarTaskToKidTask({
+              ...task,
+              taskId: String(task.id),
+              done: !!task.completed,
+              assigneeProfileId: 'mock',
+            }, timeWindowData.date),
+            timeStatus: 'current',
+            minutesFromNow: 0
+          })),
+          summary: { total: timeWindowData.tasks.length, current: timeWindowData.tasks.length, completed: timeWindowData.tasks.filter((t: any) => t.completed).length, pending: 0, upcoming: 0 }
+        };
+      }
       return {
         currentTime: timeWindowData.currentTime,
         currentDate: timeWindowData.currentDate,
