@@ -583,6 +583,46 @@ export class HomePage implements OnInit, OnDestroy {
     this.currentCalendarView.set(newView);
   }
 
+  // Ritorna i task visibili in base al bambino selezionato (Tutti / uno solo)
+getVisibleTasksByDay(): DayTasks {
+  const selected = this.currentSelectedChild();
+  const all = this.tasksByDay();
+
+  // Nessun bambino selezionato -> mostra tutto
+  if (!selected) {
+    return all;
+  }
+
+  const filtered: DayTasks = {};
+  for (const [day, tasks] of Object.entries(all)) {
+    const dayFiltered = tasks.filter(t => t.childId === selected.id);
+    if (dayFiltered.length > 0) {
+      filtered[day] = dayFiltered;
+    }
+  }
+
+  return filtered;
+}
+
+// Filtro anche per la vista "now" (timeWindowData)
+getVisibleTimeWindowData(): any {
+  const data = this.timeWindowData;
+  const selected = this.currentSelectedChild();
+
+  if (!data || !Array.isArray(data.tasks) || !selected) {
+    return data;
+  }
+
+  const filteredTasks = data.tasks.filter((t: any) => t.childId === selected.id);
+
+  return {
+    ...data,
+    tasks: filteredTasks
+    // volendo potresti anche ricalcolare summary qui
+  };
+}
+
+
   onDateChanged(event: { direction: 'prev' | 'next' }) {
     console.log('Date changed:', event);
     // Aggiorna le date se necessario
