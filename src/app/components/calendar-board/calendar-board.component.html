@@ -1,36 +1,45 @@
 <ion-content class="kids-page">
+
+  <!-- Floating decorations for subtle ambiance -->
+  <div class="floating-decorations">
+    <div class="decoration">📅</div>
+    <div class="decoration">⭐</div>
+    <div class="decoration">🎯</div>
+    <div class="decoration">✨</div>
+    <div class="decoration">🌟</div>
+  </div>
+
   <div class="calendar-container">
 
-    <!-- HEADER BAMBINO ATTIVO (opzionale) -->
-    <div *ngIf="activeKidProfile" class="kid-profile-header">
-      <div class="kid-welcome">
-        <div class="kid-avatar-circle">
-          <span class="kid-emoji">{{ activeKidProfile.selectedAvatar?.emoji }}</span>
+    <!-- Modern family member header -->
+    @if (activeKidProfile) {
+      <div class="kid-profile-header">
+        <div class="kid-welcome">
+          <div class="kid-avatar-circle" [style.background]="activeKidProfile.selectedAvatar.palette.gradient">
+            <span class="kid-emoji">{{ activeKidProfile.selectedAvatar.emoji }}</span>
+          </div>
+          <div class="kid-info">
+            <h2>{{ activeKidProfile.name }}</h2>
+            <p class="kid-theme">{{ activeKidProfile.selectedAvatar.name }} • {{ activeKidProfile.selectedAvatar.palette.name }}</p>
+          </div>
         </div>
-        <div class="kid-info">
-          <h2>{{ activeKidProfile.name }}</h2>
-          <p class="kid-theme">
-            {{ activeKidProfile.selectedAvatar?.name }} •
-            {{ activeKidProfile.selectedAvatar?.palette?.name }}
-          </p>
+        <div class="kid-stats">
+          <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
+            <span class="stat-number">{{ getTotalTasksCount() }}</span>
+            <span class="stat-label">Attività</span>
+          </div>
+          <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
+            <span class="stat-number">{{ getCompletedTasksCount() }}</span>
+            <span class="stat-label">Completate</span>
+          </div>
         </div>
       </div>
-      <div class="kid-stats">
-        <div class="stat-item">
-          <span class="stat-number">{{ getTotalTasksCount() }}</span>
-          <span class="stat-label">Attività</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ getCompletedTasksCount() }}</span>
-          <span class="stat-label">Completate</span>
-        </div>
-      </div>
-    </div>
+    }
 
-    <!-- HEADER CALENDARIO -->
+    <!-- Clean, professional calendar header -->
     <div class="calendar-header">
       <div class="header-top">
-        <h1>Calendario famiglia</h1>
+        <h1>Calendario Famiglia</h1>
       </div>
 
       <div class="header-bottom">
@@ -38,21 +47,15 @@
           <h2>{{ getDateTitle() }}</h2>
         </div>
 
-        <ion-segment
-          class="view-selector"
-          [value]="currentView()"
-          (ionChange)="onViewChange($event)"
-        >
+        <ion-segment [value]="currentView()" (ionChange)="onViewChange($event)" class="view-selector">
           <ion-segment-button value="now">
             <ion-icon name="time-outline"></ion-icon>
             <ion-label>Ora</ion-label>
           </ion-segment-button>
-
           <ion-segment-button value="day">
             <ion-icon name="today"></ion-icon>
             <ion-label>Giorno</ion-label>
           </ion-segment-button>
-
           <ion-segment-button value="week">
             <ion-icon name="calendar-outline"></ion-icon>
             <ion-label>Settimana</ion-label>
@@ -61,178 +64,222 @@
       </div>
     </div>
 
-    <!-- VISTA ORA -->
-    <div *ngIf="currentView() === 'now'" class="now-view">
-      <ion-card class="day-card now-card">
-        <ion-card-header class="day-header now-header">
-          <div class="current-time-section">
-            <div class="time-emoji">🕒</div>
-            <ion-card-title>Adesso</ion-card-title>
-            <p class="day-date">
-              {{ (getDisplayDays()[0] | date:'EEEE d MMMM':'':'it-IT') }}
-            </p>
-            <ion-badge class="task-counter" [color]="getNowTaskCountColor()">
-              {{ getNowTasks().length }} attività
-            </ion-badge>
-          </div>
-        </ion-card-header>
-
-        <ion-card-content>
-          <ng-container *ngIf="getNowTasks().length > 0; else emptyNow">
-            <div class="now-task-list">
-              <div class="task-wrapper now-task" *ngFor="let task of getNowTasks()">
-                <div class="now-task-header">
-                  <div class="time-status-badge" [ngClass]="'status-' + task.timeStatus">
-                    <ng-container [ngSwitch]="task.timeStatus">
-                      <ng-container *ngSwitchCase="'current'">
-                        <ion-icon name="play-circle"></ion-icon>
-                        <span>ORA</span>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'upcoming'">
-                        <ion-icon name="time"></ion-icon>
-                        <span>{{ formatMinutes(task.minutesFromNow) }}</span>
-                      </ng-container>
-                      <ng-container *ngSwitchDefault>
-                        <ion-icon name="checkmark-circle"></ion-icon>
-                        <span>FATTA</span>
-                      </ng-container>
-                    </ng-container>
-                  </div>
-                  <div class="task-time-info">
-                    {{ task.start | date:'HH:mm':'':'it-IT' }} -
-                    {{ task.end   | date:'HH:mm':'':'it-IT' }}
-                  </div>
+    <!-- Vista "Ora Corrente" con design coerente -->
+    @if (currentView() === 'now') {
+      <div class="days-grid now-view">
+        @if (timeWindowData()) {
+          <ion-card class="day-card now-card">
+            <ion-card-header class="day-header now-header">
+              <div class="current-time-section">
+                <div class="time-emoji">🕘</div>
+                <ion-card-title>{{ timeWindowData()!.currentTime }}</ion-card-title>
+                <p class="day-date">{{ formatCurrentDate(timeWindowData()!.currentDate) }}</p>
+                <div class="time-window-badge">
+                  <ion-badge color="primary">
+                    {{ timeWindowData()!.timeWindow.start | date:'dd/MM/yyyy HH:mm':'it-IT' }} - {{ timeWindowData()!.timeWindow.end | date:'dd/MM/yyyy HH:mm':'it-IT' }}
+                  </ion-badge>
                 </div>
-
-                <div class="task-card-content">
-                  <app-kid-task-card
-                    [task]="task"
-                    (doneChange)="onDone($event)"
-                  ></app-kid-task-card>
-                </div>
+                <ion-badge class="task-counter" [color]="getNowTaskCountColor()">
+                  {{ timeWindowData()!.summary.total }} attività
+                </ion-badge>
               </div>
-            </div>
-          </ng-container>
+              
+              <!-- Statistiche in stile compatto -->
+              @if (timeWindowData()!.summary) {
+                <div class="now-stats">
+                  <div class="stat-chip current">
+                    <span class="stat-icon">⚡</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.current }} ora</span>
+                  </div>
+                  <div class="stat-chip upcoming">
+                    <span class="stat-icon">⏰</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.upcoming }} prox</span>
+                  </div>
+                  <div class="stat-chip completed">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-text">{{ timeWindowData()!.summary.completed }} fatte</span>
+                  </div>
+                </div>
+              }
+            </ion-card-header>
 
-          <ng-template #emptyNow>
-            <div class="empty-now-message">
-              <div class="empty-emoji">😎</div>
-              <p>Nessuna attività in questo momento</p>
-              <small>Perfetto momento per una pausa!</small>
-            </div>
-          </ng-template>
-        </ion-card-content>
-      </ion-card>
-    </div>
-
-    <!-- VISTA GIORNO / SETTIMANA -->
-    <div *ngIf="currentView() !== 'now'" class="days-grid" [class.single-day]="currentView() === 'day'">
-      <ion-card class="day-card" *ngFor="let d of getDisplayDays()">
-        <ion-card-header class="day-header">
-          <div class="day-emoji">{{ getDayEmoji(d) }}</div>
-          <ion-card-title>{{ d | date:'EEEE':'':'it-IT' }}</ion-card-title>
-          <p class="day-date">{{ d | date:'d MMMM':'':'it-IT' }}</p>
-          <ion-badge class="task-counter" [color]="getTaskCountColor(d)">
-            {{ (lists()[d] || []).length }} attività
-          </ion-badge>
-        </ion-card-header>
-
-        <ion-card-content>
-          <!-- Vista per giorno: raggruppata per bambino -->
-          <ng-container *ngIf="currentView() === 'day'; else weekView">
-            <ng-container *ngIf="getChildrenWithTasksForDay(d).length > 0; else emptyDay">
-              <div class="child-section" *ngFor="let child of getChildrenWithTasksForDay(d)">
-                <div class="child-header">
-                  <div class="child-avatar-container">
-                    <div class="child-avatar">{{ child.avatar }}</div>
-                    <div class="child-info">
-                      <h4 class="child-name">{{ child.name }}</h4>
-                      <p class="child-progress">
-                        {{ getCompletedTasksForChild(d, child.id) }}/{{ child.tasks.length }} completate
-                      </p>
+            <ion-card-content>
+              <div class="drop-zone now-drop-zone">
+                @for (task of timeWindowData()!.tasks; track task.instanceId) {
+                  <div class="task-wrapper now-task-wrapper" [attr.data-time-status]="task.timeStatus">
+                    <div class="now-task-header">
+                      <div class="time-status-badge" [class]="'status-' + task.timeStatus">
+                        @if (task.timeStatus === 'current') {
+                          <ion-icon name="play-circle"></ion-icon>
+                          <span>ORA</span>
+                        } @else if (task.timeStatus === 'upcoming') {
+                          <ion-icon name="time"></ion-icon>
+                          <span>{{ formatMinutes(task.minutesFromNow) }}</span>
+                        } @else {
+                          <ion-icon name="checkmark-circle"></ion-icon>
+                          <span>FATTO</span>
+                        }
+                      </div>
+                      <div class="task-time-info">
+                        {{ task.start | date:'shortTime' }} - {{ task.end | date:'shortTime' }}
+                      </div>
+                    </div>
+                    <div class="task-card-content">
+                      <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
                     </div>
                   </div>
-                </div>
+                } @empty {
+                  <div class="empty-now-message">
+                    <div class="empty-emoji">😊</div>
+                    <p>Nessuna attività in questa fascia oraria</p>
+                    <small>Goditi questo momento libero!</small>
+                  </div>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+        } @else {
+          <ion-card class="day-card loading-card">
+            <ion-card-content>
+              <div class="loading-content">
+                <ion-spinner name="crescent"></ion-spinner>
+                <p>Caricamento vista oraria...</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    } @else {
+      <!-- Vista normale giorni con design moderno -->
+      <div class="days-grid" [class.single-day]="currentView() === 'day'">
+        @for (d of getDisplayDays(); track d) {
+        <ion-card class="day-card">
+          <ion-card-header class="day-header">
+            <div class="day-emoji">{{ getDayEmoji(d) }}</div>
+            <ion-card-title>{{ d | date:'EEEE' }}</ion-card-title>
+            <p class="day-date">{{ d | date:'dd MMMM' }}</p>
+            <ion-badge class="task-counter" [color]="getTaskCountColor(d)">
+              {{ (lists()[d] || []).length }} {{ (lists()[d] || []).length === 1 ? 'attività' : 'attività' }}
+            </ion-badge>
+          </ion-card-header>
 
-                <div
-                  class="child-drop-zone"
-                  cdkDropList
-                  [cdkDropListData]="child.tasks"
-                  (cdkDropListDropped)="drop($event, d)"
-                >
-                  <div
-                    class="task-wrapper child-task"
-                    *ngFor="let task of child.tasks"
-                    cdkDrag
-                    [cdkDragData]="task"
-                  >
+          <ion-card-content>
+            @if (currentView() === 'day') {
+              <!-- Vista giornaliera organizzata per bambino -->
+              @for (child of getChildrenWithTasksForDay(d); track child.id) {
+                <div class="child-section">
+                  <div class="child-header">
+                    <div class="child-avatar-container">
+                      <div class="child-avatar">{{ child.avatar }}</div>
+                      <div class="child-info">
+                        <h4 class="child-name">{{ child.name }}</h4>
+                        <p class="child-progress">
+                          {{ getCompletedTasksForChild(d, child.id) }}/{{ child.tasks.length }} completate
+                        </p>
+                      </div>
+                    </div>
+                    <ion-badge 
+                      [color]="getCompletedTasksForChild(d, child.id) === child.tasks.length ? 'success' : 'medium'"
+                      class="completion-badge">
+                      @if (getCompletedTasksForChild(d, child.id) === child.tasks.length) {
+                        <ion-icon name="checkmark-circle"></ion-icon>
+                        Tutto fatto!
+                      } @else {
+                        {{ child.tasks.length - getCompletedTasksForChild(d, child.id) }} rimanenti
+                      }
+                    </ion-badge>
+                  </div>
+
+                  <div cdkDropList 
+                       [id]="'drop-list-' + d + '-' + child.id"
+                       [cdkDropListData]="child.tasks"
+                       (cdkDropListDropped)="drop($event, d)" 
+                       class="child-drop-zone"
+                       cdkDropListSortingDisabled="false"
+                       [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+
+                    @for (task of child.tasks; track task.instanceId) {
+                      <div cdkDrag 
+                           [cdkDragData]="task"
+                           [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                           class="task-wrapper child-task">
+                        <div class="task-content">
+                          <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
+                          <div class="drag-handle-wrapper" cdkDragHandle>
+                            <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+                          </div>
+                        </div>
+                        <div *cdkDragPlaceholder class="drag-placeholder">
+                          <div class="placeholder-content">
+                            <ion-icon name="move-outline"></ion-icon>
+                            <span>Rilascia qui</span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (child.tasks.length === 0) {
+                      <div class="empty-child-zone">
+                        <ion-icon name="happy-outline"></ion-icon>
+                        <p>Nessuna attività per {{ child.name }}</p>
+                      </div>
+                    }
+
+                  </div>
+                </div>
+              }
+
+              @if (getChildrenWithTasksForDay(d).length === 0) {
+                <div class="empty-drop-zone">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <p>Nessuna attività programmata</p>
+                </div>
+              }
+
+            } @else {
+              <!-- Vista normale per settimana/mese -->
+              <div cdkDropList 
+                   [id]="'drop-list-' + d"
+                   [cdkDropListData]="lists()[d] || []"
+                   (cdkDropListDropped)="drop($event, d)" 
+                   class="drop-zone"
+                   cdkDropListSortingDisabled="false"
+                   [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+
+                @for (task of lists()[d]; track task.instanceId) {
+                  <div cdkDrag 
+                       [cdkDragData]="task"
+                       [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                       class="task-wrapper">
                     <div class="task-content">
-                      <app-kid-task-card
-                        [task]="task"
-                        (doneChange)="onDone($event)"
-                      ></app-kid-task-card>
+                      <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
                       <div class="drag-handle-wrapper" cdkDragHandle>
-                        <ion-icon
-                          name="reorder-two-outline"
-                          class="external-drag-handle"
-                        ></ion-icon>
+                        <ion-icon name="reorder-two-outline" class="external-drag-handle"></ion-icon>
+                      </div>
+                    </div>
+                    <div *cdkDragPlaceholder class="drag-placeholder">
+                      <div class="placeholder-content">
+                        <ion-icon name="move-outline"></ion-icon>
+                        <span>Rilascia qui</span>
                       </div>
                     </div>
                   </div>
+                }
 
-                  <div *ngIf="child.tasks.length === 0" class="empty-child-zone">
-                    <ion-icon name="happy-outline"></ion-icon>
-                    <p>Nessuna attività per {{ child.name }}</p>
+                @if ((lists()[d] || []).length === 0) {
+                  <div class="empty-drop-zone">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <p>Nessuna attività programmata</p>
                   </div>
-                </div>
-              </div>
-            </ng-container>
+                }
 
-            <ng-template #emptyDay>
-              <div class="empty-drop-zone">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <p>Nessuna attività programmata</p>
               </div>
-            </ng-template>
-          </ng-container>
-
-          <!-- Vista settimana: lista semplice di task -->
-          <ng-template #weekView>
-            <div
-              class="drop-zone"
-              cdkDropList
-              [cdkDropListData]="lists()[d] || []"
-              (cdkDropListDropped)="drop($event, d)"
-            >
-              <div
-                class="task-wrapper"
-                *ngFor="let task of (lists()[d] || [])"
-                cdkDrag
-                [cdkDragData]="task"
-              >
-                <div class="task-content">
-                  <app-kid-task-card
-                    [task]="task"
-                    (doneChange)="onDone($event)"
-                  ></app-kid-task-card>
-                  <div class="drag-handle-wrapper" cdkDragHandle>
-                    <ion-icon
-                      name="reorder-two-outline"
-                      class="external-drag-handle"
-                    ></ion-icon>
-                  </div>
-                </div>
-              </div>
-
-              <div *ngIf="(lists()[d] || []).length === 0" class="empty-drop-zone">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <p>Nessuna attività programmata</p>
-              </div>
-            </div>
-          </ng-template>
-        </ion-card-content>
-      </ion-card>
-    </div>
+            }
+          </ion-card-content>
+        </ion-card>
+        }
+      </div>
+    }
 
   </div>
 </ion-content>

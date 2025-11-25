@@ -94,7 +94,7 @@ export class LoginComponent implements OnInit {
 
     const demoFamily = {
       id: "demo-family",
-      parentName: "Lorena",
+      parentName: "Famiglia Demo",
       createdAt: new Date(),
       children: [
         { id: "kid1", name: "Sofia", avatar: "👧", age: 8, point: 0, sex: "female", createdAt: new Date(), tasks: [] },

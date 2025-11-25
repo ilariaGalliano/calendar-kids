@@ -134,15 +134,15 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private generateDemoWeek(children: Child[]) {
-    const result: { [day: string]: ChildTask[] } = {};
-    const days = this.getWeekDates();
+  const result: { [day: string]: ChildTask[] } = {};
+  const days = this.getWeekDates();
 
-    days.forEach(day => {
-      result[day] = this.generateDemoDay(day, children);
-    });
+  days.forEach(day => {
+    result[day] = this.generateDemoDay(day, children);
+  });
 
-    return result;
-  }
+  return result;
+}
 
 
 
@@ -187,75 +187,65 @@ export class HomePage implements OnInit, OnDestroy {
   // }
 
   ngOnInit() {
-    console.log("🎭 FE MOCK MODE: Attivo");
+  if (environment.useMockApi) {
+    console.log("(solo FE)");
 
+    // Se esiste famiglia salvata, caricala
+    const savedFamily = localStorage.getItem('calendarKids_family');
+    if (savedFamily) {
+      this.activeFamily.set(JSON.parse(savedFamily));
+    }
 
-    // 1️⃣ Crea mock family se non esiste
-    const family = {
-      id: "demo-family",
-      parentName: "Famiglia Demo",
-      createdAt: new Date(),
-      children: [
-        { id: "kid1", name: "Sofia", avatar: "👧", age: 8, sex: "female", createdAt: new Date(), point: 0, tasks: [] },
-        { id: "kid2", name: "Marco", avatar: "👦", age: 6, sex: "male", createdAt: new Date(), point: 0, tasks: [] },
-        { id: "kid3", name: "Emma", avatar: "👶", age: 3, sex: "female", createdAt: new Date(), point: 0, tasks: [] }
-      ]
-    };
+    // Altrimenti crea una demo family
+    if (!this.activeFamily()) {
+      this.activeFamily.set({
+        id: "demo-family",
+        parentName: "Famiglia Demo",
+        createdAt: new Date(),
+        children: [
+          { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [] },
+          { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [] },
+          { id: "kid3", name: "Emma",  avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [] }
+        ]
+      });
+    }
 
-    this.activeFamily.set(family);
+    const family = this.activeFamily();
 
-    // 2️⃣ GENERA SEMPRE LA SETTIMANA MOCK
-    const week = this.generateDemoWeek(family.children);
+    // 1️⃣ Genera settimana mock
+    const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
 
-    // 3️⃣ Converte in formato TaskInstance per CalendarBoard
+    // 2️⃣ Converte ChildTask[] in TaskInstance[]
     const weekTasks: DayTasks = {};
-    for (const [day, childTasks] of Object.entries(week)) {
-      weekTasks[day] = childTasks.map(t => ({
-        id: t.id,
-        instanceId: t.id,
-        title: t.title,
-        color: t.color,
-        start: t.startTime,
-        end: t.endTime,
-        done: t.completed,
+    for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
+      weekTasks[day] = childTasks.map(childTask => ({
+        id: childTask.id,
+        instanceId: childTask.id, // or generate a unique instanceId if needed
+        title: childTask.title,
+        color: childTask.color,
+        start: childTask.startTime,
+        end: childTask.endTime,
+        done: childTask.completed ?? false,
         doneAt: null,
-        description: t.description,
-        childId: t.childId,
-        childName: family.children.find(c => c.id === t.childId)?.name ?? ''
+        description: childTask.description,
+        childId: childTask.childId,
+        childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : ''
       }));
     }
 
+    // 3️⃣ Salva nel signal
     this.tasksByDay.set(weekTasks);
 
-    // imposta i giorni della settimana
+    // 3️⃣ Calcola i giorni da mostrare
     this.days = this.getWeekDates();
 
-    console.log("📅 MOCK WEEK COMPLETA:", this.tasksByDay());
     this.loading.set(false);
+    return;
   }
 
-  private getTasksForSpecificDay(date: string) {
-    const week = this.tasksByDay();
-    return week[date] || [];
-  }
-
-  private getTasksForNowWindow() {
-    const now = new Date();
-    const nowMs = now.getTime();
-
-    const windowStart = new Date(nowMs - 2 * 60 * 60 * 1000);
-    const windowEnd = new Date(nowMs + 2 * 60 * 60 * 1000);
-
-    const todayStr = now.toISOString().slice(0, 10);
-    const todayTasks = this.getTasksForSpecificDay(todayStr);
-
-    return todayTasks.filter(t => {
-      const start = new Date(t.start).getTime();
-      const end = new Date(t.end).getTime();
-      return start <= windowEnd.getTime() && end >= windowStart.getTime();
-    });
-  }
-
+  // modalità API (non usata)
+  this.loadTasks();
+}
 
 
 
@@ -438,20 +428,16 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   selectChild(childId: string | null) {
-  if (childId === null) {
-    this.selectedChild.set(null);
-  } else {
-    const family = this.activeFamily();
-    if (family) {
-      const child = (family.children as Child[]).find(c => c.id === childId);
-      this.selectedChild.set(child || null);
+    if (childId === null) {
+      this.selectedChild.set(null);
+    } else {
+      const family = this.activeFamily();
+      if (family) {
+        const child = (family.children as Child[]).find((c: Child) => c.id === childId);
+        this.selectedChild.set(child || null);
+      }
     }
   }
-
-  // Applica subito il filtro alla vista corrente
-  this.onViewChanged({ view: this.currentCalendarView() });
-}
-
 
   getTasksForDay(day: string): TaskInstance[] {
     const tasks = this.tasksByDay();
@@ -566,63 +552,30 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onViewChanged(event: { view: string, date?: string }) {
-  const view = event.view as 'day' | 'week' | 'now';
-  this.currentCalendarView.set(view);
+    console.log('🔄 Vista cambiata:', event);
 
-  if (!environment.useMockApi) return;
+    // Aggiorna la vista corrente
+    const newView = event.view as 'day' | 'week' | 'now';
+    this.currentCalendarView.set(newView);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+    const family = this.currentFamily();
+    if (!family) {
+      console.warn('❌ Nessuna famiglia attiva per caricare i dati');
+      return;
+    }
 
-  if (view === 'week') {
-    const raw = this.tasksByDay(); 
-    const filtered = this.filterTasksBySelectedChild(raw);
-    this.tasksByDay.set(filtered);
-    this.days = this.getWeekDates();
-    return;
+    // Carica i dati specifici per la nuova vista
+    if (newView === 'now') {
+      console.log('📅 Caricamento vista "Ora corrente"');
+      this.loadCurrentTimeWindow(family.id);
+    } else if (newView === 'day' && event.date) {
+      console.log('📅 Caricamento vista giorno per:', event.date);
+      this.loadDayCalendar(family.id, event.date);
+    } else {
+      console.log('📅 Caricamento vista settimana');
+      this.loadWeekCalendar(family.id);
+    }
   }
-
-  if (view === 'day') {
-    const tasks = this.getTasksForSpecificDay(todayStr);
-    const filtered = this.filterTasksBySelectedChild({ [todayStr]: tasks });
-    this.tasksByDay.set(filtered);
-    this.days = [todayStr];
-    return;
-  }
-
-  if (view === 'now') {
-    const tasks = this.getTasksForNowWindow();
-    const selected = this.currentSelectedChild();
-
-    const filteredTasks = selected
-      ? tasks.filter(t => t.childId === selected.id)
-      : tasks;
-
-    this.timeWindowData = {
-      currentDate: todayStr,
-      tasks: filteredTasks,
-      summary: {
-        total: filteredTasks.length,
-        completed: filteredTasks.filter(t => t.done).length,
-        current: filteredTasks.filter(t => new Date(t.start) <= new Date() && new Date(t.end) >= new Date()).length,
-        upcoming: filteredTasks.filter(t => new Date(t.start) > new Date()).length
-      }
-    };
-    return;
-  }
-}
-
-
-  private filterTasksBySelectedChild(tasksByDay: DayTasks): DayTasks {
-  const selected = this.currentSelectedChild(); // può essere null → tutti
-  if (!selected) return tasksByDay; // se child=null → mostra tutto
-
-  const filtered: DayTasks = {};
-  for (const [day, tasks] of Object.entries(tasksByDay)) {
-    filtered[day] = tasks.filter(t => t.childId === selected.id);
-  }
-  return filtered;
-}
-
 
   onViewSelectorChange(event: any) {
     const newView = event.detail.value as 'day' | 'week' | 'now';
