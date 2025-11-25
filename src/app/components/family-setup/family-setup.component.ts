@@ -223,7 +223,9 @@ export class FamilySetupComponent implements OnInit {
         avatar: existingChild?.avatar || this.getRandomAvatar(),
         createdAt: existingChild?.createdAt || new Date(),
         age: existingChild?.age ?? null,
-        sex: existingChild.sex
+        sex: existingChild?.sex ?? 'male',
+        point: existingChild?.point,
+        tasks: existingChild?.tasks ?? []
       };
     });
 

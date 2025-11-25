@@ -24,7 +24,7 @@ import { ChildRewardsComponent } from '../components/child-rewards/child-rewards
 import { CalendarService } from '../services/calendar.service';
 import { FamilyService } from '../services/family.service';
 
-import { Family, Child } from '../models/family.models';
+import { Family, Child, ChildTask } from '../models/family.models';
 import { environment } from '../../environments/environment';
 
 // Interfaces
@@ -91,6 +91,61 @@ export class HomePage implements OnInit, OnDestroy {
     return Object.values(tasks).some(dayTasks => dayTasks.length > 0);
   });
 
+  private generateDemoDay(date: string, children: Child[]): ChildTask[] {
+    const activities = [
+      "📚 Lettura",
+      "🎨 Disegno",
+      "🏃‍♂️ Esercizio",
+      "🧠 Matematica",
+      "🎵 Musica",
+      "🧩 Puzzle",
+      "🍝 Cena",
+      "🚿 Igiene personale",
+      "🧹 Riordina la cameretta",
+      "🍎 Merenda"
+    ];
+
+    const tasks: ChildTask[] = [];
+
+    children.forEach((child, index) => {
+      const count = 2 + Math.floor(Math.random() * 3); // 2–4 attività
+
+      for (let i = 0; i < count; i++) {
+        const startHour = 8 + i * 2;
+        const start = new Date(date);
+        start.setHours(startHour, 0, 0);
+
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+        tasks.push({
+          id: `${child.id}-${date}-${i}`,
+          childId: child.id,
+          title: activities[(index + i) % activities.length],
+          description: `Attività per ${child.name}`,
+          color: this.getChildColor(child.id),
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+          completed: Math.random() > 0.75
+        });
+      }
+    });
+
+    return tasks;
+  }
+
+  private generateDemoWeek(children: Child[]) {
+  const result: { [day: string]: ChildTask[] } = {};
+  const days = this.getWeekDates();
+
+  days.forEach(day => {
+    result[day] = this.generateDemoDay(day, children);
+  });
+
+  return result;
+}
+
+
+
   // UI state
   sidebarExpanded = signal<boolean>(false);
   isSidebarOpen = computed(() => this.sidebarExpanded());
@@ -101,39 +156,98 @@ export class HomePage implements OnInit, OnDestroy {
   // Colors for children
   private childColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726', '#66BB6A', '#AB47BC', '#F48FB1', '#81C784'];
 
+  // ngOnInit() {
+  //   if (environment.useMockApi) {
+  //     console.log("🟩 FE Mock Mode active");
+
+  //     // load or create demo family
+  //     const saved = localStorage.getItem('calendarKids_family');
+  //     if (saved) {
+  //       this.activeFamily.set(JSON.parse(saved));
+  //     }
+
+  //     const family = this.activeFamily();
+  //     if (!family) {
+  //       console.error("❌ No family found");
+  //       return;
+  //     }
+
+  //     // generate mock weekly tasks
+  //     this.tasksByDay.set(this.generateMockWeek());
+
+  //     // define visible week days
+  //     this.days = this.getWeekDates();
+
+  //     this.loading.set(false);
+  //     return;
+  //   }
+
+  //   // normal BE mode (unused)
+  //   this.loadTasks();
+  // }
+
   ngOnInit() {
-    if (environment.useMockApi) {
-      // Inject demo family with children for mock mode
-      const demoFamily: Family = {
-        id: 'mock-family',
-        parentName: 'Demo',
-        children: [
-          {
-            id: 'kid1',
-            name: 'Alice',
-            avatar: '👧',
-            point: 0,
-            age: null,
-            createdAt: new Date(),
-            sex: ''
-          },
-          {
-            id: 'kid2',
-            name: 'Luca',
-            avatar: '👦',
-            point: 0,
-            age: null,
-            createdAt: new Date(),
-            sex: ''
-          }
-        ],
-        createdAt: new Date(),
-      };
-  this.activeFamily.set(demoFamily);
+  if (environment.useMockApi) {
+    console.log("(solo FE)");
+
+    // Se esiste famiglia salvata, caricala
+    const savedFamily = localStorage.getItem('calendarKids_family');
+    if (savedFamily) {
+      this.activeFamily.set(JSON.parse(savedFamily));
     }
-    //this.loadFamily();
-    this.loadTasks();
+
+    // Altrimenti crea una demo family
+    if (!this.activeFamily()) {
+      this.activeFamily.set({
+        id: "demo-family",
+        parentName: "Famiglia Demo",
+        createdAt: new Date(),
+        children: [
+          { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [] },
+          { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [] },
+          { id: "kid3", name: "Emma",  avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [] }
+        ]
+      });
+    }
+
+    const family = this.activeFamily();
+
+    // 1️⃣ Genera settimana mock
+    const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
+
+    // 2️⃣ Converte ChildTask[] in TaskInstance[]
+    const weekTasks: DayTasks = {};
+    for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
+      weekTasks[day] = childTasks.map(childTask => ({
+        id: childTask.id,
+        instanceId: childTask.id, // or generate a unique instanceId if needed
+        title: childTask.title,
+        color: childTask.color,
+        start: childTask.startTime,
+        end: childTask.endTime,
+        done: childTask.completed ?? false,
+        doneAt: null,
+        description: childTask.description,
+        childId: childTask.childId,
+        childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : ''
+      }));
+    }
+
+    // 3️⃣ Salva nel signal
+    this.tasksByDay.set(weekTasks);
+
+    // 3️⃣ Calcola i giorni da mostrare
+    this.days = this.getWeekDates();
+
+    this.loading.set(false);
+    return;
   }
+
+  // modalità API (non usata)
+  this.loadTasks();
+}
+
+
 
   ngOnDestroy() {
     // Clean up subscriptions if any
@@ -180,7 +294,7 @@ export class HomePage implements OnInit, OnDestroy {
           await this.loadWeekCalendar(family.id);
         }
 
-        return; 
+        return;
 
       } catch (beError) {
         console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);

@@ -13,6 +13,7 @@ export interface Child {
   createdAt: Date;
   sex: string;
   point?: number;
+  tasks: ChildTask[];
 }
 
 export interface ChildTask {
