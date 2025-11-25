@@ -8,6 +8,7 @@ export interface Kid {
 export type KidId = string;
 
 export interface KidTask {
+  childName: string;
   id: string;
   instanceId: string; // per identificare l'istanza specifica
   title: string;

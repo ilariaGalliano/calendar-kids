@@ -12,6 +12,7 @@ export interface CalendarTask {
   doneAt?: Date;
   childId: string;
   assigneeProfileId: string;
+  childName: string;
   assigneeProfile?: {
     id: string;
     displayName: string;
@@ -100,6 +101,7 @@ export function calendarTaskToKidTask(calendarTask: CalendarTask, date: string):
     assigneeProfileId: calendarTask.assigneeProfileId,
     description: calendarTask.description,
     icon: calendarTask.icon,
-    childId: calendarTask.childId
+    childId: calendarTask.childId,
+    childName: calendarTask.childName
   };
 }
