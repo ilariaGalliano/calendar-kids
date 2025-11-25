@@ -2,10 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../environments/environment';
+import { MockApiService } from './mock-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  private mockApi = inject(MockApiService);
   private key = 'accessToken';
 
   async setToken(token: string) {
@@ -31,6 +33,9 @@ export class AuthService {
   }
 
   register(email: string, password: string, householdName: string) {
+    if (environment.useMockApi) {
+      return this.mockApi.register(email, password, householdName);
+    }
     return this.http.post<{ accessToken: string; householdId: string }>(
       `${environment.apiBase}/auth/register`,
       { email, password, householdName }
@@ -38,6 +43,9 @@ export class AuthService {
   }
 
   login(email: string, password: string) {
+    if (environment.useMockApi) {
+      return this.mockApi.login(email, password);
+    }
     return this.http.post<{ accessToken: string }>(
       `${environment.apiBase}/auth/login`,
       { email, password }

@@ -634,13 +634,60 @@ export class HomePage implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
+      if (environment.useMockApi) {
+        const family = this.activeFamily();
+        if (!family) {
+          this.error.set('Nessuna famiglia mock trovata');
+          this.loading.set(false);
+          return;
+        }
+        const activities = [
+          "📚 Lettura",
+          "🎨 Disegno",
+          "🏃‍♂️ Esercizio",
+          "🧠 Matematica",
+          "🎵 Musica",
+          "🧩 Puzzle",
+          "🍝 Cena",
+          "🚿 Igiene personale",
+          "🧹 Riordina la cameretta",
+          "🍎 Merenda"
+        ];
+        const tasks: TaskInstance[] = [];
+        family.children.forEach((child, childIndex) => {
+          activities.forEach((title, i) => {
+            const startHour = 8 + i;
+            const start = new Date(date);
+            start.setHours(startHour, 0, 0);
+            const end = new Date(start.getTime() + 60 * 60 * 1000);
+            tasks.push({
+              id: `${child.id}-${date}-${i}`,
+              instanceId: `${child.id}-${date}-${i}`,
+              title,
+              color: this.childColors[childIndex % this.childColors.length],
+              start: start.toISOString(),
+              end: end.toISOString(),
+              done: false,
+              doneAt: null,
+              description: `Attività per ${child.name}`,
+              childId: child.id,
+              childName: child.name
+            });
+          });
+        });
+        const dayTasks = { [date]: tasks };
+        this.tasksByDay.set(dayTasks);
+        this.days = [date];
+        console.log('✅ Calendario giornaliero mock FE:', dayTasks);
+        this.loading.set(false);
+        return;
+      }
+      // BE mode
       const kidTasks = await this.calendarService.loadDayCalendar(householdId, date);
-
       if (kidTasks) {
         const family = this.currentFamily();
         const tasks = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
         const dayTasks = { [date]: tasks };
-
         this.tasksByDay.set(dayTasks);
         this.days = [date];
         console.log('✅ Calendario giornaliero caricato dal BE:', dayTasks);
