@@ -609,18 +609,35 @@ getVisibleTimeWindowData(): any {
   const data = this.timeWindowData;
   const selected = this.currentSelectedChild();
 
-  if (!data || !Array.isArray(data.tasks) || !selected) {
-    return data;
-  }
+  if (!data || !Array.isArray(data.tasks)) return data;
 
-  const filteredTasks = data.tasks.filter((t: any) => t.childId === selected.id);
+  // 1️⃣ Filtriamo se è selezionato un solo bambino
+  const rawTasks = selected
+    ? data.tasks.filter((t: any) => t.childId === selected.id)
+    : data.tasks;
+
+  // 2️⃣ Raggruppiamo per bambino
+  const groupMap: Record<string, { childId: string; childName: string; tasks: any[] }> = {};
+
+  rawTasks.forEach((task: TaskInstance) => {
+    const childId = task.childId;
+    const childName = task.childName ?? 'Bambino';
+
+    if (!groupMap[childId]) {
+      groupMap[childId] = { childId, childName, tasks: [] };
+    }
+
+    groupMap[childId].tasks.push(task);
+  });
+
+  const groupedTasks = Object.values(groupMap);
 
   return {
     ...data,
-    tasks: filteredTasks
-    // volendo potresti anche ricalcolare summary qui
+    groupedTasks   // ⬅️ questa è l’array che userà il template NOW
   };
 }
+
 
 
   onDateChanged(event: { direction: 'prev' | 'next' }) {
