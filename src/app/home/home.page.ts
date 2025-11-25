@@ -200,7 +200,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (!this.activeFamily()) {
       this.activeFamily.set({
         id: "demo-family",
-        parentName: "Famiglia Demo",
+        parentName: "Lorena",
         createdAt: new Date(),
         children: [
           { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [] },
@@ -705,6 +705,70 @@ export class HomePage implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
+      if (environment.useMockApi) {
+        const family = this.activeFamily();
+        if (!family) {
+          this.error.set('Nessuna famiglia mock trovata');
+          this.loading.set(false);
+          return;
+        }
+        const activities = [
+          "📚 Lettura",
+          "🎨 Disegno",
+          "🏃‍♂️ Esercizio",
+          "🧠 Matematica",
+          "🎵 Musica",
+          "🧩 Puzzle",
+          "🍝 Cena",
+          "🚿 Igiene personale",
+          "🧹 Riordina la cameretta",
+          "🍎 Merenda"
+        ];
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const startHour = now.getHours();
+        const tasks: TaskInstance[] = [];
+        family.children.forEach((child, childIndex) => {
+          activities.slice(0, 3).forEach((title, i) => {
+            const start = new Date(dateStr);
+            start.setHours(startHour + i, 0, 0);
+            const end = new Date(start.getTime() + 60 * 60 * 1000);
+            tasks.push({
+              id: `${child.id}-now-${i}`,
+              instanceId: `${child.id}-now-${i}`,
+              title,
+              color: this.childColors[childIndex % this.childColors.length],
+              start: start.toISOString(),
+              end: end.toISOString(),
+              done: false,
+              doneAt: null,
+              description: `Attività per ${child.name}`,
+              childId: child.id,
+              childName: child.name
+            });
+          });
+        });
+        this.timeWindowData = {
+          currentTime: now.toISOString(),
+          currentDate: dateStr,
+          timeWindow: {
+            start: new Date(now.setMinutes(0,0,0)).toISOString(),
+            end: new Date(now.setHours(now.getHours() + 2)).toISOString()
+          },
+          tasks,
+          summary: {
+            total: tasks.length,
+            current: tasks.length,
+            completed: 0,
+            pending: tasks.length,
+            upcoming: 0
+          }
+        };
+        console.log('✅ Vista "Ora corrente" mock FE:', this.timeWindowData);
+        this.loading.set(false);
+        return;
+      }
+      // BE mode
       const timeWindowData = await this.calendarService.loadCurrentTimeWindow(householdId);
 
       if (timeWindowData) {

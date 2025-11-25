@@ -72,7 +72,7 @@
             <ion-card-header class="day-header now-header">
               <div class="current-time-section">
                 <div class="time-emoji">🕘</div>
-                <ion-card-title>{{ timeWindowData()!.currentTime }}</ion-card-title>
+                <ion-card-title>{{ timeWindowData()!.currentTime | date:'dd/MM/yyyy HH:mm':'it-IT' }}</ion-card-title>
                 <p class="day-date">{{ formatCurrentDate(timeWindowData()!.currentDate) }}</p>
                 <div class="time-window-badge">
                   <ion-badge color="primary">

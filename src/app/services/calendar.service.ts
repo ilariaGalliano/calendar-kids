@@ -49,7 +49,7 @@ export class CalendarService {
                 ...task,
                 taskId: String(task.id),
                 done: !!task.completed,
-                assigneeProfileId: 'mock',
+                assigneeProfileId: task.childId ?? 'kid1',
                 childId: task.childId ?? 'kid1',
                 childName: task.childName ?? task.child ?? 'Bambino',
               }))
@@ -118,7 +118,7 @@ export class CalendarService {
                     ...task,
                     taskId: String(task.id),
                     done: !!task.completed,
-                    assigneeProfileId: 'mock',
+                    assigneeProfileId: task.childId ?? 'kid1',
                     childId: task.childId ?? 'kid1',
                     childName: task.childName ?? task.child ?? 'Bambino',
                   }))
@@ -136,7 +136,7 @@ export class CalendarService {
                 ...task,
                 taskId: String(task.id),
                 done: !!task.completed,
-                assigneeProfileId: 'mock',
+                assigneeProfileId: task.childId ?? 'kid1',
                 childId: task.childId ?? 'kid1',
                 childName: task.childName ?? task.child ?? 'Bambino',
               }))
@@ -180,7 +180,7 @@ export class CalendarService {
           ...task,
           taskId: String(task.id),
           done: !!task.completed,
-          assigneeProfileId: 'mock',
+          assigneeProfileId: task.childId ?? 'kid1',
           childId: task.childId ?? 'kid1',
           childName: task.childName ?? task.child ?? 'Bambino',
         }, dayData.date));
@@ -189,7 +189,7 @@ export class CalendarService {
           ...task,
           taskId: String(task.id),
           done: !!task.completed,
-          assigneeProfileId: 'mock',
+          assigneeProfileId: task.childId ?? 'kid1',
           childId: task.childId ?? 'kid1',
           childName: task.childName ?? task.child ?? 'Bambino',
         }, date));
@@ -229,7 +229,7 @@ export class CalendarService {
   /**
    * Carica le attività nella finestra temporale corrente (±2 ore)
    */
-  async loadCurrentTimeWindow(householdId: string, datetime?: string): Promise<CurrentTimeWindowData | null> {
+  async loadCurrentTimeWindow(householdId: string, datetime?: string): Promise<any> {
     this.loading.set(true);
     this.error.set(null);
 
@@ -241,35 +241,66 @@ export class CalendarService {
         throw new Error('Nessun dato ricevuto dal server');
       }
 
-      // If mock data, transform to expected shape
+      // Group tasks by kid (childId) and return as array for frontend rendering
+      let allTasks: KidTask[] = [];
+      let summary = { total: 0, current: 0, completed: 0, pending: 0, upcoming: 0 };
+      let currentTime = '';
+      let currentDate = '';
+      let timeWindow = { start: '', end: '' };
+
       if ('date' in timeWindowData && 'tasks' in timeWindowData) {
-        return {
-          currentTime: '',
-          currentDate: timeWindowData.date,
-          timeWindow: { start: timeWindowData.date + 'T21:00:00', end: timeWindowData.date + 'T22:00:00' },
-          tasks: timeWindowData.tasks.map((task: any) => ({
-            ...calendarTaskToKidTask({
-              ...task,
-              taskId: String(task.id),
-              done: !!task.completed,
-              assigneeProfileId: 'mock',
-            }, timeWindowData.date),
-            timeStatus: 'current',
-            minutesFromNow: 0
-          })),
-          summary: { total: timeWindowData.tasks.length, current: timeWindowData.tasks.length, completed: timeWindowData.tasks.filter((t: any) => t.completed).length, pending: 0, upcoming: 0 }
+        currentDate = timeWindowData.date;
+        allTasks = timeWindowData.tasks.map((task: any) => ({
+          ...calendarTaskToKidTask({
+            ...task,
+            taskId: String(task.id),
+            done: !!task.completed,
+            assigneeProfileId: task.childId ?? 'kid1',
+          }, timeWindowData.date),
+          timeStatus: 'current',
+          minutesFromNow: 0
+        }));
+        timeWindow = { start: timeWindowData.date + 'T21:00:00', end: timeWindowData.date + 'T22:00:00' };
+        summary = {
+          total: allTasks.length,
+          current: allTasks.length,
+          completed: allTasks.filter((t: any) => t.done).length,
+          pending: allTasks.filter((t: any) => !t.done).length,
+          upcoming: 0
         };
-      }
-      return {
-        currentTime: timeWindowData.currentTime,
-        currentDate: timeWindowData.currentDate,
-        timeWindow: timeWindowData.timeWindow,
-        tasks: timeWindowData.tasks.map((task: any) => ({
+      } else {
+        currentTime = timeWindowData.currentTime;
+        currentDate = timeWindowData.currentDate;
+        timeWindow = timeWindowData.timeWindow;
+        allTasks = timeWindowData.tasks.map((task: any) => ({
           ...calendarTaskToKidTask(task, timeWindowData.currentDate),
           timeStatus: task.timeStatus,
           minutesFromNow: task.minutesFromNow
-        })),
-        summary: timeWindowData.summary
+        }));
+        summary = timeWindowData.summary;
+      }
+
+      // Group by childId and return as array
+      const groupedTasksArray: Array<{ childId: string, childName: string, tasks: KidTask[] }> = [];
+      const groupMap: Record<string, { childId: string, childName: string, tasks: KidTask[] }> = {};
+      allTasks.forEach(task => {
+        const childId = task.childId ?? 'kid1';
+        const childName = task.childName ?? 'Bambino';
+        if (!groupMap[childId]) {
+          groupMap[childId] = { childId, childName, tasks: [] };
+        }
+        groupMap[childId].tasks.push(task);
+      });
+      for (const key in groupMap) {
+        groupedTasksArray.push(groupMap[key]);
+      }
+
+      return {
+        currentTime,
+        currentDate,
+        timeWindow,
+        tasks: groupedTasksArray,
+        summary
       };
 
     } catch (error) {
