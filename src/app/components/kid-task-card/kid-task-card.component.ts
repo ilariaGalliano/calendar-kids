@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation, ElementRef, inject } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { IonItem, IonLabel, IonBadge, IonIcon, IonCheckbox } from '@ionic/angular/standalone';
-import { DatePipe } from '@angular/common';
+import { IonItem, IonLabel, IonBadge, IonIcon, IonCheckbox} from '@ionic/angular/standalone';
+import { DatePipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KidTask } from 'src/app/models/kid.models';
 import { RewardsService } from '../../services/rewards.service';
@@ -9,7 +9,7 @@ import { RewardsService } from '../../services/rewards.service';
 @Component({
   selector: 'app-kid-task-card',
   standalone: true,
-  imports: [IonItem, IonLabel, IonBadge, DatePipe, IonIcon, IonCheckbox, FormsModule],
+  imports: [IonItem, IonLabel, IonBadge, DatePipe, CommonModule, IonIcon, IonCheckbox, FormsModule],
   templateUrl: './kid-task-card.component.html',
   styleUrls: ['./kid-task-card.component.scss'],
   animations: [
@@ -26,9 +26,28 @@ import { RewardsService } from '../../services/rewards.service';
   ]
 })
 export class KidTaskCardComponent {
+  private timerInterval: any = null;
+  // Timer control: start/stop and update timerValue
+  toggleTimer() {
+    this.timerActive = !this.timerActive;
+    if (this.timerActive) {
+      this.timerInterval = setInterval(() => {
+        this.timerValue++;
+      }, 1000);
+    } else {
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+    }
+  }
   @Input() task!: KidTask;
   @Output() doneChange = new EventEmitter<{ instanceId: string; done: boolean }>();
   showFlyingPoints: boolean = false;
+
+  // Timer properties for each activity
+  timerActive: boolean = false;
+  timerValue: number = 0; // seconds elapsed or remaining
 
   private rewardsService = inject(RewardsService);
   private elementRef = inject(ElementRef);

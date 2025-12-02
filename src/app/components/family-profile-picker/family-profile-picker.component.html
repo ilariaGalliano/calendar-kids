@@ -1,0 +1,27 @@
+<div class="profile-picker-container">
+  <h2>Scegli il tuo profilo</h2>
+  <div class="profiles-grid" *ngIf="!showAvatarSelector">
+    <div *ngFor="let profile of profiles" class="profile-card" (click)="selectProfile(profile)">
+      <div class="avatar-circle">
+        <span class="avatar-emoji">{{ profile.avatar }}</span>
+      </div>
+      <div class="profile-name">{{ profile.name }}</div>
+    </div>
+    <div class="profile-card add-profile" (click)="selectProfile({id: 'new', name: '', avatar: ''})">
+      <div class="avatar-circle add-avatar">+</div>
+      <div class="profile-name">Aggiungi profilo</div>
+    </div>
+  </div>
+
+  <!-- Avatar selector for new kid -->
+  <div *ngIf="showAvatarSelector" class="avatar-selector-wrapper">
+    <h3>Nuovo bambino</h3>
+    <input type="text" [(ngModel)]="newKidName" placeholder="Nome bambino" class="kid-name-input" />
+    <app-avatar-selector 
+      [kidName]="newKidName"
+      [selectedAvatar]="selectedAvatar"
+      (avatarSelected)="onAvatarSelected($event)"
+      (cancelled)="onAvatarCancelled()"
+    ></app-avatar-selector>
+  </div>
+</div>

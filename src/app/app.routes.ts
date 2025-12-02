@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/family-setup/family-setup.component').then((m) => m.FamilySetupComponent),
     canActivate: [AuthGuard]
   },
+   {
+    path: 'family-profile-picker',
+    loadComponent: () => import('./components/family-profile-picker/family-profile-picker.component').then((m) => m.FamilyProfilePickerComponent),
+    canActivate: [AuthGuard]
+  },
   {
     path: 'settings',
     loadComponent: () => import('./components/settings/settings.component').then((m) => m.SettingsComponent),

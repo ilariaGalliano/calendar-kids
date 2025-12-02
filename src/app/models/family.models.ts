@@ -25,6 +25,7 @@ export interface ChildTask {
   description: string;
   completed: boolean;
   color: string;
+  icon?: string;
 }
 
 export interface DaySchedule {

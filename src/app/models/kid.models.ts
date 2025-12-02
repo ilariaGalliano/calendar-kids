@@ -25,4 +25,6 @@ export interface KidTask {
   icon?: string;
   repeat?: any; //TODO: fix this
   reminders?: number[];
+  timerActive?: boolean;
+  timerValue?: number; 
 }

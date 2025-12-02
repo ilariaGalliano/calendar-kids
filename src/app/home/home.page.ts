@@ -40,6 +40,7 @@ interface TaskInstance {
   description?: string;
   childId: string;
   childName: string;
+  icon: string;
 }
 
 interface DayTasks {
@@ -93,16 +94,16 @@ export class HomePage implements OnInit, OnDestroy {
 
   private generateDemoDay(date: string, children: Child[]): ChildTask[] {
     const activities = [
-      "📚 Lettura",
-      "🎨 Disegno",
-      "🏃‍♂️ Esercizio",
-      "🧠 Matematica",
-      "🎵 Musica",
-      "🧩 Puzzle",
-      "🍝 Cena",
-      "🚿 Igiene personale",
-      "🧹 Riordina la cameretta",
-      "🍎 Merenda"
+      { icon: "📚", name: "Lettura" },
+      { icon: "🎨", name: "Disegno" },
+      { icon: "🏃‍♂️", name: "Esercizio" },
+      { icon: "🧠", name: "Matematica" },
+      { icon: "🎵", name: "Musica" },
+      { icon: "🧩", name: "Puzzle" },
+      { icon: "🍝", name: "Cena" },
+      { icon: "🚿", name: "Igiene personale" },
+      { icon: "🧹", name: "Riordina la cameretta" },
+      { icon: "🍎", name: "Merenda" }
     ];
 
     const tasks: ChildTask[] = [];
@@ -120,12 +121,13 @@ export class HomePage implements OnInit, OnDestroy {
         tasks.push({
           id: `${child.id}-${date}-${i}`,
           childId: child.id,
-          title: activities[(index + i) % activities.length],
+          title: activities[(index + i) % activities.length].name,
           description: `Attività per ${child.name}`,
           color: this.getChildColor(child.id),
           startTime: start.toISOString(),
           endTime: end.toISOString(),
-          completed: Math.random() > 0.75
+          completed: Math.random() > 0.75,
+          icon: activities[(index + i) % activities.length].icon,
         });
       }
     });
@@ -229,7 +231,8 @@ export class HomePage implements OnInit, OnDestroy {
         doneAt: null,
         description: childTask.description,
         childId: childTask.childId,
-        childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : ''
+        childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : '',
+        icon: childTask.icon ?? ''
       }));
     }
 
@@ -322,24 +325,23 @@ export class HomePage implements OnInit, OnDestroy {
 
   private generateMockTasksForDate(date: Date, family: Family): TaskInstance[] {
     const tasks: TaskInstance[] = [];
-
     const activities = [
-      { name: '📚 Lettura', duration: 0.5, timeSlot: 'morning' },
-      { name: '🎨 Disegno', duration: 1, timeSlot: 'afternoon' },
-      { name: '🏃‍♂️ Esercizio', duration: 1, timeSlot: 'morning' },
-      { name: '🧠 Matematica', duration: 1.5, timeSlot: 'morning' },
-      { name: '🎵 Musica', duration: 1, timeSlot: 'afternoon' },
-      { name: '🌱 Giardinaggio', duration: 0.5, timeSlot: 'afternoon' },
-      { name: '🍳 Cucinare', duration: 1, timeSlot: 'afternoon' },
-      { name: '🧹 Pulizie', duration: 0.5, timeSlot: 'morning' },
-      { name: '📖 Compiti', duration: 2, timeSlot: 'afternoon' },
-      { name: '🎮 Tempo libero', duration: 1, timeSlot: 'evening' },
-      { name: '🚿 Igiene personale', duration: 0.5, timeSlot: 'morning' },
-      { name: '🛏️ Sistemare camera', duration: 0.5, timeSlot: 'morning' },
-      { name: '🎪 Gioco creativo', duration: 1, timeSlot: 'afternoon' },
-      { name: '📱 Tempo schermo', duration: 1, timeSlot: 'evening' },
-      { name: '🏀 Sport', duration: 1.5, timeSlot: 'afternoon' },
-      { name: '🧩 Puzzle', duration: 0.5, timeSlot: 'afternoon' }
+      { name: 'Lettura', icon: '📚', duration: 0.5, timeSlot: 'morning' },
+      { name: 'Disegno', icon: '🎨', duration: 1, timeSlot: 'afternoon' },
+      { name: 'Esercizio', icon: '🏃‍♂️', duration: 1, timeSlot: 'morning' },
+      { name: 'Matematica', icon: '🧠', duration: 1.5, timeSlot: 'morning' },
+      { name: 'Musica', icon: '🎵', duration: 1, timeSlot: 'afternoon' },
+      { name: 'Giardinaggio', icon: '🌱', duration: 0.5, timeSlot: 'afternoon' },
+      { name: 'Cucinare', icon: '🍳', duration: 1, timeSlot: 'afternoon' },
+      { name: 'Pulizie', icon: '🧹', duration: 0.5, timeSlot: 'morning' },
+      { name: 'Compiti', icon: '📖', duration: 2, timeSlot: 'afternoon' },
+      { name: 'Tempo libero', icon: '🎮', duration: 1, timeSlot: 'evening' },
+      { name: 'Igiene personale', icon: '🚿', duration: 0.5, timeSlot: 'morning' },
+      { name: 'Sistemare camera', icon: '🛏️', duration: 0.5, timeSlot: 'morning' },
+      { name: 'Gioco creativo', icon: '🎪', duration: 1, timeSlot: 'afternoon' },
+      { name: 'Tempo schermo', icon: '📱', duration: 1, timeSlot: 'evening' },
+      { name: 'Sport', icon: '🏀', duration: 1.5, timeSlot: 'afternoon' },
+      { name: 'Puzzle', icon: '🧩', duration: 0.5, timeSlot: 'afternoon' }
     ];
 
     // Generate tasks for each child (una sola forEach, quella giusta)
@@ -375,7 +377,8 @@ export class HomePage implements OnInit, OnDestroy {
           doneAt: Math.random() > 0.7 ? new Date().toISOString() : null,
           description: `Attività per ${child.name}`,
           childId: child.id,
-          childName: child.name
+          childName: child.name,
+          icon: activity.icon
         });
       });
     });
@@ -728,7 +731,8 @@ getVisibleTimeWindowData(): any {
               doneAt: null,
               description: `Attività per ${child.name}`,
               childId: child.id,
-              childName: child.name
+              childName: child.name,
+              icon: ''
             });
           });
         });
@@ -801,7 +805,8 @@ getVisibleTimeWindowData(): any {
               doneAt: null,
               description: `Attività per ${child.name}`,
               childId: child.id,
-              childName: child.name
+              childName: child.name,
+              icon: ''
             });
           });
         });
@@ -864,7 +869,8 @@ getVisibleTimeWindowData(): any {
       doneAt: kidTask.doneAt,
       description: kidTask.description,
       childId: childId,
-      childName: childName
+      childName: childName,
+      icon: kidTask.icon
     };
   }
 

@@ -195,7 +195,7 @@ export class FamilySetupComponent implements OnInit {
 
       // Naviga alla home
       setTimeout(() => {
-        this.router.navigate(['/home']);
+        this.router.navigate(['/family-profile-picker']);
       }, 1000);
 
     } catch (error) {

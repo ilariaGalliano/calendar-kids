@@ -1,66 +1,71 @@
-<ion-card class="avatar-selector-card">
+<ion-card class="avatar-selector-card" style="max-width: 540px; margin: 0 auto;">
   <ion-card-header>
-    <ion-card-title class="selector-title">
-      <span class="wave-emoji">👋</span>
+    <ion-card-title class="selector-title" style="font-size: 2.2rem; text-align: center;">
+      <span class="wave-emoji" style="font-size: 2.5rem;">👋</span>
       <span>Ciao {{ kidName }}!</span>
     </ion-card-title>
-    <p class="selector-subtitle">Scegli il tuo avatar e i tuoi colori preferiti</p>
+    <p class="selector-subtitle" style="font-size: 1.3rem; text-align: center;">Scegli il tuo avatar e i tuoi colori preferiti</p>
   </ion-card-header>
   
   <ion-card-content>
     <!-- Sezione per palette colori -->
-    <div class="section-header">
-      <h3>🎨 Scegli i tuoi colori</h3>
+    <div class="section-header" style="text-align: center;">
+      <h3 style="font-size: 1.5rem;">🎨 Scegli i tuoi colori</h3>
     </div>
     
-    <div class="palette-grid">
+    <div class="palette-grid" style="justify-content: center;">
       <div 
         class="palette-option" 
         *ngFor="let palette of avatarsByPalette | keyvalue" 
-[class.selected]="selectedAvatar && palette.value[0] && selectedAvatar.palette.name === palette.value[0].palette.name"
+        [class.selected]="selectedAvatar && palette.value[0] && selectedAvatar.palette.name === palette.value[0].palette.name"
         (click)="selectAvatar(palette.value[0])"
+        style="font-size: 1.3rem; min-width: 120px; padding: 12px; border-radius: 16px; margin: 0 12px;"
       >
-        <div class="palette-preview" [style.background]="palette.value[0] ? palette.value[0].palette.gradient : ''">
-          <div class="palette-name">{{ palette.value[0] ? palette.value[0].palette.name : '' }}</div>
+        <div class="palette-preview" [style.background]="palette.value[0] ? palette.value[0].palette.gradient : ''" style="height: 48px; border-radius: 12px;">
+          <div class="palette-name" style="font-size: 1.1rem;">{{ palette.value[0] ? palette.value[0].palette.name : '' }}</div>
         </div>
-        <div class="palette-avatars">
+        <div class="palette-avatars" style="margin-top: 6px;">
           <span 
             *ngFor="let avatar of palette.value.slice(0, 3)" 
-            class="mini-avatar"
+            class="mini-avatar" style="font-size: 1.6rem; margin-right: 4px;"
           >{{ avatar.emoji }}</span>
-          <span *ngIf="palette.value.length > 3" class="more-count">+{{ palette.value.length - 3 }}</span>
+          <span *ngIf="palette.value.length > 3" class="more-count" style="font-size: 1.1rem;">+{{ palette.value.length - 3 }}</span>
         </div>
       </div>
     </div>
 
     <!-- Avatar dettagliati per la palette selezionata -->
-    <div *ngIf="selectedAvatar" class="selected-palette-section">
-      <div class="section-header">
-        <h3>{{ selectedAvatar.palette.name }} - Scegli il tuo personaggio</h3>
+    <div *ngIf="selectedAvatar" class="selected-palette-section" style="margin-top: 24px;">
+      <div class="section-header" style="text-align: center;">
+        <h3 style="font-size: 1.4rem;">{{ selectedAvatar.palette.name }} - Scegli il tuo personaggio</h3>
       </div>
       
-      <ion-grid class="avatars-grid">
+      <ion-grid class="avatars-grid" style="justify-content: center;">
         <ion-row>
           <ion-col 
             size="4" size-md="3" 
             *ngFor="let avatar of getAvatarsForSelectedPalette()"
+            style="display: flex; justify-content: center; align-items: center;"
           >
             <div 
               class="avatar-option"
               [class.selected]="selectedAvatar.id === avatar.id"
               (click)="selectAvatar(avatar)"
+              style="padding: 12px; border-radius: 16px; margin: 0 8px; min-width: 100px; text-align: center;"
             >
               <div 
                 class="avatar-circle" 
                 [style.background]="avatar.palette.gradient"
                 [style.box-shadow]="'0 8px 25px ' + avatar.palette.shadow"
+                style="width: 72px; height: 72px; font-size: 2.5rem; margin: 0 auto 8px auto;"
               >
                 <span class="avatar-emoji">{{ avatar.emoji }}</span>
               </div>
-              <div class="avatar-name">{{ avatar.name.split(' ')[1] || avatar.name }}</div>
+              <div class="avatar-name" style="font-size: 1.1rem; margin-bottom: 4px;">{{ avatar.name.split(' ')[1] || avatar.name }}</div>
               <ion-badge 
                 class="category-badge" 
                 [style.background-color]="avatar.palette.accent"
+                style="font-size: 0.9rem; padding: 4px 10px; border-radius: 10px;"
               >
                 {{ getCategoryName(avatar.category) }}
               </ion-badge>
@@ -71,11 +76,12 @@
     </div>
 
     <!-- Pulsanti azione -->
-    <div class="action-buttons">
+    <div class="action-buttons" style="display: flex; justify-content: center; gap: 18px; margin-top: 24px;">
       <ion-button 
         fill="clear" 
         color="medium"
         (click)="cancel()"
+        style="font-size: 1.1rem; border-radius: 16px;"
       >
         <ion-icon name="arrow-back" slot="start"></ion-icon>
         Indietro
@@ -86,6 +92,7 @@
         [style.background]="selectedAvatar.palette.gradient"
         class="confirm-button"
         (click)="confirmSelection()"
+        style="font-size: 1.1rem; border-radius: 16px;"
       >
         <ion-icon name="checkmark-circle" slot="start"></ion-icon>
         Iniziamo!

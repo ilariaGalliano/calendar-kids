@@ -7,11 +7,16 @@
     <div class="task-accent" [style.background]="task.color"></div>
 
     <ion-label [class.completed]="task.done">
-      <h2 class="task-title">{{ task.title }}</h2>
+      <div style="display: flex; align-items: center;">
+        <h2 class="task-title" style="margin-right: 12px;">{{ task.title }}</h2>
+        <span style="font-size: 28px;">{{ task.icon }}</span>
+      </div>
       <p class="task-time">{{ task.start | date:'shortTime' }} → {{ task.end | date:'shortTime' }}</p>
     </ion-label>
 
-    <!-- Icona stella con punti -->
+    <!-- Fare timer -->
+
+    <!-- Icona moneta con punti -->
     <div class="reward-star" [class.earned]="task.done">
       <img src="../../../assets/icon/coin.jpg" alt="coin" class="star-icon" />
       <!-- <span class="star-points">+10</span> -->
