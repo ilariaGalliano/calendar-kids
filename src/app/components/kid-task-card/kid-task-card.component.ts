@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation, ElementRef, inject } from '@angular/core';
+import { trigger, state, style, animate, transition } from '@angular/animations';
 import { IonItem, IonLabel, IonBadge, IonIcon, IonCheckbox } from '@ionic/angular/standalone';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,11 +11,24 @@ import { RewardsService } from '../../services/rewards.service';
   standalone: true,
   imports: [IonItem, IonLabel, IonBadge, DatePipe, IonIcon, IonCheckbox, FormsModule],
   templateUrl: './kid-task-card.component.html',
-  styleUrls: ['./kid-task-card.component.scss']
+  styleUrls: ['./kid-task-card.component.scss'],
+  animations: [
+    trigger('flyPoints', [
+      state('void', style({ opacity: 0, transform: 'translateY(0)' })),
+      state('*', style({ opacity: 1, transform: 'translateY(-30px)' })),
+      transition('void => *', [
+        animate('600ms cubic-bezier(.42,1.5,.58,1)')
+      ]),
+      transition('* => void', [
+        animate('300ms ease-in', style({ opacity: 0, transform: 'translateY(-60px)' }))
+      ])
+    ])
+  ]
 })
 export class KidTaskCardComponent {
   @Input() task!: KidTask;
   @Output() doneChange = new EventEmitter<{ instanceId: string; done: boolean }>();
+  showFlyingPoints: boolean = false;
 
   private rewardsService = inject(RewardsService);
   private elementRef = inject(ElementRef);
@@ -33,6 +47,7 @@ export class KidTaskCardComponent {
       
       // Suono di completamento
       new Audio('assets/sounds/done.mp3').play().catch(() => {});
+      this.showFlyingPoints = true;
     } else {
       // Rimuovi punti quando l'attività viene decompletata
       this.rewardsService.removePointsForTask(childId);

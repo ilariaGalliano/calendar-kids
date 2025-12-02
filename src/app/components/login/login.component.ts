@@ -105,8 +105,8 @@ export class LoginComponent implements OnInit {
 
     localStorage.setItem('calendarKids_family', JSON.stringify(demoFamily));
     await this.authService.setToken('token');
-    this.router.navigateByUrl('/home', { replaceUrl: true });
-    this.router.navigate(['/home']);
+    // this.router.navigateByUrl('/home', { replaceUrl: true });
+    this.router.navigate(['/family-setup']);
   }
 
 }

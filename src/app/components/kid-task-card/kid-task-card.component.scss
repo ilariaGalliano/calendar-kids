@@ -46,7 +46,8 @@
   transform: scale(0.8);
 
   .star-icon {
-    font-size: 24px;
+    width: 50px;
+    height: auto;
     color: black;
     filter: grayscale(100%);
     transition: all 0.3s ease;
