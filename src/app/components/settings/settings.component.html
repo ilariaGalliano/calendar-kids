@@ -141,7 +141,7 @@
                 <span class="child-emoji">🧒</span>
                 <span>Routine di {{ child.name }}</span>
               </div>
-              <ion-button fill="clear" size="small" (click)="addRoutine(child.id)">
+              <ion-button fill="clear" size="small" (click)="createRoutine(child.id)">
                 ➕
               </ion-button>
             </div>
@@ -173,7 +173,7 @@
           } @empty {
           <div class="empty-state">
             <p>Nessuna routine per {{ child.name }}</p>
-            <ion-button size="small" fill="outline" (click)="addRoutine(child.id)">
+            <ion-button size="small" fill="outline" (click)="createRoutine(child.id)">
               Crea Prima Routine
             </ion-button>
           </div>
