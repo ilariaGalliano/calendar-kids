@@ -60,9 +60,12 @@ export class SettingsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadChildren();
-    this.loadTasks();
-    this.loadRoutines();
+    // Carica prima i bambini, poi task e routine
+    this.settingService.getChildren().subscribe(childrenData => {
+      this.children.set(childrenData);
+      this.loadTasks();
+      this.loadRoutines();
+    });
   }
 
   loadChildren() {
@@ -74,9 +77,24 @@ export class SettingsComponent implements OnInit {
   }
 
   loadRoutines() {
-    // Optionally, load for a specific child or all routines
-    // Here, just clear for now or implement as needed
-    this.routines.set([]);
+      // Carica le routine per tutti i bambini
+      const children = this.children() ?? [];
+      if (!Array.isArray(children) || children.length === 0) {
+        this.routines.set([]);
+        return;
+      }
+      // Carica tutte le routine per tutti i bambini e uniscile
+      const routinesArr: Routine[] = [];
+      let loaded = 0;
+      children.forEach(child => {
+        this.settingService.getRoutines(child.id).subscribe(data => {
+          routinesArr.push(...data);
+          loaded++;
+          if (loaded === children.length) {
+            this.routines.set(routinesArr);
+          }
+        });
+      });
   }
 
   filteredTasks() {
