@@ -60,6 +60,9 @@
               <ion-button fill="clear" size="small" (click)="editChild(child)">
                 ✏️
               </ion-button>
+              <ion-button fill="clear" size="small" color="danger" (click)="deleteChild(child)">
+                🗑️
+              </ion-button>
             </ion-item>
             }
           </ion-list>
@@ -101,7 +104,7 @@
             <div class="task-card" [style.background]="task.color + '20'">
               <div class="task-header">
                 <span class="task-emoji">{{ task.emoji }}</span>
-                <ion-toggle [(ngModel)]="task.isActive" (ionChange)="updateTask(task)">
+                <ion-toggle [checked]="task.isActive" (ionChange)="onToggleTask(task, $event.detail.checked)">
                 </ion-toggle>
               </div>
               <h3>{{ task.title }}</h3>

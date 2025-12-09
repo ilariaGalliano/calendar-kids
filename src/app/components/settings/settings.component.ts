@@ -7,12 +7,15 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption,
   IonList, IonToggle,
-  IonFab, IonFabButton, IonModal, 
-  IonSegment, IonSegmentButton, IonBadge, IonAvatar
+  IonFab, IonFabButton, IonModal,
+  IonSegment, IonSegmentButton, IonBadge, IonAvatar,
+  ModalController
 } from '@ionic/angular/standalone';
-import { Child, Routine, Task } from 'src/app/models/task.models';
+import { Child, Routine, Task, TaskPayload } from 'src/app/models/task.models';
 import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AddChildModalComponent } from './add-child/add-child.component';
 
 @Component({
   selector: 'app-settings',
@@ -31,14 +34,14 @@ import { SettingService } from '../../services/setting.service';
 export class SettingsComponent implements OnInit {
   activeSegment = 'children';
   taskFilter = 'all';
-  
+
   children = signal<Child[]>([]);
   tasks = signal<Task[]>([]);
   routines = signal<Routine[]>([]);
-  
+
   showTaskModal = signal(false);
   editingTask = signal<Task | null>(null);
-  
+
   taskForm = {
     emoji: '🎯',
     title: '',
@@ -49,15 +52,16 @@ export class SettingsComponent implements OnInit {
   };
 
   taskColors = [
-    '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
+    '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
     '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
   ];
 
   constructor(
     private router: Router,
     private authService: AuthService = inject(AuthService),
-    private settingService: SettingService = inject(SettingService)
-  ) {}
+    private settingService: SettingService = inject(SettingService),
+    private modalCtrl: ModalController
+  ) { }
 
   ngOnInit() {
     // Carica prima i bambini, poi task e routine
@@ -77,24 +81,24 @@ export class SettingsComponent implements OnInit {
   }
 
   loadRoutines() {
-      // Carica le routine per tutti i bambini
-      const children = this.children() ?? [];
-      if (!Array.isArray(children) || children.length === 0) {
-        this.routines.set([]);
-        return;
-      }
-      // Carica tutte le routine per tutti i bambini e uniscile
-      const routinesArr: Routine[] = [];
-      let loaded = 0;
-      children.forEach(child => {
-        this.settingService.getRoutines(child.id).subscribe(data => {
-          routinesArr.push(...data);
-          loaded++;
-          if (loaded === children.length) {
-            this.routines.set(routinesArr);
-          }
-        });
+    // Carica le routine per tutti i bambini
+    const children = this.children() ?? [];
+    if (!Array.isArray(children) || children.length === 0) {
+      this.routines.set([]);
+      return;
+    }
+    // Carica tutte le routine per tutti i bambini e uniscile
+    const routinesArr: Routine[] = [];
+    let loaded = 0;
+    children.forEach(child => {
+      this.settingService.getRoutines(child.id).subscribe(data => {
+        routinesArr.push(...data);
+        loaded++;
+        if (loaded === children.length) {
+          this.routines.set(routinesArr);
+        }
       });
+    });
   }
 
   filteredTasks() {
@@ -109,7 +113,7 @@ export class SettingsComponent implements OnInit {
   getCategoryColor(category: string) {
     const colors: Record<string, string> = {
       morning: 'warning',
-      afternoon: 'primary', 
+      afternoon: 'primary',
       evening: 'secondary',
       custom: 'tertiary'
     };
@@ -120,7 +124,7 @@ export class SettingsComponent implements OnInit {
     const labels: Record<string, string> = {
       morning: 'Mattina',
       afternoon: 'Pomeriggio',
-      evening: 'Sera', 
+      evening: 'Sera',
       custom: 'Custom'
     };
     return labels[category] || category;
@@ -149,10 +153,36 @@ export class SettingsComponent implements OnInit {
     this.settingService.addChild(newChild).subscribe(() => this.loadChildren());
   }
 
-  editChild(child: Child) {
-    // Example: update name
-    const updated = { ...child, name: child.name + ' (modificato)' };
-    this.settingService.updateChild(child.id, updated).subscribe(() => this.loadChildren());
+  async editChild(child: Child) {
+
+    const modal = await this.modalCtrl.create({
+      component: AddChildModalComponent,
+      componentProps: { child },
+      backdropDismiss: false,
+      breakpoints: [0, 0.7],
+      initialBreakpoint: 0.7,
+    });
+
+    await modal.present();
+
+    const { data: formValue } = await modal.onDidDismiss();
+
+    if (!formValue) return;
+
+    const updated: Child = {
+      ...child,
+      ...formValue
+    };
+
+    this.settingService.updateChild(child.id, updated)
+      .subscribe(() => this.loadChildren());
+  }
+
+  deleteChild(child: Child) {
+    const confirmed = window.confirm(`Vuoi eliminare ${child.name}?`);
+    if (confirmed) {
+      this.settingService.deleteChild(child.id).subscribe(() => this.loadChildren());
+    }
   }
 
   addTask() {
@@ -169,7 +199,7 @@ export class SettingsComponent implements OnInit {
   }
 
   editTask(task: Task) {
-    this.taskForm = { 
+    this.taskForm = {
       emoji: task.emoji,
       title: task.title,
       description: task.description ?? '',
@@ -182,40 +212,71 @@ export class SettingsComponent implements OnInit {
   }
 
   deleteTask(task: Task) {
-    this.settingService.deleteTask(task.id).subscribe(() => this.loadTasks());
+    const confirmed = window.confirm("Sei sicuro di voler eliminare questa routine?");
+    if (confirmed) {
+      this.settingService.deleteTask(task.id).subscribe(() => this.loadTasks());
+    }
   }
 
   saveTask() {
-    const newTask: any = {
+    const payload: TaskPayload = {
       title: this.taskForm.title,
       emoji: this.taskForm.emoji,
       color: this.taskForm.color,
       duration: this.taskForm.duration,
       description: this.taskForm.description,
       category: this.taskForm.category,
-      isActive: true
+      isActive: this.editingTask()?.isActive ?? true
     };
-    if (this.editingTask()) {
-      this.settingService.updateTask(this.editingTask()!.id, newTask).subscribe(() => {
+
+    const editing = this.editingTask();
+
+    if (editing) {
+      this.settingService.updateTask(editing.id, {
+        ...payload,
+        id: editing.id // <-- AGGIUNGI QUESTO
+      }).subscribe(() => {
         this.loadTasks();
         this.closeTaskModal();
       });
     } else {
-      this.settingService.createTask(newTask).subscribe(() => {
+      this.settingService.createTask(payload).subscribe(() => {
         this.loadTasks();
         this.closeTaskModal();
       });
     }
   }
 
+
   closeTaskModal() {
     this.showTaskModal.set(false);
     this.editingTask.set(null);
   }
 
-  updateTask(task: Task) {
-    this.settingService.updateTask(task.id, task).subscribe(() => this.loadTasks());
+  onToggleTask(task: Task, newState: boolean) {
+    const updated: Task = {
+      ...task,
+      isActive: newState
+    };
+
+    this.updateTask(updated);
   }
+
+  updateTask(task: Task) {
+    const payload: TaskPayload = {
+      title: task.title,
+      emoji: task.emoji,
+      description: task.description,
+      duration: task.duration,
+      category: task.category,
+      color: task.color ?? '#4ECDC4',
+      isActive: task.isActive
+    };
+
+    this.settingService.updateTask(task.id, payload)
+      .subscribe(() => this.loadTasks());
+  }
+
 
   // Routine CRUD for per-child routines
   createRoutine(childId: string) {
@@ -228,20 +289,23 @@ export class SettingsComponent implements OnInit {
       startTime: '07:00',
       isActive: true
     };
-  this.settingService.createRoutine(newRoutine).subscribe(() => this.loadRoutines());
+    this.settingService.createRoutine(newRoutine).subscribe(() => this.loadRoutines());
   }
 
   editRoutine(routine: Routine) {
     // Example: update name
     const updated = { ...routine, name: routine.name + ' (modificata)' };
-  this.settingService.updateRoutine(routine.id, updated).subscribe(() => this.loadRoutines());
+    this.settingService.updateRoutine(routine.id, updated).subscribe(() => this.loadRoutines());
   }
 
   updateRoutine(routine: Routine) {
-  this.settingService.updateRoutine(routine.id, routine).subscribe(() => this.loadRoutines());
+    this.settingService.updateRoutine(routine.id, routine).subscribe(() => this.loadRoutines());
   }
 
-  deleteRoutine(routine: Routine) {
-  this.settingService.deleteRoutine(routine.id).subscribe(() => this.loadRoutines());
+  async deleteRoutine(routine: Routine) {
+    const confirmed = window.confirm("Sei sicuro di voler eliminare questa routine?");
+    if (confirmed) {
+      this.settingService.deleteRoutine(routine.id).subscribe(() => this.loadRoutines());
+    }
   }
 }

@@ -3,6 +3,7 @@ export interface Child {
   name: string;
   avatar?: string;
   age: number;
+  view: 'teen' | 'child';
   createdAt: Date;
 }
 
@@ -40,4 +41,14 @@ export interface TaskInstance {
   done: boolean;
   doneAt?: string | null;
   task?: Task;
+}
+
+export interface TaskPayload {
+  title: string;
+  emoji: string;
+  description?: string;
+  duration: number;
+  category: string;
+  color: string;
+  isActive: boolean;
 }

@@ -225,6 +225,7 @@ export class FamilySetupComponent implements OnInit {
         age: existingChild?.age ?? null,
         sex: existingChild?.sex ?? 'male',
         point: existingChild?.point,
+        view: existingChild?.view ?? 'child',
         tasks: existingChild?.tasks ?? []
       };
     });

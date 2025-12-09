@@ -66,7 +66,8 @@ export class FamilyService {
           age: 8,
           sex: 'female',
           createdAt: new Date(),
-          tasks: []
+          tasks: [],
+          view: 'teen'
         },
         {
           id: this.generateId(),
@@ -75,7 +76,8 @@ export class FamilyService {
           age: 6,
           sex: 'male',
           createdAt: new Date(),
-          tasks: []
+          tasks: [],
+          view: 'child'
         },
         {
           id: this.generateId(),
@@ -84,7 +86,8 @@ export class FamilyService {
           age: 3,
           sex: 'female',
           createdAt: new Date(),
-          tasks: []
+          tasks: [],
+           view: 'child'
         }
       ],
       createdAt: new Date()
@@ -113,7 +116,8 @@ export class FamilyService {
         age: null, // valore di default, da aggiornare quando l'utente imposta l'età
         createdAt: new Date(),
         sex: '',
-        tasks: []
+        tasks: [],
+        view: 'child'
       };
       family.children.push(child);
     }
@@ -143,7 +147,8 @@ export class FamilyService {
       age: null,
       sex: '', 
       createdAt: new Date(),
-      tasks: []
+      tasks: [],
+      view: 'child'
     };
 
     family.children.push(child);

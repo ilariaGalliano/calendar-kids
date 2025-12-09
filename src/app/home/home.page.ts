@@ -205,9 +205,9 @@ export class HomePage implements OnInit, OnDestroy {
         parentName: "Lorena",
         createdAt: new Date(),
         children: [
-          { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [] },
-          { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [] },
-          { id: "kid3", name: "Emma",  avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [] }
+          { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [], view: 'teen' },
+          { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [], view: 'child' },
+          { id: "kid3", name: "Emma",  avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [], view: 'child' }
         ]
       });
     }
