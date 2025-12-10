@@ -24,14 +24,44 @@ import { AddChildModalComponent } from './add-child/add-child.component';
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
-    IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption,
-    IonList, IonToggle,
-    IonFab, IonFabButton, IonModal, IonSegment, IonSegmentButton, IonBadge, IonAvatar
+    IonButton, IonInput, IonTextarea,
+    IonList, IonToggle, IonFab, IonFabButton, IonModal, IonSegment, IonSegmentButton, IonAvatar
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
+  // Opens the task modal to add a task to a specific routine and day
+  addTaskRoutine(routine: Routine, day: string) {
+    this.taskForm = {
+      emoji: '🎯',
+      title: '',
+      description: '',
+      duration: 5,
+      color: '#4ECDC4',
+      reward: 10
+    };
+    this.editingTask.set(null);
+    this.showTaskModal.set(true);
+    // Store context for which routine and day the task is being added to
+    this.addingToRoutine = routine;
+    this.addingToDay = day;
+  }
+
+  // Helper properties to track context when adding a task to a routine/day
+  addingToRoutine?: Routine;
+  addingToDay?: string;
+
+  // Update saveTask to handle adding to routine/day if context is set
+  // Restituisce i task della routine per uno specifico giorno
+  getTasksForRoutineDay(routine: any, day: string): any[] {
+    // Se la routine ha tasks e days, mostra tutti i task se il giorno è presente
+    if (!routine || !routine.tasks || !routine.days) return [];
+    if (routine.days.includes(day)) {
+      return routine.tasks;
+    }
+    return [];
+  }
   activeSegment = 'children';
   taskFilter = 'all';
 
@@ -47,7 +77,7 @@ export class SettingsComponent implements OnInit {
     title: '',
     description: '',
     duration: 5,
-    category: 'custom' as Task['category'],
+    reward: 15,
     color: '#4ECDC4'
   };
 
@@ -101,10 +131,6 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  filteredTasks() {
-    const tasks = this.tasks();
-    return this.taskFilter === 'all' ? tasks : tasks.filter(t => t.category === this.taskFilter);
-  }
 
   getRoutinesForChild(childId: string) {
     return this.routines().filter(r => r.childId === childId);
@@ -191,8 +217,8 @@ export class SettingsComponent implements OnInit {
       title: '',
       description: '',
       duration: 5,
-      category: 'custom',
-      color: '#4ECDC4'
+      color: '#4ECDC4',
+      reward: 10
     };
     this.editingTask.set(null);
     this.showTaskModal.set(true);
@@ -204,8 +230,8 @@ export class SettingsComponent implements OnInit {
       title: task.title,
       description: task.description ?? '',
       duration: task.duration,
-      category: task.category ?? 'custom',
-      color: task.color ?? '#4ECDC4'
+      color: task.color ?? '#4ECDC4',
+      reward: task.reward
     };
     this.editingTask.set(task);
     this.showTaskModal.set(true);
@@ -225,24 +251,41 @@ export class SettingsComponent implements OnInit {
       color: this.taskForm.color,
       duration: this.taskForm.duration,
       description: this.taskForm.description,
-      category: this.taskForm.category,
+      reward: this.taskForm.reward,
       isActive: this.editingTask()?.isActive ?? true
     };
 
     const editing = this.editingTask();
 
     if (editing) {
-      this.settingService.updateTask(editing.id, {
-        ...payload,
-        id: editing.id // <-- AGGIUNGI QUESTO
-      }).subscribe(() => {
+      // Mantieni tutte le proprietà originali del task
+      const updatedTask = { ...editing, ...payload };
+      this.settingService.updateTask(editing.id, updatedTask).subscribe(() => {
         this.loadTasks();
         this.closeTaskModal();
       });
     } else {
-      this.settingService.createTask(payload).subscribe(() => {
-        this.loadTasks();
-        this.closeTaskModal();
+      this.settingService.createTask(payload).subscribe((createdTask: Task) => {
+        // If adding to a routine/day, update the routine
+        if (this.addingToRoutine && this.addingToDay) {
+          // Add the new task to the routine's tasks and day if not present
+          const updatedRoutine = { ...this.addingToRoutine };
+          if (!updatedRoutine.tasks.map((t: any) => typeof t === 'string' ? t : t.id).includes(createdTask.id)) {
+            updatedRoutine.tasks.push(createdTask);
+          }
+          if (!updatedRoutine.days.includes(this.addingToDay)) {
+            updatedRoutine.days.push(this.addingToDay);
+          }
+          this.settingService.updateRoutine(updatedRoutine.id, updatedRoutine).subscribe(() => {
+            this.loadRoutines();
+            this.closeTaskModal();
+            this.addingToRoutine = undefined;
+            this.addingToDay = undefined;
+          });
+        } else {
+          this.loadTasks();
+          this.closeTaskModal();
+        }
       });
     }
   }
@@ -263,18 +306,8 @@ export class SettingsComponent implements OnInit {
   }
 
   updateTask(task: Task) {
-    const payload: TaskPayload = {
-      title: task.title,
-      emoji: task.emoji,
-      description: task.description,
-      duration: task.duration,
-      category: task.category,
-      color: task.color ?? '#4ECDC4',
-      isActive: task.isActive
-    };
-
-    this.settingService.updateTask(task.id, payload)
-      .subscribe(() => this.loadTasks());
+    // Mantieni tutte le proprietà originali del task
+    this.settingService.updateTask(task.id, { ...task }).subscribe(() => this.loadTasks());
   }
 
 

@@ -79,20 +79,11 @@
     @if (activeSegment === 'tasks') {
     <div class="section-content">
       <!-- Filtro categorie -->
-      <ion-segment [(ngModel)]="taskFilter" class="filter-segment">
+      <!-- <ion-segment [(ngModel)]="taskFilter" class="filter-segment">
         <ion-segment-button value="all">
           <ion-label>Tutti</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="morning">
-          <ion-label>🌅 Mattina</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="afternoon">
-          <ion-label>☀️ Pomeriggio</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="evening">
-          <ion-label>🌙 Sera</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+      </ion-segment> -->
 
       <ion-card class="kids-card">
         <ion-card-header>
@@ -100,7 +91,7 @@
         </ion-card-header>
         <ion-card-content>
           <div class="tasks-grid">
-            @for (task of filteredTasks(); track task.id) {
+            @for (task of tasks(); track task.id) {
             <div class="task-card" [style.background]="task.color + '20'">
               <div class="task-header">
                 <span class="task-emoji">{{ task.emoji }}</span>
@@ -109,9 +100,6 @@
               </div>
               <h3>{{ task.title }}</h3>
               <p>{{ task.duration }} min</p>
-              <ion-badge [color]="getCategoryColor(task.category)">
-                {{ getCategoryLabel(task.category) }}
-              </ion-badge>
               <div class="task-actions">
                 <ion-button fill="clear" size="small" (click)="editTask(task)">
                   ✏️
@@ -144,46 +132,81 @@
                 <span class="child-emoji">🧒</span>
                 <span>Routine di {{ child.name }}</span>
               </div>
-              <ion-button fill="clear" size="small" (click)="createRoutine(child.id)">
-                ➕
-              </ion-button>
+
+              <ion-button fill="clear" size="small" (click)="createRoutine(child.id)">➕</ion-button>
             </div>
           </ion-card-title>
         </ion-card-header>
+
         <ion-card-content>
           @for (routine of getRoutinesForChild(child.id); track routine.id) {
+
           <div class="routine-item">
+
             <div class="routine-info">
               <h3>{{ routine.name }}</h3>
-              <p>⏰ {{ routine.startTime }} - {{ routine.tasks.length }} task</p>
-              <div class="routine-days">
+              <p>⏰ {{ routine.startTime }}</p>
+
+              <!-- LISTA DEI GIORNI CON I TASK PER OGNI GIORNO -->
+              <div class="routine-days-expanded">
+
                 @for (day of routine.days; track day) {
-                <span class="day-badge">{{ getDayLabel(day) }}</span>
+
+                <div class="day-section">
+                  <div class="day-title">
+                    📅 {{ getDayLabel(day) }}
+                  </div>
+
+                  <div class="day-tasks">
+
+                    @for (task of getTasksForRoutineDay(routine, day); track task.id) {
+                    <div class="day-task-item">
+                      <div class="task-left">
+                        <span class="task-emoji">{{ task.emoji }}</span>
+                        <div>
+                          <div class="task-title">{{ task.title }}</div>
+                          <div class="task-meta">{{ task.duration }} min — 🏆 {{ task.reward }}</div>
+                        </div>
+                      </div>
+
+                      <div class="task-actions">
+                        <ion-button fill="clear" size="small" (click)="editTask(task)">✏️</ion-button>
+                        <ion-button fill="clear" size="small" color="danger" (click)="deleteTask(task)">🗑️</ion-button>
+                      </div>
+                    </div>
+                    }
+
+                    @empty {
+                    <div class="no-tasks">
+                      Nessuna attività →
+                      <ion-button size="small" fill="clear" (click)="addTaskRoutine(routine, day)">
+                        Aggiungi
+                      </ion-button>
+                    </div>
+                    }
+
+                  </div>
+                </div>
+
                 }
+
               </div>
             </div>
+
             <div class="routine-actions">
-              <ion-toggle [(ngModel)]="routine.isActive" (ionChange)="updateRoutine(routine)">
-              </ion-toggle>
-              <ion-button fill="clear" size="small" (click)="editRoutine(routine)">
-                ✏️
-              </ion-button>
-              <ion-button fill="clear" size="small" color="danger" (click)="deleteRoutine(routine)">
-                🗑️
-              </ion-button>
+              <ion-toggle [(ngModel)]="routine.isActive" (ionChange)="updateRoutine(routine)"></ion-toggle>
+              <ion-button fill="clear" size="small" (click)="editRoutine(routine)">✏️</ion-button>
+              <ion-button fill="clear" size="small" color="danger" (click)="deleteRoutine(routine)">🗑️</ion-button>
             </div>
+
           </div>
-          } @empty {
-          <div class="empty-state">
-            <p>Nessuna routine per {{ child.name }}</p>
-            <ion-button size="small" fill="outline" (click)="createRoutine(child.id)">
-              Crea Prima Routine
-            </ion-button>
-          </div>
+
           }
+
         </ion-card-content>
       </ion-card>
       }
+
     </div>
     }
   </div>
@@ -226,13 +249,9 @@
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Categoria</ion-label>
-            <ion-select [(ngModel)]="taskForm.category">
-              <ion-select-option value="morning">🌅 Mattina</ion-select-option>
-              <ion-select-option value="afternoon">☀️ Pomeriggio</ion-select-option>
-              <ion-select-option value="evening">🌙 Sera</ion-select-option>
-              <ion-select-option value="custom">🎯 Personalizzato</ion-select-option>
-            </ion-select>
+            <ion-label position="stacked">Ricompensa</ion-label>
+            <ion-input type="number" [(ngModel)]="taskForm.reward" placeholder="10">
+            </ion-input>
           </ion-item>
 
           <ion-item>

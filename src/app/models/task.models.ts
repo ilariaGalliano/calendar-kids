@@ -28,7 +28,8 @@ export interface Task {
   emoji: string;
   duration: number; // minuti
   description?: string;
-  category: 'morning' | 'afternoon' | 'evening' | 'custom';
+  reward: number;
+  // category: 'morning' | 'afternoon' | 'evening' | 'custom';
 }
 
 export interface TaskInstance {
@@ -40,6 +41,7 @@ export interface TaskInstance {
   endTime?: string | null;
   done: boolean;
   doneAt?: string | null;
+  reward: number;
   task?: Task;
 }
 
@@ -48,7 +50,7 @@ export interface TaskPayload {
   emoji: string;
   description?: string;
   duration: number;
-  category: string;
   color: string;
   isActive: boolean;
+  reward: number;
 }
