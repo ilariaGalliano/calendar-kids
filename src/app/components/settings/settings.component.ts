@@ -159,8 +159,8 @@ export class SettingsComponent implements OnInit {
 
   getDayLabel(day: string) {
     const labels: Record<string, string> = {
-      mon: 'L', tue: 'M', wed: 'M', thu: 'G',
-      fri: 'V', sat: 'S', sun: 'D'
+      mon: 'Lunedì', tue: 'Martedì', wed: 'Mercoledì', thu: 'Giovedì',
+      fri: 'Venerdì', sat: 'Sabato', sun: 'Domenica'
     };
     return labels[day] || day;
   }
