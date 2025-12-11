@@ -16,6 +16,7 @@ import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AddChildModalComponent } from './add-child/add-child.component';
+import { CreateRoutineModalComponent } from './create-routine-modal/create-routine-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -312,18 +313,22 @@ export class SettingsComponent implements OnInit {
 
 
   // Routine CRUD for per-child routines
-  createRoutine(childId: string) {
-    const newRoutine = {
-      childId,
-      name: 'Nuova Routine',
-      description: '',
-      tasks: [],
-      days: ['mon'],
-      startTime: '07:00',
-      isActive: true
-    };
-    this.settingService.createRoutine(newRoutine).subscribe(() => this.loadRoutines());
-  }
+  async openCreateRoutineModal(childId: string) {
+  const modal = await this.modalCtrl.create({
+    component: CreateRoutineModalComponent,
+    componentProps: { childId }
+  });
+
+  modal.onDidDismiss().then(result => {
+    if (result.data) {
+      this.settingService.createRoutine(result.data)
+        .subscribe(() => this.loadRoutines());
+    }
+  });
+
+  await modal.present();
+}
+
 
   editRoutine(routine: Routine) {
     // Example: update name

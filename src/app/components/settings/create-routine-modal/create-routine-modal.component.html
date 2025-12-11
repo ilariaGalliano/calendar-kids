@@ -1,0 +1,126 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Crea Routine</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-label>Nome Routine</ion-label>
+    <ion-input [(ngModel)]="name"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Orario</ion-label>
+    <ion-time-picker [(ngModel)]="startTime"></ion-time-picker>
+  </ion-item>
+
+  <h3>Giorni</h3>
+  <ion-list>
+    <ion-item *ngFor="let day of daysList">
+      <ion-checkbox slot="start" [checked]="selectedDays.includes(day.key)"
+        (ionChange)="onDayToggle(day.key, $event.detail.checked)">
+      </ion-checkbox>
+      <ion-label>{{ day.label }}</ion-label>
+
+      <ion-label>{{ day.label }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <h3>Attività per giorno</h3>
+  @for(day of daysList; track $index) {
+  <div>
+
+    <h4>{{ day.label }}</h4>
+
+    <ion-list>
+      <ion-item *ngFor="let task of tasksByDay[day.key]">
+        <ion-label>
+          {{ task.title }} — {{task.duration}} min
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <ion-button size="small" fill="outline" (click)="addTask(day.key)">
+      ➕ Aggiungi Attività
+    </ion-button>
+
+    <hr />
+  </div>
+  }
+  <ion-button expand="block" color="primary" (click)="save()">
+    Salva Routine
+  </ion-button>
+
+</ion-content>
+
+  <!-- Modal per aggiungere/modificare task -->
+  <ion-modal [isOpen]="showTaskModal()" (willDismiss)="closeTaskModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ editingTask() ? 'Modifica Task' : 'Nuovo Task' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeTaskModal()">✖️</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="modal-content">
+        <div class="task-form">
+          <ion-item>
+            <ion-label position="stacked">Emoji</ion-label>
+            <ion-input [(ngModel)]="taskForm.emoji" placeholder="🎯">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Nome Task</ion-label>
+            <ion-input [(ngModel)]="taskForm.title" placeholder="Es: Lavare i denti">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Descrizione</ion-label>
+            <ion-textarea [(ngModel)]="taskForm.description" placeholder="Descrizione opzionale">
+            </ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Durata (minuti)</ion-label>
+            <ion-input type="number" [(ngModel)]="taskForm.duration" placeholder="5">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Ricompensa</ion-label>
+            <ion-input type="number" [(ngModel)]="taskForm.reward" placeholder="10">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Colore</ion-label>
+            <div class="color-picker">
+              @for (color of taskColors; track color) {
+              <div class="color-option" [class.selected]="taskForm.color === color" [style.background]="color"
+                (click)="taskForm.color = color">
+              </div>
+              }
+            </div>
+          </ion-item>
+
+          <div class="form-actions">
+            <ion-button expand="block" fill="outline" (click)="closeTaskModal()">
+              Annulla
+            </ion-button>
+            <ion-button expand="block" (click)="saveTask()">
+              {{ editingTask() ? 'Aggiorna' : 'Crea' }} Task
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
