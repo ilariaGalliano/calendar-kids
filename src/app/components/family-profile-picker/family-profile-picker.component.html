@@ -7,6 +7,14 @@
       </div>
       <div class="profile-name">{{ profile.name }}</div>
     </div>
+
+    <!-- GENITORE -->
+    <div class="profile-card" (click)="selectProfile(parentProfile)">
+      <div class="avatar-circle">
+        <span class="avatar-emoji">👩</span>
+      </div>
+      <div class="profile-name">{{ userLogged() }}</div>
+    </div>
     <div class="profile-card add-profile" (click)="selectProfile({id: 'new', name: '', avatar: ''})">
       <div class="avatar-circle add-avatar">+</div>
       <div class="profile-name">Aggiungi profilo</div>
@@ -17,11 +25,7 @@
   <div *ngIf="showAvatarSelector" class="avatar-selector-wrapper">
     <h3>Nuovo bambino</h3>
     <input type="text" [(ngModel)]="newKidName" placeholder="Nome bambino" class="kid-name-input" />
-    <app-avatar-selector 
-      [kidName]="newKidName"
-      [selectedAvatar]="selectedAvatar"
-      (avatarSelected)="onAvatarSelected($event)"
-      (cancelled)="onAvatarCancelled()"
-    ></app-avatar-selector>
+    <app-avatar-selector [kidName]="newKidName" [selectedAvatar]="selectedAvatar"
+      (avatarSelected)="onAvatarSelected($event)" (cancelled)="onAvatarCancelled()"></app-avatar-selector>
   </div>
 </div>

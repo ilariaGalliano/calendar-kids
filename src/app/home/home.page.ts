@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import {
@@ -72,7 +72,7 @@ export class HomePage implements OnInit, OnDestroy {
   private familyService = inject(FamilyService);
   private router = inject(Router);
   private alertController = inject(AlertController);
-
+  private route = inject(ActivatedRoute)
   // Signals
   activeFamily = this.familyService.getActiveFamily(); // writable signal
   selectedChild = signal<Child | null>(null);
@@ -80,6 +80,11 @@ export class HomePage implements OnInit, OnDestroy {
   // Computed signals
   currentFamily = computed(() => this.activeFamily());
   currentSelectedChild = computed(() => this.selectedChild());
+
+  // Per visualizzazione
+  isParent = false;
+  selectedChildId?: string;
+  selectedChildName?: string | null;
 
   // State signals
   loading = signal<boolean>(true);
@@ -136,15 +141,15 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private generateDemoWeek(children: Child[]) {
-  const result: { [day: string]: ChildTask[] } = {};
-  const days = this.getWeekDates();
+    const result: { [day: string]: ChildTask[] } = {};
+    const days = this.getWeekDates();
 
-  days.forEach(day => {
-    result[day] = this.generateDemoDay(day, children);
-  });
+    days.forEach(day => {
+      result[day] = this.generateDemoDay(day, children);
+    });
 
-  return result;
-}
+    return result;
+  }
 
 
 
@@ -189,66 +194,81 @@ export class HomePage implements OnInit, OnDestroy {
   // }
 
   ngOnInit() {
-  if (environment.useMockApi) {
-    console.log("(solo FE)");
+    this.route.queryParams.subscribe(params => {
+      const childId = params['childId'];
+      if (childId) {
+        this.isParent = false;
+        this.selectedChildId = childId;
 
-    // Se esiste famiglia salvata, caricala
-    const savedFamily = localStorage.getItem('calendarKids_family');
-    if (savedFamily) {
-      this.activeFamily.set(JSON.parse(savedFamily));
+        this.selectChild(childId);
+      } else {
+        this.isParent = true;
+        this.selectedChildId = undefined;
+        this.selectedChild.set(null);
+      }
+
+      this.selectedChildName = this.getSelectedChildName();
+    });
+    if (environment.useMockApi) {
+      console.log("(solo FE)");
+
+      // Se esiste famiglia salvata, caricala
+      const savedFamily = localStorage.getItem('calendarKids_family');
+      if (savedFamily) {
+        this.activeFamily.set(JSON.parse(savedFamily));
+      }
+
+      // Altrimenti crea una demo family
+      if (!this.activeFamily()) {
+        this.activeFamily.set({
+          id: "demo-family",
+          parentName: "Lorena",
+          createdAt: new Date(),
+          children: [
+            { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [], view: 'teen' },
+            { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [], view: 'child' },
+            { id: "kid3", name: "Emma", avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [], view: 'child' }
+          ]
+        });
+      }
+
+      const family = this.activeFamily();
+
+      // 1️Genera settimana mock
+      const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
+
+      // 2️Converte ChildTask[] in TaskInstance[]
+      const weekTasks: DayTasks = {};
+      for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
+        weekTasks[day] = childTasks.map(childTask => ({
+          id: childTask.id,
+          instanceId: childTask.id, // or generate a unique instanceId if needed
+          title: childTask.title,
+          color: childTask.color,
+          start: childTask.startTime,
+          end: childTask.endTime,
+          done: childTask.completed ?? false,
+          doneAt: null,
+          description: childTask.description,
+          childId: childTask.childId,
+          childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : '',
+          icon: childTask.icon ?? ''
+        }));
+      }
+
+      // 3️Salva nel signal
+      this.tasksByDay.set(weekTasks);
+
+      // 3️Calcola i giorni da mostrare
+      this.days = this.getWeekDates();
+
+      this.loading.set(false);
+      return;
     }
 
-    // Altrimenti crea una demo family
-    if (!this.activeFamily()) {
-      this.activeFamily.set({
-        id: "demo-family",
-        parentName: "Lorena",
-        createdAt: new Date(),
-        children: [
-          { id: "kid1", name: "Sofia", avatar: "👧", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [], view: 'teen' },
-          { id: "kid2", name: "Marco", avatar: "👦", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [], view: 'child' },
-          { id: "kid3", name: "Emma",  avatar: "👶", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [], view: 'child' }
-        ]
-      });
-    }
-
-    const family = this.activeFamily();
-
-    // 1️⃣ Genera settimana mock
-    const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
-
-    // 2️⃣ Converte ChildTask[] in TaskInstance[]
-    const weekTasks: DayTasks = {};
-    for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
-      weekTasks[day] = childTasks.map(childTask => ({
-        id: childTask.id,
-        instanceId: childTask.id, // or generate a unique instanceId if needed
-        title: childTask.title,
-        color: childTask.color,
-        start: childTask.startTime,
-        end: childTask.endTime,
-        done: childTask.completed ?? false,
-        doneAt: null,
-        description: childTask.description,
-        childId: childTask.childId,
-        childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : '',
-        icon: childTask.icon ?? ''
-      }));
-    }
-
-    // 3️⃣ Salva nel signal
-    this.tasksByDay.set(weekTasks);
-
-    // 3️⃣ Calcola i giorni da mostrare
-    this.days = this.getWeekDates();
-
-    this.loading.set(false);
-    return;
+    // modalità API (non usata)
+    this.loadTasks();
   }
-
-  // modalità API (non usata)
-  this.loadTasks();
-}
 
 
 
@@ -431,6 +451,9 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   selectChild(childId: string | null) {
+    if (!this.isParent && childId !== this.selectedChildId) {
+      return;
+    }
     if (childId === null) {
       this.selectedChild.set(null);
     } else {
@@ -587,59 +610,59 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   // Ritorna i task visibili in base al bambino selezionato (Tutti / uno solo)
-getVisibleTasksByDay(): DayTasks {
-  const selected = this.currentSelectedChild();
-  const all = this.tasksByDay();
+  getVisibleTasksByDay(): DayTasks {
+    const selected = this.currentSelectedChild();
+    const all = this.tasksByDay();
 
-  // Nessun bambino selezionato -> mostra tutto
-  if (!selected) {
-    return all;
-  }
-
-  const filtered: DayTasks = {};
-  for (const [day, tasks] of Object.entries(all)) {
-    const dayFiltered = tasks.filter(t => t.childId === selected.id);
-    if (dayFiltered.length > 0) {
-      filtered[day] = dayFiltered;
-    }
-  }
-
-  return filtered;
-}
-
-// Filtro anche per la vista "now" (timeWindowData)
-getVisibleTimeWindowData(): any {
-  const data = this.timeWindowData;
-  const selected = this.currentSelectedChild();
-
-  if (!data || !Array.isArray(data.tasks)) return data;
-
-  // 1️⃣ Filtriamo se è selezionato un solo bambino
-  const rawTasks = selected
-    ? data.tasks.filter((t: any) => t.childId === selected.id)
-    : data.tasks;
-
-  // 2️⃣ Raggruppiamo per bambino
-  const groupMap: Record<string, { childId: string; childName: string; tasks: any[] }> = {};
-
-  rawTasks.forEach((task: TaskInstance) => {
-    const childId = task.childId;
-    const childName = task.childName ?? 'Bambino';
-
-    if (!groupMap[childId]) {
-      groupMap[childId] = { childId, childName, tasks: [] };
+    // Nessun bambino selezionato -> mostra tutto
+    if (!selected) {
+      return all;
     }
 
-    groupMap[childId].tasks.push(task);
-  });
+    const filtered: DayTasks = {};
+    for (const [day, tasks] of Object.entries(all)) {
+      const dayFiltered = tasks.filter(t => t.childId === selected.id);
+      if (dayFiltered.length > 0) {
+        filtered[day] = dayFiltered;
+      }
+    }
 
-  const groupedTasks = Object.values(groupMap);
+    return filtered;
+  }
 
-  return {
-    ...data,
-    groupedTasks   // ⬅️ questa è l’array che userà il template NOW
-  };
-}
+  // Filtro anche per la vista "now" (timeWindowData)
+  getVisibleTimeWindowData(): any {
+    const data = this.timeWindowData;
+    const selected = this.currentSelectedChild();
+
+    if (!data || !Array.isArray(data.tasks)) return data;
+
+    // 1️⃣ Filtriamo se è selezionato un solo bambino
+    const rawTasks = selected
+      ? data.tasks.filter((t: any) => t.childId === selected.id)
+      : data.tasks;
+
+    // 2️⃣ Raggruppiamo per bambino
+    const groupMap: Record<string, { childId: string; childName: string; tasks: any[] }> = {};
+
+    rawTasks.forEach((task: TaskInstance) => {
+      const childId = task.childId;
+      const childName = task.childName ?? 'Bambino';
+
+      if (!groupMap[childId]) {
+        groupMap[childId] = { childId, childName, tasks: [] };
+      }
+
+      groupMap[childId].tasks.push(task);
+    });
+
+    const groupedTasks = Object.values(groupMap);
+
+    return {
+      ...data,
+      groupedTasks   // ⬅️ questa è l’array che userà il template NOW
+    };
+  }
 
 
 
@@ -814,7 +837,7 @@ getVisibleTimeWindowData(): any {
           currentTime: now.toISOString(),
           currentDate: dateStr,
           timeWindow: {
-            start: new Date(now.setMinutes(0,0,0)).toISOString(),
+            start: new Date(now.setMinutes(0, 0, 0)).toISOString(),
             end: new Date(now.setHours(now.getHours() + 2)).toISOString()
           },
           tasks,
@@ -874,7 +897,20 @@ getVisibleTimeWindowData(): any {
     };
   }
 
+  isVisible() {
+    return this.isParent;
+  }
+
   goToSettings() {
     this.router.navigate(['/settings']);
+  }
+
+  getSelectedChildName(): string | null {
+    const family = this.currentFamily();
+    if (!family || !this.selectedChildId) return null;
+    const child = family.children.find((c: Child) => c.id === this.selectedChildId);
+    console.log(child?.name)
+    return child ? child.name : null;
+
   }
 }

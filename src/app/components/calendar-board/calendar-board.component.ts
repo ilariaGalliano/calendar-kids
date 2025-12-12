@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, signal } fro
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonContent, 
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonContent,
   IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon,
   IonText
 } from '@ionic/angular/standalone';
@@ -42,17 +42,18 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   // Signal per la gestione della vista
   currentView = signal<'day' | 'week' | 'now'>('week');
   currentDate = signal<string>('');
-  
+
   // Signal interno solo per il drag & drop
   lists = signal<Record<string, KidTask[]>>({});
-  
+
   // Signal per la vista "Ora Corrente"
   timeWindowData = signal<any>(null);
+
 
   ngOnInit() {
     // Registra le icone
     addIcons({ calendar, today, chevronBack, chevronForward, moveOutline, calendarOutline, reorderTwoOutline, playCircle, time, checkmarkCircle, timeOutline });
-    
+
     // Imposta la data corrente (oggi)
     const todayDate = new Date().toISOString().slice(0, 10);
     this.currentDate.set(todayDate);
@@ -90,6 +91,9 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     }
   }
 
+  isParent(): boolean {
+    return !!this.activeKidProfile?.isParent;
+  }
 
   // Utility methods (manteniamo solo queste)
   getDayEmoji(day: string): string {
@@ -110,10 +114,10 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   getNowTaskCountColor(): string {
     const data = this.timeWindowData();
     if (!data) return 'medium';
-    
+
     const total = data.summary.total;
     const current = data.summary.current;
-    
+
     if (total === 0) return 'medium';
     if (current > 0) return 'success'; // Verde se ci sono task in corso
     if (total <= 3) return 'primary';   // Blu per poche task 
@@ -138,23 +142,34 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     if (event.previousContainer === event.container) {
       // Riordino interno nello stesso giorno
       moveItemInArray(curr, event.previousIndex, event.currentIndex);
-      
+
     } else {
       // Trasferimento tra giorni diversi
       transferArrayItem(prev, curr, event.previousIndex, event.currentIndex);
     }
-    
+
     // Aggiorna il signal con una nuova referenza dell'oggetto
     this.lists.set({ ...lists });
   }
 
   // Gestione completamento task
   onDone(event: { instanceId: string; done: boolean }) {
-    // Emette l'evento al componente parent (HomePage)
-    this.taskDone.emit(event);
-    
-    // Aggiorna lo stato locale per l'UI immediata
+    // Trova il task
+    let taskFound: any | null = null;
+
     const lists = this.lists();
+    for (const day in lists) {
+      const t = lists[day].find(task => task.instanceId === event.instanceId);
+      if (t) {
+        taskFound = t;
+        break;
+      }
+    }
+    
+    // genitore o task del bambino
+    this.taskDone.emit(event);
+
+    // Aggiorna UI locale
     for (const day in lists) {
       const taskIndex = lists[day].findIndex(task => task.instanceId === event.instanceId);
       if (taskIndex !== -1) {
@@ -166,11 +181,12 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     }
   }
 
+
   // Metodi per la gestione della vista
   onViewChange(event: any) {
     const newView = event.detail.value as 'day' | 'week' | 'now';
     this.currentView.set(newView);
-    
+
     if (newView === 'day') {
       // Emette evento per caricare solo il giorno corrente
       this.viewChanged.emit({ view: 'day', date: this.currentDate() });
@@ -198,10 +214,10 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   getDateTitle(): string {
     if (this.currentView() === 'day') {
       const date = new Date(this.currentDate());
-      return date.toLocaleDateString('it-IT', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
+      return date.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
       });
     } else if (this.currentView() === 'now') {
       return 'Vista Ora Corrente';
@@ -215,10 +231,10 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   // Metodi helper per la vista "Ora Corrente"
   formatCurrentDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('it-IT', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
+    return date.toLocaleDateString('it-IT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
     });
   }
 
@@ -237,7 +253,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   }
 
   // Nuovi metodi per organizzare le attività per bambino
-  getChildrenWithTasksForDay(day: string): Array<{id: string, name: string, avatar: string, tasks: any[]}> {
+  getChildrenWithTasksForDay(day: string): Array<{ id: string, name: string, avatar: string, tasks: any[] }> {
     const tasks = this.lists()[day] || [];
     const childrenMap = new Map();
 
@@ -263,34 +279,34 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     return Array.from(childrenMap.values());
   }
 
-    /**
-     * Returns the list of children with their tasks for the given day, used in week/month views.
-     * If a kid is selected, only that kid's activities are shown. Otherwise, all kids with tasks for the day.
-     */
-    getWeekChildrenForDay(day: string): Array<{id: string, name: string, avatar: string, tasks: any[]}> {
-      const tasks = this.lists()[day] || [];
-      const childrenMap = new Map();
-      tasks.forEach(task => {
-        const childId = (task as any).childId || (task as any).assigneeProfileId;
-        const childName = (task as any).childName || 'Bambino';
-        const childAvatar = this.getChildAvatar(childId);
-        if (!childrenMap.has(childId)) {
-          childrenMap.set(childId, {
-            id: childId,
-            name: childName,
-            avatar: childAvatar,
-            tasks: []
-          });
-        }
-        childrenMap.get(childId).tasks.push(task);
-      });
-      let children = Array.from(childrenMap.values());
-      // If a kid is selected, filter to only that kid
-      if (this.activeKidProfile && this.activeKidProfile.id) {
-        children = children.filter(child => child.id === this.activeKidProfile.id);
+  /**
+   * Returns the list of children with their tasks for the given day, used in week/month views.
+   * If a kid is selected, only that kid's activities are shown. Otherwise, all kids with tasks for the day.
+   */
+  getWeekChildrenForDay(day: string): Array<{ id: string, name: string, avatar: string, tasks: any[] }> {
+    const tasks = this.lists()[day] || [];
+    const childrenMap = new Map();
+    tasks.forEach(task => {
+      const childId = (task as any).childId || (task as any).assigneeProfileId;
+      const childName = (task as any).childName || 'Bambino';
+      const childAvatar = this.getChildAvatar(childId);
+      if (!childrenMap.has(childId)) {
+        childrenMap.set(childId, {
+          id: childId,
+          name: childName,
+          avatar: childAvatar,
+          tasks: []
+        });
       }
-      return children;
+      childrenMap.get(childId).tasks.push(task);
+    });
+    let children = Array.from(childrenMap.values());
+    // If a kid is selected, filter to only that kid
+    if (this.activeKidProfile && this.activeKidProfile.id) {
+      children = children.filter(child => child.id === this.activeKidProfile.id);
     }
+    return children;
+  }
 
   getChildAvatar(childId: string): string {
     // Se abbiamo il profilo attivo del bambino
@@ -307,8 +323,8 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   getTasksForChild(day: string, childId: string): any[] {
     const tasks = this.lists()[day] || [];
-    return tasks.filter(task => 
-      ((task as any).childId === childId) || 
+    return tasks.filter(task =>
+      ((task as any).childId === childId) ||
       ((task as any).assigneeProfileId === childId)
     );
   }
@@ -329,20 +345,20 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       // Per la vista giornaliera con bambini, permetti il trasferimento tra tutti i bambini dello stesso giorno
       // e anche verso gli altri giorni
       const connectedLists: string[] = [];
-      
+
       // Aggiungi tutte le drop list dei bambini per il giorno corrente
       const children = this.getChildrenWithTasksForDay(currentDay);
       children.forEach(child => {
         connectedLists.push(`drop-list-${currentDay}-${child.id}`);
       });
-      
+
       // Aggiungi le drop list degli altri giorni (per vista settimana/mese)
       this.getDisplayDays().forEach(day => {
         if (day !== currentDay) {
           connectedLists.push(`drop-list-${day}`);
         }
       });
-      
+
       return connectedLists;
     } else {
       // Vista normale settimana/mese
@@ -356,7 +372,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     if (this.currentView() === 'now') {
       return this.timeWindowData()?.summary.total || 0;
     }
-    
+
     const allTasks: KidTask[] = [];
     Object.values(this.lists()).forEach(dayTasks => {
       allTasks.push(...dayTasks);
@@ -368,7 +384,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     if (this.currentView() === 'now') {
       return this.timeWindowData()?.summary.completed || 0;
     }
-    
+
     const allTasks: KidTask[] = [];
     Object.values(this.lists()).forEach(dayTasks => {
       allTasks.push(...dayTasks);

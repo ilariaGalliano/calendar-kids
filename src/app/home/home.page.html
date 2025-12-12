@@ -34,11 +34,11 @@
         </div>
 
         <!-- Main content when family exists -->
-        <div *ngIf="currentFamily() && !loading() && !error()">
+        <div *ngIf="currentFamily() && !loading() && !error()" >
           <!-- Modern child selector -->
-          <div class="child-selector">
+          <div class="child-selector" *ngIf="isVisible()" >
             <div class="selector-header">
-              <h3>Visualizza calendario di:</h3>
+              <h3>Visualizza calendario di {{ selectedChildName }}: </h3>
 
               <!-- View selector -->
               <div class="view-selector-mini">

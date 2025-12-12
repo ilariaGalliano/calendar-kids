@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input } from '@angular/core';
+import { Component, EventEmitter, Output, Input, Signal, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
 import { KidAvatar, PREDEFINED_AVATARS } from '../../models/avatar.models';
@@ -9,6 +9,7 @@ export interface FamilyProfile {
   id: string;
   name: string;
   avatar: string;
+  isParent?: boolean;
 }
 
 @Component({
@@ -26,22 +27,47 @@ export class FamilyProfilePickerComponent {
   ];
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
+  userLogged: Signal<string> = signal('Lorena');
+
   showAvatarSelector: boolean = false;
   newKidName: string = '';
   selectedAvatar: KidAvatar | null = null;
 
-  constructor(private router: Router) {}
+  parentProfile: FamilyProfile = {
+    id: 'parent',
+    name: this.userLogged(),
+    avatar: '👩',
+    isParent: true
+  };
+
+  constructor(private router: Router) { }
 
   selectProfile(profile: FamilyProfile) {
     if (profile.id === 'new') {
       this.showAvatarSelector = true;
       this.newKidName = '';
       this.selectedAvatar = null;
+      return;
+    }
+
+    this.profileSelected.emit(profile);
+
+    if (profile.isParent) {
+      // genitore → tutte le attività selezionabili
+      this.router.navigate(['/home'], {
+        queryParams: { mode: 'parent' }
+      });
     } else {
-      this.profileSelected.emit(profile);
-      this.router.navigate(['/home']);
+      // bambino → tutte visibili, solo le sue selezionabili
+      this.router.navigate(['/home'], {
+        queryParams: {
+          mode: 'child',
+          childId: profile.id
+        }
+      });
     }
   }
+
 
   onAvatarSelected(avatar: KidAvatar) {
     this.selectedAvatar = avatar;
