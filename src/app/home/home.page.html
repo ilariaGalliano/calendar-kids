@@ -10,9 +10,11 @@
             <span *ngIf="currentFamily()">Famiglia {{ currentFamily()?.parentName }}</span>
             <span *ngIf="!currentFamily()">CalendarKids</span>
           </h2>
+          @if(isParent) {
           <ion-button fill="clear" color="dark" (click)="toggleSidebar()" class="menu-btn">
             <ion-icon name="menu-outline"></ion-icon>
           </ion-button>
+          }
         </header>
 
         <!-- Loading state -->
@@ -34,9 +36,9 @@
         </div>
 
         <!-- Main content when family exists -->
-        <div *ngIf="currentFamily() && !loading() && !error()" >
+        <div *ngIf="currentFamily() && !loading() && !error()">
           <!-- Modern child selector -->
-          <div class="child-selector" *ngIf="isVisible()" >
+          <div class="child-selector" *ngIf="isVisible()">
             <div class="selector-header">
               <h3>Visualizza calendario di: </h3>
 
@@ -72,7 +74,7 @@
                 (click)="selectChild(child.id)">
                 <span class="child-emoji">{{ child.avatar }}</span>
                 {{ child.name }}
-                {{ child.point }}  
+                {{ child.point }}
                 <img src="../../../assets/icon/salvadanaio_2.jpg" alt="coin" class="baggy-icon" />
               </ion-button>
 
