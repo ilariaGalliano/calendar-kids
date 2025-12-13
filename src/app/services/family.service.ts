@@ -62,7 +62,7 @@ export class FamilyService {
         {
           id: this.generateId(),
           name: 'Sofia',
-          avatar: '👧',
+          avatar: '🧚‍♀️',
           age: 8,
           sex: 'female',
           createdAt: new Date(),
@@ -72,7 +72,7 @@ export class FamilyService {
         {
           id: this.generateId(),
           name: 'Marco',
-          avatar: '👦',
+          avatar: '🤴',
           age: 6,
           sex: 'male',
           createdAt: new Date(),
@@ -82,7 +82,7 @@ export class FamilyService {
         {
           id: this.generateId(),
           name: 'Emma',
-          avatar: '👶',
+          avatar: '🦸‍♀️',
           age: 3,
           sex: 'female',
           createdAt: new Date(),
@@ -273,9 +273,27 @@ export class FamilyService {
   }
 
   // Avatar casuali
-  private getRandomAvatar(): string {
-    const avatars = ['🧒', '👧', '👦', '🧑', '👶'];
-    return avatars[Math.floor(Math.random() * avatars.length)];
+   private getRandomAvatar(sex: 'male' | 'female' = 'male'): string {
+    const avatars = {
+      male: [
+        '🧒', '👦', '🧑', '👶', // bambini maschi
+        '🦸‍♂️', // supereroe maschio
+        '🧙‍♂️', // mago
+        '🐻', '🐱', '🐶', '🦊', '🐵', '🐼', // animali
+        '🤠', '🤴', // cowboy, principe
+        '🧑‍🚀', '🧑‍🎨', '🧑‍🚒' // astronauta, artista, pompiere
+      ],
+      female: [
+        '👧', '🧑', '👶', // bambine
+        '🦸‍♀️', // supereroina
+        '🧚‍♀️', // fata
+        '🐻', '🐱', '🐶', '🦊', '🐵', '🐼', // animali
+        '👸', // principessa
+        '🧑‍🚀', '🧑‍🎨', '🧑‍🚒' // astronauta, artista, pompiere
+      ]
+    };
+    const selectedAvatars = avatars[sex] || avatars.male;
+    return selectedAvatars[Math.floor(Math.random() * selectedAvatars.length)];
   }
 
   // Colori per i bambini

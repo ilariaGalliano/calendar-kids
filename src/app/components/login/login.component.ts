@@ -97,9 +97,9 @@ export class LoginComponent implements OnInit {
       parentName: "Lorena",
       createdAt: new Date(),
       children: [
-        { id: "kid1", name: "Sofia", avatar: "👧", age: 8, point: 0, sex: "female", createdAt: new Date(), tasks: [] },
-        { id: "kid2", name: "Marco", avatar: "👦", age: 6, point: 0, sex: "male", createdAt: new Date() },
-        { id: "kid3", name: "Emma",  avatar: "👶", age: 3, point: 0, sex: "female", createdAt: new Date() }
+        { id: "kid1", name: "Sofia", avatar: "🧚‍♀️", age: 8, point: 0, sex: "female", createdAt: new Date(), tasks: [] },
+        { id: "kid2", name: "Marco", avatar: "🤴", age: 6, point: 0, sex: "male", createdAt: new Date(), tasks: []  },
+        { id: "kid3", name: "Emma",  avatar: "🦸‍♀️", age: 3, point: 0, sex: "female", createdAt: new Date(), tasks: []  }
       ]
     };
 

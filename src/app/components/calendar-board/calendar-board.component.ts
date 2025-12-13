@@ -165,7 +165,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
         break;
       }
     }
-    
+
     // genitore o task del bambino
     this.taskDone.emit(event);
 
@@ -308,15 +308,22 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     return children;
   }
 
-  getChildAvatar(childId: string): string {
+  getChildAvatar(childId: string, gender?: 'male' | 'female'): string {
     // Se abbiamo il profilo attivo del bambino
     if (this.activeKidProfile && this.activeKidProfile.id === childId) {
       return this.activeKidProfile.selectedAvatar.emoji;
     }
 
-    // Lista di avatar predefiniti per bambini diversi
-    const avatars = ['👧', '👦', '👶', '🧒', '👨‍🦱', '👩‍🦱', '🧑‍🦲', '👨‍🦰'];
-    // Usa l'ID per determinare un avatar consistente
+    // Avatar separati per genere
+    const avatarsMale = [
+      '🧒', '👦', '🦸‍♂️', '🧙‍♂️', '🐻', '🐶', '🦊', '🐵', '🐼', '🤠', '🤴', '🧑‍🚀', '🧑‍🎨', '🧑‍🚒'
+    ];
+    const avatarsFemale = [
+      '🧒', '👧', '🦸‍♀️', '🧚‍♀️', '🐱', '🐼', '🐻', '🦊', '🐵', '👸', '🧑‍🎨', '🧑‍🚀', '🧑‍🚒'
+    ];
+
+    // Scegli la lista in base al genere, default male
+    const avatars = gender === 'female' ? avatarsFemale : avatarsMale;
     const index = childId ? childId.charCodeAt(childId.length - 1) % avatars.length : 0;
     return avatars[index];
   }

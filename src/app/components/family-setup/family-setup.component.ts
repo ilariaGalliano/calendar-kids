@@ -311,8 +311,26 @@ export class FamilySetupComponent implements OnInit {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 
-  private getRandomAvatar(): string {
-    const avatars = ['🧒', '👧', '👦', '🧑', '👶'];
-    return avatars[Math.floor(Math.random() * avatars.length)];
+  private getRandomAvatar(sex: 'male' | 'female' = 'male'): string {
+    const avatars = {
+      male: [
+        '🧒', '👦', '🧑', '👶', // bambini maschi
+        '🦸‍♂️', // supereroe maschio
+        '🧙‍♂️', // mago
+        '🐻', '🐱', '🐶', '🦊', '🐵', '🐼', // animali
+        '🤠', '🤴', // cowboy, principe
+        '🧑‍🚀', '🧑‍🎨', '🧑‍🚒' // astronauta, artista, pompiere
+      ],
+      female: [
+        '👧', '🧑', '👶', // bambine
+        '🦸‍♀️', // supereroina
+        '🧚‍♀️', // fata
+        '🐻', '🐱', '🐶', '🦊', '🐵', '🐼', // animali
+        '👸', // principessa
+        '🧑‍🚀', '🧑‍🎨', '🧑‍🚒' // astronauta, artista, pompiere
+      ]
+    };
+    const selectedAvatars = avatars[sex] || avatars.male;
+    return selectedAvatars[Math.floor(Math.random() * selectedAvatars.length)];
   }
 }

@@ -22,9 +22,9 @@ export interface FamilyProfile {
 })
 export class FamilyProfilePickerComponent {
   @Input() profiles: FamilyProfile[] = [
-    { id: 'kid1', name: 'Sofia', avatar: '👧' },
-    { id: 'kid2', name: 'Marco', avatar: '👦' },
-    { id: 'kid3', name: 'Emma', avatar: '🧒' }
+    { id: 'kid1', name: 'Sofia', avatar: '🧚‍♀️' },
+    { id: 'kid2', name: 'Marco', avatar: '🤴' },
+    { id: 'kid3', name: 'Emma', avatar: '🦸‍♀️' }
   ];
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
