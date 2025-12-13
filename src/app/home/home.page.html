@@ -61,10 +61,10 @@
               </div>
             </div>
 
-            <div class="child-tabs">
+            <div class="child-tabs child-tabs-large">
               <ion-button [fill]="!currentSelectedChild() ? 'solid' : 'outline'"
                 [color]="!currentSelectedChild() ? 'primary' : 'medium'" size="small" (click)="selectChild(null)">
-                <ion-icon name="people-outline" slot="start"></ion-icon>
+                🗂️
                 Tutti
               </ion-button>
 
@@ -75,7 +75,7 @@
                 <span class="child-emoji">{{ child.avatar }}</span>
                 {{ child.name }}
                 {{ child.point }}
-                <img src="../../../assets/icon/salvadanaio_2.jpg" alt="coin" class="baggy-icon" />
+                💰
               </ion-button>
 
               <!-- Pulsante per rigenerare attività (temporaneo per test) -->
