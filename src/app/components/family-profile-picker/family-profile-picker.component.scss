@@ -1,92 +1,167 @@
+/* filepath: /Users/ilariagalliano/Desktop/CalendarKids/calendar-kids/src/app/components/family-profile-picker/family-profile-picker.component.scss */
+
 .profile-picker-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 48px 0 32px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 0 32px 0;
-  background: linear-gradient(135deg, #fffde7 0%, #ffe082 100%);
-  height: 100vh;
 }
 
 h2 {
-  font-size: 2.6rem;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 40px;
+  text-shadow: 0 2px 12px #a18cd1;
+  letter-spacing: 1px;
+}
+
+.parent-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.parent-card {
+  border: 3px solid #667eea;
+  background: #e7e9fb;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.13);
+  transition: box-shadow 0.2s;
+  position: relative;
+  min-width: 240px;      // aumentata larghezza
+  min-height: 210px;
+  padding: 2.2rem 2.5rem 1.2rem 2.5rem; // padding più largo
+}
+
+.parent-card:hover {
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.22);
+}
+
+.parent-avatar {
+  border: 3px solid #667eea;
+  background: #fff;
+  width: 110px;         // più grande
+  height: 110px;
+  font-size: 3.6rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.parent-name {
+  font-weight: bold;
+  color: #4b3f72;
+  font-size: 1.7rem;
+  margin-bottom: 0.3rem;
+}
+
+.parent-label {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: #667eea;
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 4px 16px;
+  border-radius: 12px;
   font-weight: 700;
-  color: #ff9800;
-  margin-bottom: 32px;
-  text-shadow: 0 2px 8px #ffe082;
+  letter-spacing: 0.5px;
 }
 
 .profiles-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 48px;
+  gap: 2.5rem; // più spazio tra le card
   justify-content: center;
-  margin-top: 24px;
 }
 
 .profile-card {
   background: #fff;
   border-radius: 28px;
-  box-shadow: 0 4px 24px rgba(255, 193, 7, 0.18);
-  padding: 36px 28px 24px 28px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.13);
+  padding: 2.2rem 2.5rem 1.2rem 2.5rem; // padding più largo
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  min-width: 200px;     // aumentata larghezza
+  min-height: 210px;
   transition: box-shadow 0.2s, transform 0.2s;
-  min-width: 180px;
-  min-height: 220px;
   position: relative;
-  border: 3px solid #ffe082;
+  border: 3px solid #a18cd1;
 }
+
 .profile-card:hover {
-  box-shadow: 0 8px 32px rgba(255, 193, 7, 0.28);
-  transform: scale(1.08);
-  border-color: #ffb300;
+  box-shadow: 0 8px 32px #a18cd1;
+  transform: translateY(-4px) scale(1.06);
 }
+
 .avatar-circle {
-  width: 96px;
-  height: 96px;
+  width: 110px;        // più grande
+  height: 110px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffe082 0%, #ffb300 100%);
+  background: #e7e9fb;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4.2rem;
-  margin-bottom: 18px;
-  box-shadow: 0 4px 16px #ffe082;
+  font-size: 3.6rem;
+  margin-bottom: 1.1rem;
+  border: 3px solid #a18cd1;
 }
-.add-avatar {
-  background: #e0e0e0;
-  color: #757575;
-  font-size: 3.2rem;
+
+.add-profile .avatar-circle {
+  background: #f3f0ff;
+  color: #667eea;
+  font-size: 3.6rem;
+  border: 3px dashed #667eea;
 }
+
+.add-profile .profile-name {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
 .profile-name {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #ff9800;
+  color: #4b3f72;
   text-align: center;
-  margin-top: 4px;
-  text-shadow: 0 1px 4px #ffe082;
-}
-.add-profile {
-  border: 3px dashed #ffb300;
-  background: #fffde7;
+  margin-bottom: 0.3rem;
 }
 
 .avatar-selector-wrapper {
-  margin-top: 32px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.kid-name-input {
-  font-size: 2rem;
-  padding: 18px 32px;
-  border-radius: 20px;
-  border: 3px solid #ffd600;
-  margin-bottom: 32px;
-  width: 380px;
+  margin-top: 2.5rem;
   text-align: center;
-  box-shadow: 0 2px 12px #ffe082;
+}
+
+.kid-name-input {
+  width: 95%;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  border-radius: 14px;
+  border: 2px solid #a18cd1;
+  font-size: 1.3rem;
+  background: #f3f0ff;
+  color: #4b3f72;
+}
+
+@media (max-width: 800px) {
+  .profile-card, .parent-card {
+    min-width: 140px;
+    min-height: 140px;
+    padding: 1.2rem 0.7rem 0.7rem 0.7rem;
+  }
+  .avatar-circle, .parent-avatar {
+    width: 70px;
+    height: 70px;
+    font-size: 2.2rem;
+  }
+  h2 {
+    font-size: 2rem;
+  }
 }

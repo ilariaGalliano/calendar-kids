@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar class="background-nav">
     <ion-back-button 
       slot="start" 
       (click)="goBack()" 
@@ -233,7 +233,6 @@
           <!-- Pulsante di creazione -->
           <ion-button 
             expand="block" 
-            color="success"
             (click)="createFamily()"
             [disabled]="isLoading()"
             class="create-btn">

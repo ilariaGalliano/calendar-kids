@@ -1,31 +1,41 @@
 <div class="profile-picker-container">
   <h2>Scegli il tuo profilo</h2>
-  <div class="profiles-grid" *ngIf="!showAvatarSelector">
+  <!-- GENITORE IN EVIDENZA -->
+  <div class="parent-section">
+    <div class="profile-card parent-card" (click)="selectProfile(parentProfile)">
+      <div class="avatar-circle parent-avatar">
+        <span class="avatar-emoji">👩</span>
+      </div>
+      <div class="profile-name parent-name">{{ userLogged() }}</div>
+      <div class="parent-label">Genitore</div>
+    </div>
+  </div>
+
+  <!-- FIGLI -->
+  @if(!showAvatarSelector) {
+  <div class="profiles-grid">
     <div *ngFor="let profile of profiles" class="profile-card" (click)="selectProfile(profile)">
       <div class="avatar-circle">
         <span class="avatar-emoji">{{ profile.avatar }}</span>
       </div>
       <div class="profile-name">{{ profile.name }}</div>
     </div>
-
-    <!-- GENITORE -->
-    <div class="profile-card" (click)="selectProfile(parentProfile)">
-      <div class="avatar-circle">
-        <span class="avatar-emoji">👩</span>
-      </div>
-      <div class="profile-name">{{ userLogged() }}</div>
-    </div>
-    <div class="profile-card add-profile" (click)="selectProfile({id: 'new', name: '', avatar: ''})">
+    <div class="profile-card add-profile" (click)="selectProfile({id: '', name: '', avatar: ''})">
       <div class="avatar-circle add-avatar">+</div>
       <div class="profile-name">Aggiungi profilo</div>
     </div>
   </div>
+  }
 
   <!-- Avatar selector for new kid -->
-  <div *ngIf="showAvatarSelector" class="avatar-selector-wrapper">
+
+  <!-- Avatar selector for new kid -->
+  @if(showAvatarSelector) {
+  <div class="avatar-selector-wrapper">
     <h3>Nuovo bambino</h3>
     <input type="text" [(ngModel)]="newKidName" placeholder="Nome bambino" class="kid-name-input" />
     <app-avatar-selector [kidName]="newKidName" [selectedAvatar]="selectedAvatar"
       (avatarSelected)="onAvatarSelected($event)" (cancelled)="onAvatarCancelled()"></app-avatar-selector>
   </div>
+  }
 </div>

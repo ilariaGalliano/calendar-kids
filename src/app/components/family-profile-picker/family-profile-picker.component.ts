@@ -4,6 +4,7 @@ import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.comp
 import { KidAvatar, PREDEFINED_AVATARS } from '../../models/avatar.models';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ProfileService } from 'src/app/services/profile-service';
 
 export interface FamilyProfile {
   id: string;
@@ -40,10 +41,10 @@ export class FamilyProfilePickerComponent {
     isParent: true
   };
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private profileService: ProfileService) { }
 
   selectProfile(profile: FamilyProfile) {
-    if (profile.id === 'new') {
+    if (!profile.id) { // Now the add-profile uses id: ''
       this.showAvatarSelector = true;
       this.newKidName = '';
       this.selectedAvatar = null;
@@ -53,12 +54,10 @@ export class FamilyProfilePickerComponent {
     this.profileSelected.emit(profile);
 
     if (profile.isParent) {
-      // genitore → tutte le attività selezionabili
       this.router.navigate(['/home'], {
         queryParams: { mode: 'parent' }
       });
     } else {
-      // bambino → tutte visibili, solo le sue selezionabili
       this.router.navigate(['/home'], {
         queryParams: {
           mode: 'child',
@@ -68,18 +67,33 @@ export class FamilyProfilePickerComponent {
     }
   }
 
-
   onAvatarSelected(avatar: KidAvatar) {
     this.selectedAvatar = avatar;
-    // After avatar selection, create new profile and emit
-    const newProfile: FamilyProfile = {
-      id: 'kid' + Math.floor(Math.random() * 10000),
-      name: this.newKidName || 'Nuovo Bambino',
-      avatar: avatar.emoji
-    };
-    this.profileSelected.emit(newProfile);
-    this.showAvatarSelector = false;
-    this.router.navigate(['/home']);
+    // Call the backend API to create the new kid profile
+    // Replace 'householdId' with the actual household id from your app context
+    const householdId = 'your-household-id'; // <-- replace with real value
+    this.profileService.createChildProfile(householdId, this.newKidName || 'Nuovo Bambino', avatar.emoji)
+      .subscribe({
+        next: (createdProfile: any) => {
+          const newProfile: FamilyProfile = {
+            id: createdProfile.id,
+            name: createdProfile.displayName,
+            avatar: createdProfile.avatar || avatar.emoji
+          };
+          this.profileSelected.emit(newProfile);
+          this.showAvatarSelector = false;
+          this.router.navigate(['/home'], {
+            queryParams: {
+              mode: 'child',
+              childId: newProfile.id
+            }
+          });
+        },
+        error: () => {
+          // handle error (show toast, etc)
+          this.showAvatarSelector = false;
+        }
+      });
   }
 
   onAvatarCancelled() {
