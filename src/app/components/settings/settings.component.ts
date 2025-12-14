@@ -14,7 +14,6 @@ import {
 import { Child, Routine, Task, TaskPayload } from 'src/app/models/task.models';
 import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AddChildModalComponent } from './add-child/add-child.component';
 import { CreateRoutineModalComponent } from './create-routine-modal/create-routine-modal.component';
 
