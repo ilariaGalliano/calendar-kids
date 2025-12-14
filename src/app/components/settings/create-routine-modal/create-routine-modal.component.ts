@@ -10,6 +10,7 @@ import { IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonCon
   styleUrls: ['./create-routine-modal.component.scss'],
   imports: [IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonContent, IonLabel, IonInput, IonCheckbox, IonList, FormsModule, NgForOf, IonModal],
   providers: [ModalController],
+  standalone: true
 })
 export class CreateRoutineModalComponent implements OnInit {
   // --- MODAL STATE & LOGIC FOR ADD/EDIT TASK ---
