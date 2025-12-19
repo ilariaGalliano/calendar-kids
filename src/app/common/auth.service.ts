@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../environments/environment';
 import { MockApiService } from './mock-api.service';
+import { supabase } from '../core/supabase.client';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -13,12 +14,7 @@ export class AuthService {
   async setToken(token: string) {
     await Preferences.set({ key: this.key, value: token });
   }
-  
-  async getToken(): Promise<string | null> {
-    const { value } = await Preferences.get({ key: this.key });
-    return value ?? null;
-  }
-  
+
   async clearToken() {
     await Preferences.remove({ key: this.key });
   }
@@ -50,5 +46,20 @@ export class AuthService {
       `${environment.apiBase}/auth/login`,
       { email, password }
     );
+  }
+
+  async loginWithGoogle(): Promise<string | null> {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    if (error) {
+      console.error('Google login error:', error);
+      return null;
+    }
+    // L'utente viene reindirizzato, quindi il token sarà disponibile dopo il redirect
+    return null;
+  }
+
+  async getToken(): Promise<string | null> {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
   }
 }

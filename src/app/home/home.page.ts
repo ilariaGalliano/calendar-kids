@@ -660,7 +660,7 @@ export class HomePage implements OnInit, OnDestroy {
 
     return {
       ...data,
-      groupedTasks   // ⬅️ questa è l’array che userà il template NOW
+      groupedTasks   // ⬅️ questa è l’array che AppUserà il template NOW
     };
   }
 

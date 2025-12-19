@@ -28,7 +28,7 @@ export class FamilyProfilePickerComponent {
   ];
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
-  userLogged: Signal<string> = signal('Lorena');
+  AppUserLogged: Signal<string> = signal('Lorena');
 
   showAvatarSelector: boolean = false;
   newKidName: string = '';
@@ -36,7 +36,7 @@ export class FamilyProfilePickerComponent {
 
   parentProfile: FamilyProfile = {
     id: 'parent',
-    name: this.userLogged(),
+    name: this.AppUserLogged(),
     avatar: '👩',
     isParent: true
   };

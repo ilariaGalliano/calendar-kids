@@ -6,30 +6,30 @@
 
   <ion-content>
     <!-- Utente Corrente -->
-    @if (currentUser(); as user) {
-      <div class="current-user-section">
+    @if (currentAppUser(); as AppUser) {
+      <div class="current-AppUser-section">
         <h3>Utente Corrente</h3>
-        <ion-item class="current-user-item">
+        <ion-item class="current-AppUser-item">
           <ion-avatar slot="start">
-            @if (user.avatar) {
-              <img [src]="user.avatar" [alt]="user.name">
+            @if (AppUser.avatar) {
+              <img [src]="AppUser.avatar" [alt]="AppUser.name">
             } @else {
               <div class="avatar-placeholder" 
-                   [class.parent]="user.role === 'parent'"
-                   [class.child-male]="user.role === 'child' && user.sex === 'male'"
-                   [class.child-female]="user.role === 'child' && user.sex === 'female'">
-                <ion-icon [name]="user.role === 'parent' ? 'person-outline' : 'happy-outline'"></ion-icon>
+                   [class.parent]="AppUser.role === 'parent'"
+                   [class.child-male]="AppUser.role === 'child' && AppUser.sex === 'male'"
+                   [class.child-female]="AppUser.role === 'child' && AppUser.sex === 'female'">
+                <ion-icon [name]="AppUser.role === 'parent' ? 'person-outline' : 'happy-outline'"></ion-icon>
               </div>
             }
           </ion-avatar>
           <ion-label>
-            <h2>{{ user.name }}</h2>
-            <p>{{ user.email }}</p>
+            <h2>{{ AppUser.name }}</h2>
+            <p>{{ AppUser.email }}</p>
             <p class="role-badge" 
-               [class.parent]="user.role === 'parent'"
-               [class.child-male]="user.role === 'child' && user.sex === 'male'"
-               [class.child-female]="user.role === 'child' && user.sex === 'female'">
-              {{ user.role === 'parent' ? 'Genitore' : (user.sex === 'male' ? 'Bambino' : 'Bambina') }}
+               [class.parent]="AppUser.role === 'parent'"
+               [class.child-male]="AppUser.role === 'child' && AppUser.sex === 'male'"
+               [class.child-female]="AppUser.role === 'child' && AppUser.sex === 'female'">
+              {{ AppUser.role === 'parent' ? 'Genitore' : (AppUser.sex === 'male' ? 'Bambino' : 'Bambina') }}
             </p>
           </ion-label>
         </ion-item>

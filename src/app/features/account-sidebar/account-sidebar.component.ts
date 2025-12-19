@@ -7,7 +7,7 @@ import {
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/common/auth.service';
 
-interface UserProfile {
+interface AppUserProfile {
   id: string;
   name: string;
   email: string;
@@ -30,9 +30,9 @@ interface UserProfile {
 export class AccountSidebarComponent implements OnInit {
   @Output() closeSidebar = new EventEmitter<void>();
 
-  currentUser = signal<UserProfile | null>(null);
-  familyProfiles = signal<UserProfile[]>([]);
-  selectedProfile = signal<UserProfile | null>(null);
+  currentAppUser = signal<AppUserProfile | null>(null);
+  familyProfiles = signal<AppUserProfile[]>([]);
+  selectedProfile = signal<AppUserProfile | null>(null);
 
   constructor(
     private auth: AuthService,
@@ -40,16 +40,16 @@ export class AccountSidebarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadUserData();
+    this.loadAppUserData();
     this.loadFamilyProfiles();
   }
 
-  private loadUserData() {
+  private loadAppUserData() {
     // Carica dati utente corrente
-    // this.currentUser.set(this.auth.getCurrentUser());
+    // this.currentAppUser.set(this.auth.getCurrentAppUser());
     
     // Mock per sviluppo
-    this.currentUser.set({
+    this.currentAppUser.set({
       id: '1',
       name: 'Mario Rossi',
       email: 'mario@example.com',
@@ -94,7 +94,7 @@ export class AccountSidebarComponent implements OnInit {
 
   }
 
-  selectProfile(profile: UserProfile) {
+  selectProfile(profile: AppUserProfile) {
     this.selectedProfile.set(profile);
   }
 
