@@ -65,11 +65,27 @@ export class LoginComponent implements OnInit {
     private http: HttpClient
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.loginForm = new FormGroup({
       email: new FormControl('', [Validators.email, Validators.required]),
       password: new FormControl('', Validators.required),
     });
+    const token = await this.authService.getToken();
+    if (token) {
+      try {
+        // Chiamata al backend con token
+        await this.http.get(
+          `${environment.apiBase}/AppUsers/me`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).toPromise();
+        // Naviga se tutto ok
+        this.router.navigate(['/family-setup']);
+      } catch (err) {
+        alert('Errore autenticazione backend');
+      }
+    } else {
+      alert('Login Google fallito');
+    }
   }
 
   // async loginParent() {
@@ -115,23 +131,6 @@ export class LoginComponent implements OnInit {
    async loginWithGoogle() {
     // Avvia login Google (redirect)
     await this.authService.loginWithGoogle();
-    // Dopo il redirect, in ngOnInit o in un altro punto, verifica la sessione:
-    const token = await this.authService.getToken();
-    if (token) {
-      try {
-        // Chiamata al backend con token
-        await this.http.get(
-          `${environment.apiBase}/AppUsers/me`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        ).toPromise();
-        // Naviga se tutto ok
-        this.router.navigate(['/family-setup']);
-      } catch (err) {
-        alert('Errore autenticazione backend');
-      }
-    } else {
-      alert('Login Google fallito');
-    }
   }
 
 }
