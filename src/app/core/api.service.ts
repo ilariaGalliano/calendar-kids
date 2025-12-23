@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { TaskInstance } from '../../models/task.models';
 import { Profile } from './profile.models';
-import { CalendarResponse, CalendarWeek, CalendarDay, CurrentTimeWindowResponse } from '../../models/calendar.models';
 import { MockCalendarService } from './mock-calendar.service';
+import { environment } from 'src/environments/environment';
+import { CalendarResponse, CalendarWeek, CalendarDay, CurrentTimeWindowResponse } from '../models/calendar.models';
+import { TaskInstance } from '../models/task.models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {

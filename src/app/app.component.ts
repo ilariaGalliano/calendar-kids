@@ -5,6 +5,7 @@ import { supabase } from './core/supabase.client';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AuthService } from './common/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -14,25 +15,23 @@ import { Router } from '@angular/router';
 })
 export class AppComponent {
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router, private auth: AuthService) { }
 
 
   async ngOnInit() {
-    const { data } = await supabase.auth.getSession();
-    console.log('SESSION:', data.session);
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AUTH EVENT:', event);
+  const { data } = await supabase.auth.getSession();
+  console.log('SESSION:', data.session);
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('AUTH EVENT:', event);
 
-      if (event === 'SIGNED_IN' && session) {
-        await this.http
-          .get(`${environment.apiBase}/AppUsers/me`)
-          .toPromise();
-      }
+    if (event === 'SIGNED_IN' && session && session.access_token) {
+      this.router.navigate(['/family-setup']);
+    }
 
-      if (event === 'SIGNED_OUT') {
-        // cleanup / redirect login
-        this.router.navigate(['/family-setup']);
-      }
-    });
-  }
+    if (event === 'SIGNED_OUT') {
+      this.router.navigate(['/family-setup']);
+    }
+  });
+  await this.auth.bootstrapBackend();
+}
 }

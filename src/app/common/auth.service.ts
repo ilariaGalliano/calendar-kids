@@ -58,6 +58,20 @@ export class AuthService {
     return null;
   }
 
+  async bootstrapBackend(): Promise<void> {
+  const { data } = await supabase.auth.getSession();
+
+  if (!data.session) {
+    return;
+  }
+
+  // await fetch(`${environment.apiBase}/users/me`, {
+  //   headers: {
+  //     Authorization: `Bearer ${data.session.access_token}`,
+  //   },
+  // });
+}
+
   async getToken(): Promise<string | null> {
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token ?? null;

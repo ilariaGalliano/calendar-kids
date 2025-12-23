@@ -70,43 +70,8 @@ export class LoginComponent implements OnInit {
       email: new FormControl('', [Validators.email, Validators.required]),
       password: new FormControl('', Validators.required),
     });
-    const token = await this.authService.getToken();
-    if (token) {
-      try {
-        // Chiamata al backend con token
-        await this.http.get(
-          `${environment.apiBase}/AppUsers/me`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        ).toPromise();
-        // Naviga se tutto ok
-        this.router.navigate(['/family-setup']);
-      } catch (err) {
-        alert('Errore autenticazione backend');
-      }
-    } else {
-      alert('Login Google fallito');
-    }
   }
 
-  // async loginParent() {
-  //   if (this.loginForm.valid) {
-  //     const { email, password } = this.loginForm.value;
-  //     try {
-  //       const response = await this.authService.login(email, password); // Call BE API
-  //       if (response) {
-  //         // await this.authService.setToken(response.token);
-  //         console.log('respo', response);
-  //         this.router.navigate(['/family-setup']);
-  //       } else {
-  //         alert('❌ Login fallito. Controlla le credenziali.');
-  //       }
-  //     } catch (error) {
-  //       alert('Errore di login. Riprova più tardi.');
-  //     }
-  //   } else {
-  //     alert('Inserisci email e password validi!');
-  //   }
-  // }
   async login() {
     console.log("🔐 Fake login enabled (mock mode)");
     console.log('respo', this.loginForm.value);
@@ -128,7 +93,7 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/family-setup']);
   }
 
-   async loginWithGoogle() {
+  async loginWithGoogle() {
     // Avvia login Google (redirect)
     await this.authService.loginWithGoogle();
   }
