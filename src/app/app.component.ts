@@ -19,19 +19,23 @@ export class AppComponent {
 
 
   async ngOnInit() {
-  const { data } = await supabase.auth.getSession();
-  console.log('SESSION:', data.session);
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('AUTH EVENT:', event);
-
-    if (event === 'SIGNED_IN' && session && session.access_token) {
-      this.router.navigate(['/family-setup']);
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+      console.log('Supabase Access Token:', data.session.access_token);
     }
-
-    if (event === 'SIGNED_OUT') {
-      this.router.navigate(['/family-setup']);
+    if (data.session?.user?.id) {
+      await this.auth.setUserId(data.session.user.id);
     }
-  });
-  await this.auth.bootstrapBackend();
-}
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session && session.user?.id) {
+        await this.auth.setUserId(session.user.id);
+        this.router.navigate(['/family-setup']);
+      }
+      if (event === 'SIGNED_OUT') {
+        await this.auth.clearToken();
+        this.router.navigate(['/login']);
+      }
+    });
+    await this.auth.bootstrapBackend();
+  }
 }

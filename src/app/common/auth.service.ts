@@ -11,6 +11,15 @@ export class AuthService {
   private mockApi = inject(MockApiService);
   private key = 'accessToken';
 
+  async setUserId(userId: string) {
+    await Preferences.set({ key: 'userId', value: userId });
+  }
+
+  async getUserId(): Promise<string | null> {
+    const { value } = await Preferences.get({ key: 'userId' });
+    return value ?? null;
+  }
+
   async setToken(token: string) {
     await Preferences.set({ key: this.key, value: token });
   }
@@ -59,18 +68,18 @@ export class AuthService {
   }
 
   async bootstrapBackend(): Promise<void> {
-  const { data } = await supabase.auth.getSession();
+    const { data } = await supabase.auth.getSession();
 
-  if (!data.session) {
-    return;
+    if (!data.session) {
+      return;
+    }
+
+    // await fetch(`${environment.apiBase}/users/me`, {
+    //   headers: {
+    //     Authorization: `Bearer ${data.session.access_token}`,
+    //   },
+    // });
   }
-
-  // await fetch(`${environment.apiBase}/users/me`, {
-  //   headers: {
-  //     Authorization: `Bearer ${data.session.access_token}`,
-  //   },
-  // });
-}
 
   async getToken(): Promise<string | null> {
     const { data } = await supabase.auth.getSession();
