@@ -15,7 +15,7 @@ import {
   menuOutline, logInOutline, reorderTwoOutline
 } from 'ionicons/icons';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { authInterceptor } from './app/common/auth.interceptor';
+import { authInterceptor } from './app/core/auth.interceptor';
 import { environment } from './environments/environment';
 
 addIcons({
