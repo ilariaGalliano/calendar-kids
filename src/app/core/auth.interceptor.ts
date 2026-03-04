@@ -30,9 +30,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     switchMap(({ data }) => {
       const token = data.session?.access_token;
 
-      // 🔴 DEBUG (temporaneo)
-      console.log('INTERCEPTOR TOKEN:', token);
-
       if (!token) {
         return next(req);
       }

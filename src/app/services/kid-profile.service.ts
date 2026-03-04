@@ -94,8 +94,7 @@ export class KidProfileService {
 
   // Applica il tema CSS del bambino selezionato
   private applyKidTheme(avatar: KidAvatar) {
-    console.log('🎨 Applicando tema per avatar:', avatar.name, avatar.palette.name);
-    
+ 
     const root = document.documentElement;
     const palette = avatar.palette;
     
@@ -123,12 +122,10 @@ export class KidProfileService {
     root.style.setProperty('--secondary-color', palette.secondary);
     root.style.setProperty('--accent-color', palette.accent);
     
-    console.log('✅ Tema applicato:', palette.name);
   }
 
   // Rimuovi tema personalizzato (ritorna ai colori di default) - pubblico
   clearKidTheme() {
-    console.log('🧹 Pulendo tema esistente...');
     
     const root = document.documentElement;
     
@@ -152,14 +149,10 @@ export class KidProfileService {
     
     // Ripristina valori di default
     root.style.setProperty('--ion-color-primary', '#6C8CFF');
-    
-    console.log('✅ Tema pulito');
   }
 
   // Logout - pulisce il profilo attivo
   logout() {
-    console.log('🚪 LOGOUT: Pulendo profilo attivo e tema...');
-    
     // Pulisci profilo attivo
     this.activeKidProfile.set(null);
     
@@ -173,8 +166,6 @@ export class KidProfileService {
     }));
     this.savedProfiles.set(updatedProfiles);
     this.saveTolocalStorage();
-    
-    console.log('✅ LOGOUT completato');
   }
 
   // Carica profili salvati da localStorage

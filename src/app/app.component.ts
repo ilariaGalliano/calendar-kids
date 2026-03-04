@@ -20,9 +20,6 @@ export class AppComponent {
 
   async ngOnInit() {
     const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) {
-      console.log('Supabase Access Token:', data.session.access_token);
-    }
     if (data.session?.user?.id) {
       await this.auth.setUserId(data.session.user.id);
     }

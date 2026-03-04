@@ -97,34 +97,33 @@ export class FamilySetupComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.checkExistingFamily();
+    this.loadChildrenFromAPI();
   }
 
-  private checkExistingFamily() {
-    // Controlla se esiste già una famiglia
-    const family = this.familyService.getCurrentFamily();
-    if (family) {
-      this.existingFamily.set(family);
-      this.parentName.set(family.parentName);
-      
-      // Se esiste famiglia, mostro opzioni per modificarla
-      this.step.set('review');
-      this.setupChildrenFormsFromFamily(family);
-    } else {
-      // Nuovo setup, inizia dalla welcome
-      this.step.set('welcome');
-    }
+  private loadChildrenFromAPI() {
+    this.familyService.fetchChildrenForCurrentUser().subscribe({
+      next: (children) => {
+        console.log('👶 Children from API:', children);
+        if (children && children.length > 0) {
+          this.setupChildrenForms(children);
+          this.numberOfChildren.set(children.length);
+          this.step.set('review');
+        } else {
+          this.step.set('welcome');
+        }
+      },
+      error: (err) => console.error('❌ Error fetching children:', err)
+    });
   }
 
-  private setupChildrenFormsFromFamily(family: Family) {
-    const forms = family.children.map((child: Child) => ({
+  private setupChildrenForms(children: Child[]) {
+    const forms = children.map((child: Child) => ({
       id: child.id,
       name: child.name,
       isValid: true,
       sex: child.sex
     }));
     this.childrenForms.set(forms);
-    this.numberOfChildren.set(family.children.length);
   }
 
   // Step 1: Welcome -> raccoglie nome genitore
@@ -189,8 +188,6 @@ export class FamilySetupComponent implements OnInit {
         
         // Salva la famiglia aggiornata
         this.familyService.saveFamily(family);
-        
-        console.log('👨‍👩‍👧‍👦 Famiglia creata:', family);
       }
 
       // Naviga alla home
@@ -237,7 +234,6 @@ export class FamilySetupComponent implements OnInit {
     };
 
     this.familyService.saveFamily(updatedFamily);
-    console.log('🔄 Famiglia aggiornata:', updatedFamily);
   }
 
   // Helper methods

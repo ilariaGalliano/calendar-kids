@@ -73,8 +73,6 @@ export class LoginComponent implements OnInit {
   }
 
   async login() {
-    console.log("🔐 Fake login enabled (mock mode)");
-    console.log('respo', this.loginForm.value);
 
     const demoFamily = {
       id: "demo-family",

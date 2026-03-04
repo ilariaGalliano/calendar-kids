@@ -1,4 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { Family, DaySchedule, ChildTask, Child } from '../models/family.models';
 // Remove the import from task.models to avoid type mismatch
 // import { Child } from '../models/task.models';
@@ -9,8 +11,9 @@ import { Family, DaySchedule, ChildTask, Child } from '../models/family.models';
 export class FamilyService {
   private activeFamily = signal<Family | null>(null);
   private selectedChild = signal<Child | null>(null);
+  private baseUrl = environment.apiBase;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     // Carica la famiglia dal localStorage se presente
     this.loadFamilyFromStorage();
     
@@ -51,6 +54,11 @@ export class FamilyService {
   // Getter per il bambino selezionato
   getSelectedChild() {
     return this.selectedChild;
+  }
+
+  // API: bambini del genitore autenticato
+  fetchChildrenForCurrentUser() {
+    return this.http.get<Child[]>(`${this.baseUrl}/children/me`);
   }
 
   // Crea una famiglia di esempio per testare l'app
@@ -95,7 +103,6 @@ export class FamilyService {
 
     this.activeFamily.set(family);
     this.saveFamilyToStorage(family);
-    console.log('🎯 Famiglia di esempio creata:', family);
   }
 
   // Crea una nuova famiglia
@@ -125,7 +132,6 @@ export class FamilyService {
     this.activeFamily.set(family);
     this.saveFamilyToStorage(family);
     
-    console.log('👨‍👩‍👧‍👦 Famiglia creata:', family);
     return family;
   }
 
@@ -249,7 +255,6 @@ export class FamilyService {
           }
         });
         this.activeFamily.set(family);
-        console.log('📂 Famiglia caricata dal localStorage:', family);
       }
     } catch (error) {
       console.error('❌ Errore caricamento famiglia:', error);
@@ -261,7 +266,6 @@ export class FamilyService {
   private saveFamilyToStorage(family: Family) {
     try {
       localStorage.setItem('calendarKids_family', JSON.stringify(family));
-      console.log('💾 Famiglia salvata nel localStorage');
     } catch (error) {
       console.error('❌ Errore salvataggio famiglia:', error);
     }

@@ -280,7 +280,6 @@ export class HomePage implements OnInit, OnDestroy {
     try {
       const family = this.familyService.getCurrentFamily();
       if (!family) {
-        console.log('❌ Nessuna famiglia trovata, ma questo non dovrebbe accadere perché abbiamo la famiglia di esempio');
         // Non reindirizzare più automaticamente al login
         // this.goToLogin();
         return;
@@ -333,7 +332,6 @@ export class HomePage implements OnInit, OnDestroy {
       });
 
       this.tasksByDay.set(weekTasks);
-      console.log('✅ Dati mock caricati');
 
     } catch (err) {
       this.error.set('Errore nel caricamento delle attività');
@@ -578,7 +576,6 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onViewChanged(event: { view: string, date?: string }) {
-    console.log('🔄 Vista cambiata:', event);
 
     // Aggiorna la vista corrente
     const newView = event.view as 'day' | 'week' | 'now';
@@ -592,20 +589,16 @@ export class HomePage implements OnInit, OnDestroy {
 
     // Carica i dati specifici per la nuova vista
     if (newView === 'now') {
-      console.log('📅 Caricamento vista "Ora corrente"');
       this.loadCurrentTimeWindow(family.id);
     } else if (newView === 'day' && event.date) {
-      console.log('📅 Caricamento vista giorno per:', event.date);
       this.loadDayCalendar(family.id, event.date);
     } else {
-      console.log('📅 Caricamento vista settimana');
       this.loadWeekCalendar(family.id);
     }
   }
 
   onViewSelectorChange(event: any) {
     const newView = event.detail.value as 'day' | 'week' | 'now';
-    console.log('🎯 Vista selezionata dal selettore:', newView);
     this.currentCalendarView.set(newView);
   }
 
@@ -667,7 +660,6 @@ export class HomePage implements OnInit, OnDestroy {
 
 
   onDateChanged(event: { direction: 'prev' | 'next' }) {
-    console.log('Date changed:', event);
     // Aggiorna le date se necessario
     if (event.direction === 'prev') {
       // Sposta alla settimana precedente
@@ -702,7 +694,6 @@ export class HomePage implements OnInit, OnDestroy {
         this.tasksByDay.set(convertedTasks);
         // Genera i giorni della settimana
         this.days = this.calendarService.generateWeekDays();
-        console.log('✅ Calendario settimanale caricato dal BE:', convertedTasks);
       }
     } catch (error) {
       console.error('❌ Errore caricamento calendario settimanale:', error);
@@ -762,7 +753,6 @@ export class HomePage implements OnInit, OnDestroy {
         const dayTasks = { [date]: tasks };
         this.tasksByDay.set(dayTasks);
         this.days = [date];
-        console.log('✅ Calendario giornaliero mock FE:', dayTasks);
         this.loading.set(false);
         return;
       }
@@ -774,7 +764,6 @@ export class HomePage implements OnInit, OnDestroy {
         const dayTasks = { [date]: tasks };
         this.tasksByDay.set(dayTasks);
         this.days = [date];
-        console.log('✅ Calendario giornaliero caricato dal BE:', dayTasks);
       }
     } catch (error) {
       console.error('❌ Errore caricamento calendario giornaliero:', error);
@@ -849,7 +838,6 @@ export class HomePage implements OnInit, OnDestroy {
             upcoming: 0
           }
         };
-        console.log('✅ Vista "Ora corrente" mock FE:', this.timeWindowData);
         this.loading.set(false);
         return;
       }
@@ -859,7 +847,6 @@ export class HomePage implements OnInit, OnDestroy {
       if (timeWindowData) {
         // Per la vista "now" non usiamo tasksByDay ma passiamo i dati direttamente al calendario
         this.timeWindowData = timeWindowData;
-        console.log('✅ Vista "Ora corrente" caricata dal BE:', timeWindowData);
       }
     } catch (error) {
       console.error('❌ Errore caricamento vista "Ora corrente":', error);
@@ -909,7 +896,6 @@ export class HomePage implements OnInit, OnDestroy {
     const family = this.currentFamily();
     if (!family || !this.selectedChildId) return null;
     const child = family.children.find((c: Child) => c.id === this.selectedChildId);
-    console.log(child?.name)
     return child ? child.name : null;
 
   }
