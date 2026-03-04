@@ -16,11 +16,11 @@
   <div class="profiles-grid">
     <div *ngFor="let profile of profiles" class="profile-card" (click)="selectProfile(profile)">
       <div class="avatar-circle">
-        <span class="avatar-emoji">{{ profile.avatar }}</span>
+        <span class="avatar-emoji">{{ profile.icon }}</span>
       </div>
       <div class="profile-name">{{ profile.name }}</div>
     </div>
-    <div class="profile-card add-profile" (click)="selectProfile({id: '', name: '', avatar: ''})">
+    <div class="profile-card add-profile" (click)="selectProfile({id: '', name: '', icon: ''})">
       <div class="avatar-circle add-avatar">+</div>
       <div class="profile-name">Aggiungi profilo</div>
     </div>
