@@ -163,11 +163,11 @@ export class FamilySetupComponent implements OnInit {
       return;
     }
 
-    // Inizializza i form per i bambini
+    // Inizializza i form per i bambini (ID temporaneo, il DB genererà l'UUID)
     const forms: ChildForm[] = [];
     for (let i = 0; i < this.numberOfChildren(); i++) {
       forms.push({
-        id: `child-${i + 1}`,
+        id: `temp-${i}`, // ID temporaneo solo per il form, DB genererà UUID
         name: '',
         sex: 'male', 
         isValid: false

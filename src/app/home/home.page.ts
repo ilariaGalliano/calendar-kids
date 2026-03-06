@@ -209,65 +209,40 @@ export class HomePage implements OnInit, OnDestroy {
 
       this.selectedChildName = this.getSelectedChildName();
     });
-    if (environment.useMockApi) {
-      console.log("(solo FE)");
 
-      // Se esiste famiglia salvata, caricala
-      const savedFamily = localStorage.getItem('calendarKids_family');
-      if (savedFamily) {
-        this.activeFamily.set(JSON.parse(savedFamily));
-      }
+    // Carica i children dell'utente loggato se non sono già in memory
+    this.loadChildrenAndTasks();
+  }
 
-      // Altrimenti crea una demo family
-      if (!this.activeFamily()) {
-        this.activeFamily.set({
-          id: "demo-family",
-          parentName: "Lorena",
-          createdAt: new Date(),
-          children: [
-            { id: "kid1", name: "Sofia", avatar: "🧚‍♀️", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [], view: 'teen' },
-            { id: "kid2", name: "Marco", avatar: "🤴", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [], view: 'child' },
-            { id: "kid3", name: "Emma", avatar: "🦸‍♀️", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [], view: 'child' }
-          ]
-        });
-      }
-
-      const family = this.activeFamily();
-
-      // 1️Genera settimana mock
-      const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
-
-      // 2️Converte ChildTask[] in TaskInstance[]
-      const weekTasks: DayTasks = {};
-      for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
-        weekTasks[day] = childTasks.map(childTask => ({
-          id: childTask.id,
-          instanceId: childTask.id, // or generate a unique instanceId if needed
-          title: childTask.title,
-          color: childTask.color,
-          start: childTask.startTime,
-          end: childTask.endTime,
-          done: childTask.completed ?? false,
-          doneAt: null,
-          description: childTask.description,
-          childId: childTask.childId,
-          childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : '',
-          icon: childTask.icon ?? ''
-        }));
-      }
-
-      // 3️Salva nel signal
-      this.tasksByDay.set(weekTasks);
-
-      // 3️Calcola i giorni da mostrare
-      this.days = this.getWeekDates();
-
-      this.loading.set(false);
-      return;
+  private loadChildrenAndTasks() {
+    const family = this.activeFamily();
+    
+    // Se la family non è caricata, carica i children dal DB
+    if (!family || !family.children || family.children.length === 0) {
+      this.familyService.fetchChildrenForCurrentUser().subscribe({
+        next: (children) => {
+          console.log('✅ Children caricati dal DB:', children);
+          
+          // Crea una family temporanea con i children reali dal DB
+          const familyFromDB: Family = {
+            id: 'db-family',
+            parentName: '',
+            children: children || [],
+            createdAt: new Date()
+          };
+          
+          this.activeFamily.set(familyFromDB);
+          this.loadTasks();
+        },
+        error: (err) => {
+          console.error('❌ Error loading children from DB:', err);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // Family già caricata, carica i tasks direttamente
+      this.loadTasks();
     }
-
-    // modalità API (non usata)
-    this.loadTasks();
   }
 
 
@@ -297,39 +272,51 @@ export class HomePage implements OnInit, OnDestroy {
       this.error.set(null);
 
       const family = this.activeFamily();
-      if (!family) {
+      if (!family || !family.children || family.children.length === 0) {
+        console.log('⚠️ No family or children found');
         this.tasksByDay.set({});
         this.loading.set(false);
         return;
       }
 
-      try {
-        // Carica i dati dalla vista corrente
-        const currentView = this.currentCalendarView();
-
-        if (currentView === 'now') {
-          await this.loadCurrentTimeWindow(family.id);
-        } else if (currentView === 'day') {
-          const today = new Date().toISOString().slice(0, 10);
-          await this.loadDayCalendar(family.id, today);
-        } else {
-          await this.loadWeekCalendar(family.id);
-        }
-
-        return;
-
-      } catch (beError) {
-        console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);
-        // Se il BE fallisce, usa i mock come fallback
-      }
-
-      const weekTasks: DayTasks = {};
       const weekDates = this.getWeekDates();
+      const startDate = weekDates[0];
 
-      weekDates.forEach((dateStr) => {
-        const date = new Date(dateStr);
-        weekTasks[dateStr] = this.generateMockTasksForDate(date, family);
-      });
+      // Chiama API per ottenere activities della settimana per tutti i children
+      const weekTasks: DayTasks = {};
+      
+      for (const child of family.children as Child[]) {
+        try {
+          const activities = await this.calendarService.getActivitiesForWeek(child.id, startDate).toPromise();
+          console.log(`📅 Activities for ${child.name}:`, activities);
+
+          // Converti activities in TaskInstance e raggruppa per giorno
+          activities?.forEach((activity: any) => {
+            const dateStr = new Date(activity.date_start).toISOString().split('T')[0];
+            
+            if (!weekTasks[dateStr]) {
+              weekTasks[dateStr] = [];
+            }
+
+            weekTasks[dateStr].push({
+              id: activity.id.toString(),
+              instanceId: `${activity.id}-${Date.now()}`,
+              title: activity.name_activity,
+              color: this.getChildColor(child.id),
+              start: new Date(activity.date_start).toISOString(),
+              end: new Date(activity.date_end).toISOString(),
+              done: activity.done,
+              doneAt: null,
+              description: activity.description,
+              childId: child.id,
+              childName: child.name,
+              icon: activity.value || '📝'
+            });
+          });
+        } catch (err) {
+          console.error(`Error loading activities for child ${child.name}:`, err);
+        }
+      }
 
       this.tasksByDay.set(weekTasks);
 
@@ -510,7 +497,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   regenerateActivities() {
-    this.familyService.regenerateExampleFamily();
+    // this.familyService.regenerateExampleFamily();
     this.loadTasks();
   }
 

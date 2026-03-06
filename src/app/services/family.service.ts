@@ -14,13 +14,9 @@ export class FamilyService {
   private baseUrl = environment.apiBase;
 
   constructor(private http: HttpClient) {
-    // Carica la famiglia dal localStorage se presente
-    this.loadFamilyFromStorage();
-    
-    // Se non c'è una famiglia, crea una famiglia di esempio
-    if (!this.activeFamily()) {
-      this.createExampleFamily();
-    }
+    // NON caricare dal localStorage per evitare dati vecchi con ID invalidi
+    // I children vanno sempre caricati dal database quando necessario
+    // this.loadFamilyFromStorage();
   }
 
   // Getter per la famiglia attiva (signal scrivibile)
@@ -46,10 +42,10 @@ export class FamilyService {
   }
 
   // Metodo per rigenerare la famiglia di esempio (per test)
-  regenerateExampleFamily() {
-    this.clearFamily();
-    this.createExampleFamily();
-  }
+  // regenerateExampleFamily() {
+  //   this.clearFamily();
+  //   this.createExampleFamily();
+  // }
 
   // Getter per il bambino selezionato
   getSelectedChild() {
@@ -274,6 +270,15 @@ export class FamilyService {
   // Genera ID univoco
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Genera UUID valido (v4)
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   // Avatar casuali
