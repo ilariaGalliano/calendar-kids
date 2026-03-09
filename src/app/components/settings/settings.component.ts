@@ -11,7 +11,8 @@ import {
   IonSegment, IonSegmentButton, IonBadge, IonAvatar,
   ModalController
 } from '@ionic/angular/standalone';
-import { Child, Routine, Task, TaskPayload } from 'src/app/models/task.models';
+import { Routine, Task, TaskPayload } from 'src/app/models/task.models';
+import { Child } from 'src/app/models/family.models';
 import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
 import { AddChildModalComponent } from './add-child/add-child.component';

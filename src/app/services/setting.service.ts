@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+import { Child } from '../models/family.models';
 
 @Injectable({ providedIn: 'root' })
 export class SettingService {
   private base = environment.apiBase;
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // --- Children ---
-  getChildren() {
-    return this.http.get<any[]>(`${this.base}/settings/children`);
+
+  getChildren(): Observable<Child[]> {
+    // The backend will automatically filter by the logged user's ID from the JWT
+    return this.http.get<Child[]>(`${this.base}/settings/children`);
   }
   addChild(child: any) {
     return this.http.post<any>(`${this.base}/settings/children`, child);
