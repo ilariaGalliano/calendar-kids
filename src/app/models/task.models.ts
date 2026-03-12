@@ -11,10 +11,15 @@ export interface Routine {
   id: string;
   childId: string;
   name: string;
-  tasks: Task[];
-  days: string[]; // ['mon', 'tue', 'wed', ...]
+  description?: string;
+  days: string[];
   startTime: string;
+  endTime: string;
+  tasks: any[];
+  isDone: boolean;
   isActive: boolean;
+  category: string;
+  createdAt: string;
 }
 
 export interface Task {

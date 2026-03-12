@@ -41,16 +41,49 @@ export class SettingService {
   }
 
   // --- Routines ---
-  getRoutines(childId: string) {
-    return this.http.get<any[]>(`${this.base}/settings/routine?childId=${childId}`);
+  getRoutines(childId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/settings/routine`, {
+      params: { childId }
+    });
   }
-  createRoutine(routine: any) {
-    return this.http.post<any>(`${this.base}/settings/routine`, routine);
+
+  getRoutinesForChildren(childIds: string[]): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/settings/routine`, {
+      params: { childIds: childIds.join(',') }
+    });
   }
-  updateRoutine(id: string, routine: any) {
+
+  createRoutine(routine: {
+  childId: string;
+  nametask: string;
+  description?: string;
+  day_of_week: number;
+  start_time?: string;
+  end_time?: string;
+  isDone?: boolean;
+  activityIds?: string[];
+}): Observable<any> {
+  return this.http.post<any>(`${this.base}/settings/routine`, routine);
+}
+
+  // BE expects Partial of same shape
+  updateRoutine(id: string, routine: Partial<{
+    nametask: string;
+    description: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    isDone: boolean;
+    isActive: boolean;
+    days: string[]; 
+    tasks: any[];
+    activityIds: string[];
+    startTime: string;
+  }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);
   }
-  deleteRoutine(id: string) {
+
+  deleteRoutine(id: string): Observable<any> {
     return this.http.delete<any>(`${this.base}/settings/routine/${id}`);
   }
 }
