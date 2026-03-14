@@ -19,20 +19,29 @@ export class AppComponent {
 
 
   async ngOnInit() {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user?.id) {
-      await this.auth.setUserId(data.session.user.id);
-    }
     supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session && session.user?.id) {
+      if (event === 'SIGNED_IN' && session?.user?.id) {
         await this.auth.setUserId(session.user.id);
-        this.router.navigate(['/family-setup']);
+        // Navigate only when coming from login/root (new login or OAuth redirect).
+        // Do NOT navigate on token refresh (SIGNED_IN fires every ~1h).
+        const currentUrl = this.router.url;
+        const isOnAuthPage = currentUrl === '/' || currentUrl === '/login' || currentUrl.startsWith('/login');
+        if (isOnAuthPage) {
+          this.router.navigate(['/family-setup']);
+        }
       }
+
+      if (event === 'INITIAL_SESSION' && session?.user?.id) {
+        // App reloaded with existing session — restore userId but don't redirect
+        await this.auth.setUserId(session.user.id);
+      }
+
       if (event === 'SIGNED_OUT') {
         await this.auth.clearToken();
         this.router.navigate(['/login']);
       }
     });
+
     await this.auth.bootstrapBackend();
   }
 }

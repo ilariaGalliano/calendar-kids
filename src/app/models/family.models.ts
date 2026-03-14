@@ -6,7 +6,7 @@ export interface Family {
 }
 
 export interface Child {
-  age: number | null;
+  years: number | null;
   id: string;
   name: string;
   avatar: string;

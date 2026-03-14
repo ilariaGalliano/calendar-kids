@@ -286,7 +286,7 @@ export class SettingsComponent implements OnInit {
   }
 
   addChild() {
-    const newChild = { name: 'Nuovo Bambino', age: 5 };
+    const newChild = { name: 'Nuovo Bambino', years: 5 };
     this.settingService.addChild(newChild).subscribe(() => this.loadChildren());
   }
 

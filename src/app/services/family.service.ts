@@ -67,7 +67,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Sofia',
           avatar: '🧚‍♀️',
-          age: 8,
+          years: 8,
           sex: 'female',
           createdAt: new Date(),
           tasks: [],
@@ -77,7 +77,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Marco',
           avatar: '🤴',
-          age: 6,
+          years: 6,
           sex: 'male',
           createdAt: new Date(),
           tasks: [],
@@ -87,7 +87,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Emma',
           avatar: '🦸‍♀️',
-          age: 3,
+          years: 3,
           sex: 'female',
           createdAt: new Date(),
           tasks: [],
@@ -116,7 +116,7 @@ export class FamilyService {
         id: this.generateId(),
         name: `Bambino ${i}`,
         avatar: this.getRandomAvatar() ?? '',
-        age: null, // valore di default, da aggiornare quando l'utente imposta l'età
+        years: null, // valore di default, da aggiornare quando l'utente imposta l'età
         createdAt: new Date(),
         sex: '',
         tasks: [],
@@ -138,7 +138,7 @@ export class FamilyService {
   }
 
   // Aggiunge un bambino alla famiglia
-  addChild(name: string, age: number = 0): Child | null {
+  addChild(name: string, years: number = 0): Child | null {
     const family = this.activeFamily();
     if (!family) return null;
 
@@ -146,7 +146,7 @@ export class FamilyService {
       id: this.generateId(),
       name,
       avatar: this.getRandomAvatar() ?? '',
-      age: null,
+      years: null,
       sex: '', 
       createdAt: new Date(),
       tasks: [],
@@ -245,9 +245,9 @@ export class FamilyService {
         family.createdAt = new Date(family.createdAt);
         family.children.forEach((child: Child) => {
           child.createdAt = new Date(child.createdAt);
-          // fallback se nei dati vecchi non esiste 'age'
-          if (child.age === undefined || child.age === null) {
-            child.age = null;
+          // fallback se nei dati vecchi non esiste 'years'
+          if (child.years === undefined || child.years === null) {
+            child.years = null;
           }
         });
         this.activeFamily.set(family);
