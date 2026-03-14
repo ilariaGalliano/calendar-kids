@@ -38,7 +38,7 @@ interface TaskInstance {
   description?: string | null; // activities.description
   childId: string;     // activities.children_id
   childName: string;   // risolto da children.name
-  icon?: string | null;  // tasks.icon (solo routine activities, null per attività reali)
+  icon?: string;  // tasks.icon (solo routine activities)
   timer?: number | null; // activities.timer (durata in minuti)
   value?: number | null; // activities.value (punti reward)
   source?: 'routine' | 'activity'; // campo sintetico dal BE
@@ -297,7 +297,7 @@ export class HomePage implements OnInit, OnDestroy {
             description: a.description ?? null,
             childId,
             childName: child?.name ?? a.child_name ?? 'Bambino',
-            icon: a.icon ?? null,
+            icon: a.icon ?? undefined,
             timer: a.timer ?? null,
             value: a.value ?? null,
             source: a.source ?? 'activity',
@@ -334,7 +334,7 @@ export class HomePage implements OnInit, OnDestroy {
         description: activity.description ?? null,
         childId,
         childName: child?.name ?? activity.child_name ?? 'Bambino',
-        icon: activity.icon ?? null,
+        icon: activity.icon ?? undefined,
         timer: activity.timer ?? null,
         value: activity.value ?? null,
         source: activity.source ?? 'activity',
