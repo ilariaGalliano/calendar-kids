@@ -32,6 +32,8 @@ import { CreateRoutineModalComponent } from './create-routine-modal/create-routi
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
+  readonly weekDaysOrder: string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
   // Helper properties to track context when adding a task to a routine/day
   addingToRoutine?: Routine;
   addingToDay?: string;
@@ -353,6 +355,24 @@ export class SettingsComponent implements OnInit {
     if (confirmed) {
       this.settingService.deleteTask(task.id).subscribe(() => this.loadTasks());
     }
+  }
+
+  removeTaskFromRoutine(routine: Routine, task: Task) {
+    const confirmed = window.confirm(`Rimuovere "${task.title}" da questa routine?`);
+    if (!confirmed) return;
+
+    const remainingTasks = (routine.tasks ?? []).filter((t: any) => {
+      const id = String(typeof t === 'string' ? t : t?.id);
+      return id !== String(task.id);
+    });
+
+    this.settingService.updateRoutine(routine.id, {
+      nametask: routine.name,
+      isActive: routine.isActive,
+      days: routine.days,
+      activityIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id)),
+      startTime: routine.startTime
+    }).subscribe(() => this.loadRoutines());
   }
 
   saveTask() {

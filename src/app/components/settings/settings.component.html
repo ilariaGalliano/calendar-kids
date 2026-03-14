@@ -124,16 +124,21 @@
     @if (activeSegment === 'routines') {
     <div class="section-content">
       @for (child of children(); track child.id) {
-      <ion-card class="kids-card">
+      <ion-card class="kids-card routine-board">
         <ion-card-header>
           <ion-card-title>
-            <div class="routine-header">
-              <div class="child-info">
-                <span class="child-emoji">🧒</span>
-                <span>Routine di {{ child.name }}</span>
+            <div class="routine-board-header">
+              <div class="routine-child-info">
+                <div class="routine-child-avatar">🧒</div>
+                <div>
+                  <div class="routine-child-title">Routine di {{ child.name }}</div>
+                  <div class="routine-child-subtitle">Pianificazione settimanale</div>
+                </div>
               </div>
 
-              <ion-button fill="clear" size="small" (click)="openCreateRoutineModal(child.id)">➕</ion-button>
+              <ion-button fill="solid" size="small" (click)="openCreateRoutineModal(child.id)">
+                ➕ Nuova routine
+              </ion-button>
             </div>
           </ion-card-title>
         </ion-card-header>
@@ -141,66 +146,65 @@
         <ion-card-content>
           @for (routine of getRoutinesForChild(child.id); track routine.id) {
 
-          <div class="routine-item">
+          <div class="routine-item board-item">
+            <div class="routine-top">
+              <div class="routine-info">
+                <h3>{{ routine.name }}</h3>
+                <p>⏰ {{ routine.startTime }} @if (routine.endTime) { - {{ routine.endTime }} }</p>
+              </div>
 
-            <div class="routine-info">
-              <h3>{{ routine.name }}</h3>
-              <p>⏰ {{ routine.startTime }}</p>
-
-              <!-- LISTA DEI GIORNI CON I TASK PER OGNI GIORNO -->
-              <div class="routine-days-expanded">
-
-                @for (day of routine.days; track day) {
-
-                <div class="day-section">
-                  <div class="day-title">
-                    📅 {{ getDayLabel(day) }}
-                  </div>
-
-                  <div class="day-tasks">
-
-                    @for (task of getTasksForRoutineDay(routine, day); track task.id) {
-                    <div class="day-task-item">
-                      <div class="task-left">
-                        <span class="task-emoji">{{ task.emoji }}</span>
-                        <div>
-                          <div class="task-title">{{ task.title }}</div>
-                          <div class="task-meta">{{ task.duration }} min — 🏆 {{ task.reward }}</div>
-                        </div>
-                      </div>
-
-                      <div class="task-actions">
-                        <ion-button fill="clear" size="small" (click)="editTask(task)">✏️</ion-button>
-                        <ion-button fill="clear" size="small" color="danger" (click)="deleteTask(task)">🗑️</ion-button>
-                      </div>
-                    </div>
-                    }
-
-                    @empty {
-                    <div class="no-tasks">
-                      Nessuna attività →
-                      <ion-button size="small" fill="clear" (click)="addTaskRoutine(routine, day)">
-                        Aggiungi
-                      </ion-button>
-                    </div>
-                    }
-
-                  </div>
-                </div>
-
-                }
-
+              <div class="routine-actions">
+                <ion-toggle [checked]="routine.isActive" (ionChange)="onRoutineToggle(routine, $event.detail.checked)"></ion-toggle>
+                <ion-button fill="clear" size="small" (click)="editRoutine(routine)">✏️</ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deleteRoutine(routine)">🗑️</ion-button>
               </div>
             </div>
 
-            <div class="routine-actions">
-              <ion-toggle [(ngModel)]="routine.isActive" (ionChange)="updateRoutine(routine)"></ion-toggle>
-              <ion-button fill="clear" size="small" (click)="editRoutine(routine)">✏️</ion-button>
-              <ion-button fill="clear" size="small" color="danger" (click)="deleteRoutine(routine)">🗑️</ion-button>
+            <div class="routine-days-expanded board-grid">
+              @for (day of weekDaysOrder; track day) {
+              <div class="day-section board-column">
+                <div class="day-title board-column-title">
+                  <span>📅 {{ getDayLabel(day) }}</span>
+                  <ion-button size="small" fill="clear" (click)="addTaskRoutine(routine, day)">＋</ion-button>
+                </div>
+
+                <div class="day-tasks board-column-body">
+                  @for (task of getTasksForRoutineDay(routine, day); track task.id) {
+                  <div class="day-task-item task-card-mini" [style.border-left-color]="task.color || '#4ECDC4'">
+                    <div class="task-left">
+                      <span class="task-emoji">{{ task.emoji }}</span>
+                      <div>
+                        <div class="task-title">{{ task.title }}</div>
+                        <div class="task-meta">{{ task.duration }} min · 🏆 {{ task.reward }}</div>
+                      </div>
+                    </div>
+
+                    <div class="task-actions">
+                      <ion-button fill="clear" size="small" (click)="editTask(task)">✏️</ion-button>
+                      <ion-button fill="clear" size="small" color="danger" (click)="removeTaskFromRoutine(routine, task)">🗑️</ion-button>
+                    </div>
+                  </div>
+                  }
+
+                  @empty {
+                  <div class="no-tasks board-empty">
+                    <span>Nessuna attività</span>
+                    <ion-button size="small" fill="outline" (click)="addTaskRoutine(routine, day)">
+                      Aggiungi
+                    </ion-button>
+                  </div>
+                  }
+                </div>
+              </div>
+              }
             </div>
-
           </div>
+          }
 
+          @empty {
+          <div class="no-tasks" style="justify-content: center; padding: 18px;">
+            Nessuna routine per questo bambino.
+          </div>
           }
 
         </ion-card-content>
