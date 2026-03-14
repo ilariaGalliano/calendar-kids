@@ -25,6 +25,21 @@ export class CalendarService {
     return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/week?startDate=${startDate}`);
   }
 
+  /** Singola chiamata: tutte le attività per tutti i figli dell'utente loggato */
+  getActivitiesForMeWeek(startDate: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/week?startDate=${startDate}`);
+  }
+
+  /** Giorno specifico per tutti i figli dell'utente loggato */
+  getActivitiesForMeDay(date: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/day?date=${date}`);
+  }
+
+  /** Ora corrente (+/-2h) per tutti i figli dell'utente loggato */
+  getActivitiesForMeNow(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/now`);
+  }
+
   getActivitiesForDay(childId: string, date: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/day?date=${date}`);
   }

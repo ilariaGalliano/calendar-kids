@@ -48,6 +48,7 @@ export interface TaskInstance {
   doneAt?: string | null;
   reward: number;
   task?: Task;
+  duration: number;
 }
 
 export interface TaskPayload {

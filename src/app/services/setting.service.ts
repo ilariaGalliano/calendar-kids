@@ -61,7 +61,7 @@ export class SettingService {
   start_time?: string;
   end_time?: string;
   isDone?: boolean;
-  activityIds?: string[];
+  taskIds?: string[];
 }): Observable<any> {
   return this.http.post<any>(`${this.base}/settings/routine`, routine);
 }
@@ -77,7 +77,7 @@ export class SettingService {
     isActive: boolean;
     days: string[]; 
     tasks: any[];
-    activityIds: string[];
+    taskIds: string[];
     startTime: string;
   }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);

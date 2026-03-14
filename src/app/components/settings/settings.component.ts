@@ -104,7 +104,7 @@ export class SettingsComponent implements OnInit {
     return {
       id,
       title: task?.title ?? task?.name_activity ?? task?.name ?? 'Attività',
-      emoji: task?.emoji ?? (task?.value ? String(task.value) : '🎯'),
+      emoji: task?.emoji ?? task?.icon ?? (task?.value ? String(task.value) : '🎯'),
       duration: Number(task?.duration ?? task?.timer ?? 5),
       reward: Number(task?.reward ?? task?.value ?? 0),
       color: task?.color ?? '#4ECDC4',
@@ -186,7 +186,7 @@ export class SettingsComponent implements OnInit {
         : 'mon';
 
       const dayNumber = this.dayCodeToNumber(firstDay);
-      const activityIds = Array.from(new Set(
+      const taskIds = Array.from(new Set(
         Object.values(result.data.tasksByDay ?? {})
           .flatMap((dayTasks: any) => Array.isArray(dayTasks) ? dayTasks : [])
           .map((task: any) => String(task?.id ?? ''))
@@ -201,7 +201,7 @@ export class SettingsComponent implements OnInit {
         start_time: result.data.startTime ?? '08:00',
         end_time: result.data.endTime ?? '',
         isDone: false,
-        activityIds
+        taskIds
       };
 
       this.settingService.createRoutine(payload).subscribe(() => this.loadRoutines());
@@ -370,7 +370,7 @@ export class SettingsComponent implements OnInit {
       nametask: routine.name,
       isActive: routine.isActive,
       days: routine.days,
-      activityIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id)),
+      taskIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id)),
       startTime: routine.startTime
     }).subscribe(() => this.loadRoutines());
   }
@@ -411,7 +411,7 @@ export class SettingsComponent implements OnInit {
             nametask: updatedRoutine.name,
             isActive: updatedRoutine.isActive,
             days: updatedRoutine.days,
-            activityIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id)),
+            taskIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id)),
             startTime: updatedRoutine.startTime
           }).subscribe(() => {
             this.loadRoutines();
