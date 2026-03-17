@@ -1,4 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { Family, DaySchedule, ChildTask, Child } from '../models/family.models';
 // Remove the import from task.models to avoid type mismatch
 // import { Child } from '../models/task.models';
@@ -9,15 +11,12 @@ import { Family, DaySchedule, ChildTask, Child } from '../models/family.models';
 export class FamilyService {
   private activeFamily = signal<Family | null>(null);
   private selectedChild = signal<Child | null>(null);
+  private baseUrl = environment.apiBase;
 
-  constructor() {
-    // Carica la famiglia dal localStorage se presente
-    this.loadFamilyFromStorage();
-    
-    // Se non c'è una famiglia, crea una famiglia di esempio
-    if (!this.activeFamily()) {
-      this.createExampleFamily();
-    }
+  constructor(private http: HttpClient) {
+    // NON caricare dal localStorage per evitare dati vecchi con ID invalidi
+    // I children vanno sempre caricati dal database quando necessario
+    // this.loadFamilyFromStorage();
   }
 
   // Getter per la famiglia attiva (signal scrivibile)
@@ -43,14 +42,19 @@ export class FamilyService {
   }
 
   // Metodo per rigenerare la famiglia di esempio (per test)
-  regenerateExampleFamily() {
-    this.clearFamily();
-    this.createExampleFamily();
-  }
+  // regenerateExampleFamily() {
+  //   this.clearFamily();
+  //   this.createExampleFamily();
+  // }
 
   // Getter per il bambino selezionato
   getSelectedChild() {
     return this.selectedChild;
+  }
+
+  // API: bambini del genitore autenticato
+  fetchChildrenForCurrentUser() {
+    return this.http.get<Child[]>(`${this.baseUrl}/children/me`);
   }
 
   // Crea una famiglia di esempio per testare l'app
@@ -63,7 +67,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Sofia',
           avatar: '🧚‍♀️',
-          age: 8,
+          years: 8,
           sex: 'female',
           createdAt: new Date(),
           tasks: [],
@@ -73,7 +77,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Marco',
           avatar: '🤴',
-          age: 6,
+          years: 6,
           sex: 'male',
           createdAt: new Date(),
           tasks: [],
@@ -83,7 +87,7 @@ export class FamilyService {
           id: this.generateId(),
           name: 'Emma',
           avatar: '🦸‍♀️',
-          age: 3,
+          years: 3,
           sex: 'female',
           createdAt: new Date(),
           tasks: [],
@@ -95,7 +99,6 @@ export class FamilyService {
 
     this.activeFamily.set(family);
     this.saveFamilyToStorage(family);
-    console.log('🎯 Famiglia di esempio creata:', family);
   }
 
   // Crea una nuova famiglia
@@ -113,7 +116,7 @@ export class FamilyService {
         id: this.generateId(),
         name: `Bambino ${i}`,
         avatar: this.getRandomAvatar() ?? '',
-        age: null, // valore di default, da aggiornare quando l'utente imposta l'età
+        years: null, // valore di default, da aggiornare quando l'utente imposta l'età
         createdAt: new Date(),
         sex: '',
         tasks: [],
@@ -125,7 +128,6 @@ export class FamilyService {
     this.activeFamily.set(family);
     this.saveFamilyToStorage(family);
     
-    console.log('👨‍👩‍👧‍👦 Famiglia creata:', family);
     return family;
   }
 
@@ -136,7 +138,7 @@ export class FamilyService {
   }
 
   // Aggiunge un bambino alla famiglia
-  addChild(name: string, age: number = 0): Child | null {
+  addChild(name: string, years: number = 0): Child | null {
     const family = this.activeFamily();
     if (!family) return null;
 
@@ -144,7 +146,7 @@ export class FamilyService {
       id: this.generateId(),
       name,
       avatar: this.getRandomAvatar() ?? '',
-      age: null,
+      years: null,
       sex: '', 
       createdAt: new Date(),
       tasks: [],
@@ -243,13 +245,12 @@ export class FamilyService {
         family.createdAt = new Date(family.createdAt);
         family.children.forEach((child: Child) => {
           child.createdAt = new Date(child.createdAt);
-          // fallback se nei dati vecchi non esiste 'age'
-          if (child.age === undefined || child.age === null) {
-            child.age = null;
+          // fallback se nei dati vecchi non esiste 'years'
+          if (child.years === undefined || child.years === null) {
+            child.years = null;
           }
         });
         this.activeFamily.set(family);
-        console.log('📂 Famiglia caricata dal localStorage:', family);
       }
     } catch (error) {
       console.error('❌ Errore caricamento famiglia:', error);
@@ -261,7 +262,6 @@ export class FamilyService {
   private saveFamilyToStorage(family: Family) {
     try {
       localStorage.setItem('calendarKids_family', JSON.stringify(family));
-      console.log('💾 Famiglia salvata nel localStorage');
     } catch (error) {
       console.error('❌ Errore salvataggio famiglia:', error);
     }
@@ -270,6 +270,15 @@ export class FamilyService {
   // Genera ID univoco
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Genera UUID valido (v4)
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   // Avatar casuali

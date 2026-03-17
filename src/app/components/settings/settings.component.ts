@@ -11,7 +11,8 @@ import {
   IonSegment, IonSegmentButton, IonBadge, IonAvatar,
   ModalController
 } from '@ionic/angular/standalone';
-import { Child, Routine, Task, TaskPayload } from 'src/app/models/task.models';
+import { Routine, Task, TaskPayload } from 'src/app/models/task.models';
+import { Child } from 'src/app/models/family.models';
 import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
 import { AddChildModalComponent } from './add-child/add-child.component';
@@ -31,37 +32,11 @@ import { CreateRoutineModalComponent } from './create-routine-modal/create-routi
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
-  // Opens the task modal to add a task to a specific routine and day
-  addTaskRoutine(routine: Routine, day: string) {
-    this.taskForm = {
-      emoji: '🎯',
-      title: '',
-      description: '',
-      duration: 5,
-      color: '#4ECDC4',
-      reward: 10
-    };
-    this.editingTask.set(null);
-    this.showTaskModal.set(true);
-    // Store context for which routine and day the task is being added to
-    this.addingToRoutine = routine;
-    this.addingToDay = day;
-  }
+  readonly weekDaysOrder: string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
   // Helper properties to track context when adding a task to a routine/day
   addingToRoutine?: Routine;
   addingToDay?: string;
-
-  // Update saveTask to handle adding to routine/day if context is set
-  // Restituisce i task della routine per uno specifico giorno
-  getTasksForRoutineDay(routine: any, day: string): any[] {
-    // Se la routine ha tasks e days, mostra tutti i task se il giorno è presente
-    if (!routine || !routine.tasks || !routine.days) return [];
-    if (routine.days.includes(day)) {
-      return routine.tasks;
-    }
-    return [];
-  }
   activeSegment = 'children';
   taskFilter = 'all';
 
@@ -110,30 +85,176 @@ export class SettingsComponent implements OnInit {
     this.settingService.getTasks().subscribe(data => this.tasks.set(data));
   }
 
+  private dayNumberToCode(day: number): string {
+    const map: Record<number, string> = {
+      0: 'sun',
+      1: 'mon',
+      2: 'tue',
+      3: 'wed',
+      4: 'thu',
+      5: 'fri',
+      6: 'sat'
+    };
+    return map[day] ?? 'mon';
+  }
+
+  private normalizeRoutineTask(task: any): Task {
+    const id = String(task?.id ?? task?.activity_id ?? crypto.randomUUID());
+
+    return {
+      id,
+      title: task?.title ?? task?.name_activity ?? task?.name ?? 'Attività',
+      emoji: task?.emoji ?? task?.icon ?? (task?.value ? String(task.value) : '🎯'),
+      duration: Number(task?.duration ?? task?.timer ?? 5),
+      reward: Number(task?.reward ?? task?.value ?? 0),
+      color: task?.color ?? '#4ECDC4',
+      description: task?.description ?? '',
+      isActive: task?.isActive ?? true,
+    };
+  }
+
   loadRoutines() {
-    // Carica le routine per tutti i bambini
     const children = this.children() ?? [];
     if (!Array.isArray(children) || children.length === 0) {
       this.routines.set([]);
       return;
     }
-    // Carica tutte le routine per tutti i bambini e uniscile
-    const routinesArr: Routine[] = [];
-    let loaded = 0;
-    children.forEach(child => {
-      this.settingService.getRoutines(child.id).subscribe(data => {
-        routinesArr.push(...data);
-        loaded++;
-        if (loaded === children.length) {
-          this.routines.set(routinesArr);
-        }
-      });
+
+    const childIds = children.map(child => child.id).filter(Boolean);
+
+    this.settingService.getRoutinesForChildren(childIds).subscribe({
+      next: (rows: any[]) => {
+        // Transform DB/mock shape to FE shape
+        const routinesArr = (rows ?? []).map((r: any) => ({
+          id: r.id,
+          childId: r.child_id ?? r.childId,
+          name: r.nametask ?? r.name ?? 'Nuova routine',
+          description: r.description,
+          days: Array.isArray(r.days) && r.days.length > 0
+            ? r.days
+            : [this.dayNumberToCode(r.day_of_week)],
+          startTime: r.start_time ?? r.startTime,
+          endTime: r.end_time ?? r.endTime,
+          tasks: Array.isArray(r.tasks)
+            ? r.tasks.map((t: any) => this.normalizeRoutineTask(t))
+            : [],
+          isDone: !!r.isDone,
+          isActive: typeof r.isActive === 'boolean' ? r.isActive : !r.isDone,
+          category: 'custom',
+          createdAt: r.created_at ?? r.createdAt
+        })) as Routine[];
+
+        this.routines.set(routinesArr);
+      },
+      error: (err) => {
+        console.error('Error loading routines:', err);
+        this.routines.set([]);
+      }
     });
   }
 
-
   getRoutinesForChild(childId: string) {
     return this.routines().filter(r => r.childId === childId);
+  }
+
+  getTasksForRoutineDay(routine: Routine, day: string): Task[] {
+    if (!routine?.days?.includes(day) || !routine?.tasks) return [];
+    return routine.tasks.filter(t => typeof t !== 'string');
+  }
+
+  getDayLabel(day: string) {
+    const labels: Record<string, string> = {
+      mon: 'Lunedì', tue: 'Martedì', wed: 'Mercoledì', thu: 'Giovedì',
+      fri: 'Venerdì', sat: 'Sabato', sun: 'Domenica'
+    };
+    return labels[day] || day;
+  }
+
+  // --- Routine Actions ---
+  async openCreateRoutineModal(childId: string) {
+    const modal = await this.modalCtrl.create({
+      component: CreateRoutineModalComponent,
+      componentProps: { childId }
+    });
+
+    modal.onDidDismiss().then(result => {
+      if (!result.data) return;
+
+      // Transform FE shape back to DB shape
+      const firstDay = Array.isArray(result.data.days) && result.data.days.length > 0
+        ? result.data.days[0]
+        : 'mon';
+
+      const dayNumber = this.dayCodeToNumber(firstDay);
+      const taskIds = Array.from(new Set(
+        Object.values(result.data.tasksByDay ?? {})
+          .flatMap((dayTasks: any) => Array.isArray(dayTasks) ? dayTasks : [])
+          .map((task: any) => String(task?.id ?? ''))
+          .filter((id: string) => !!id)
+      ));
+
+      const payload = {
+        childId,
+        nametask: result.data.name ?? 'Nuova routine',
+        description: result.data.description ?? '',
+        day_of_week: dayNumber,
+        start_time: result.data.startTime ?? '08:00',
+        end_time: result.data.endTime ?? '',
+        isDone: false,
+        taskIds
+      };
+
+      this.settingService.createRoutine(payload).subscribe(() => this.loadRoutines());
+    });
+
+    await modal.present();
+  }
+
+  updateRoutine(routine: Routine) {
+    const dayNumber = this.dayCodeToNumber(routine.days?.[0] ?? 'mon');
+
+    this.settingService.updateRoutine(routine.id, {
+      nametask: routine.name,
+      description: routine.description,
+      day_of_week: dayNumber,
+      start_time: routine.startTime,
+      end_time: routine.endTime,
+      isDone: !routine.isActive
+    }).subscribe(() => this.loadRoutines());
+  }
+
+  private dayCodeToNumber(day: string): number {
+    const map: Record<string, number> = {
+      sun: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6
+    };
+    return map[day] ?? 1;
+  }
+
+  editRoutine(routine: Routine) {
+    const newName = window.prompt('Nome routine', routine.name);
+    if (!newName) return;
+
+    this.settingService.updateRoutine(routine.id, { nametask: newName })
+      .subscribe(() => this.loadRoutines());
+  }
+
+  onRoutineToggle(routine: Routine, checked: boolean) {
+    routine.isActive = checked;
+    this.updateRoutine(routine);
+  }
+
+  async deleteRoutine(routine: Routine) {
+    const confirmed = window.confirm('Sei sicuro di voler eliminare questa routine?');
+    if (confirmed) {
+      this.settingService.deleteRoutine(routine.id)
+        .subscribe(() => this.loadRoutines());
+    }
   }
 
   getCategoryColor(category: string) {
@@ -156,14 +277,6 @@ export class SettingsComponent implements OnInit {
     return labels[category] || category;
   }
 
-  getDayLabel(day: string) {
-    const labels: Record<string, string> = {
-      mon: 'Lunedì', tue: 'Martedì', wed: 'Mercoledì', thu: 'Giovedì',
-      fri: 'Venerdì', sat: 'Sabato', sun: 'Domenica'
-    };
-    return labels[day] || day;
-  }
-
   // Actions
   goBack() {
     this.router.navigate(['/home']);
@@ -175,7 +288,7 @@ export class SettingsComponent implements OnInit {
   }
 
   addChild() {
-    const newChild = { name: 'Nuovo Bambino', age: 5 };
+    const newChild = { name: 'Nuovo Bambino', years: 5 };
     this.settingService.addChild(newChild).subscribe(() => this.loadChildren());
   }
 
@@ -244,6 +357,24 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  removeTaskFromRoutine(routine: Routine, task: Task) {
+    const confirmed = window.confirm(`Rimuovere "${task.title}" da questa routine?`);
+    if (!confirmed) return;
+
+    const remainingTasks = (routine.tasks ?? []).filter((t: any) => {
+      const id = String(typeof t === 'string' ? t : t?.id);
+      return id !== String(task.id);
+    });
+
+    this.settingService.updateRoutine(routine.id, {
+      nametask: routine.name,
+      isActive: routine.isActive,
+      days: routine.days,
+      taskIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id)),
+      startTime: routine.startTime
+    }).subscribe(() => this.loadRoutines());
+  }
+
   saveTask() {
     const payload: TaskPayload = {
       title: this.taskForm.title,
@@ -276,7 +407,13 @@ export class SettingsComponent implements OnInit {
           if (!updatedRoutine.days.includes(this.addingToDay)) {
             updatedRoutine.days.push(this.addingToDay);
           }
-          this.settingService.updateRoutine(updatedRoutine.id, updatedRoutine).subscribe(() => {
+          this.settingService.updateRoutine(updatedRoutine.id, {
+            nametask: updatedRoutine.name,
+            isActive: updatedRoutine.isActive,
+            days: updatedRoutine.days,
+            taskIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id)),
+            startTime: updatedRoutine.startTime
+          }).subscribe(() => {
             this.loadRoutines();
             this.closeTaskModal();
             this.addingToRoutine = undefined;
@@ -290,6 +427,20 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  addTaskRoutine(routine: Routine, day: string) {
+    this.taskForm = {
+      emoji: '🎯',
+      title: '',
+      description: '',
+      duration: 5,
+      color: '#4ECDC4',
+      reward: 10
+    };
+    this.editingTask.set(null);
+    this.showTaskModal.set(true);
+    this.addingToRoutine = routine;
+    this.addingToDay = day;
+  }
 
   closeTaskModal() {
     this.showTaskModal.set(false);
@@ -310,39 +461,4 @@ export class SettingsComponent implements OnInit {
     this.settingService.updateTask(task.id, { ...task }).subscribe(() => this.loadTasks());
   }
 
-
-  // Routine CRUD for per-child routines
-  async openCreateRoutineModal(childId: string) {
-  const modal = await this.modalCtrl.create({
-    component: CreateRoutineModalComponent,
-    componentProps: { childId }
-  });
-
-  modal.onDidDismiss().then(result => {
-    if (result.data) {
-      this.settingService.createRoutine(result.data)
-        .subscribe(() => this.loadRoutines());
-    }
-  });
-
-  await modal.present();
-}
-
-
-  editRoutine(routine: Routine) {
-    // Example: update name
-    const updated = { ...routine, name: routine.name + ' (modificata)' };
-    this.settingService.updateRoutine(routine.id, updated).subscribe(() => this.loadRoutines());
-  }
-
-  updateRoutine(routine: Routine) {
-    this.settingService.updateRoutine(routine.id, routine).subscribe(() => this.loadRoutines());
-  }
-
-  async deleteRoutine(routine: Routine) {
-    const confirmed = window.confirm("Sei sicuro di voler eliminare questa routine?");
-    if (confirmed) {
-      this.settingService.deleteRoutine(routine.id).subscribe(() => this.loadRoutines());
-    }
-  }
 }

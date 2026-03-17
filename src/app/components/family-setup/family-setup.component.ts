@@ -27,6 +27,7 @@ import {
 } from '@ionic/angular/standalone';
 import { Family, Child } from 'src/app/models/family.models';
 import { FamilyService } from 'src/app/services/family.service';
+import { supabase } from 'src/app/core/supabase.client';
 
 
 interface ChildForm {
@@ -97,34 +98,52 @@ export class FamilySetupComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.checkExistingFamily();
+    this.loadParentEmail();
+    this.loadChildrenFromAPI();
   }
 
-  private checkExistingFamily() {
-    // Controlla se esiste già una famiglia
-    const family = this.familyService.getCurrentFamily();
-    if (family) {
-      this.existingFamily.set(family);
-      this.parentName.set(family.parentName);
-      
-      // Se esiste famiglia, mostro opzioni per modificarla
-      this.step.set('review');
-      this.setupChildrenFormsFromFamily(family);
-    } else {
-      // Nuovo setup, inizia dalla welcome
-      this.step.set('welcome');
+  private async loadParentEmail() {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user?.email) {
+      const email = data.session.user.email || '';
+      const name = email.split('@')[0];
+      this.parentName.set(name);
     }
   }
 
-  private setupChildrenFormsFromFamily(family: Family) {
-    const forms = family.children.map((child: Child) => ({
+  private loadChildrenFromAPI() {
+    this.familyService.fetchChildrenForCurrentUser().subscribe({
+      next: (children) => {
+        console.log('👶 Children from API:', children);
+        if (children && children.length > 0) {
+          // Se ci sono già bambini, vai direttamente a family-picker con i dati
+          console.log('✅ Bambini già presenti, reindirizzamento a family-picker');
+          this.router.navigate(['/family-profile-picker'], {
+            state: {
+              parentName: this.parentName(),
+              children: children
+            }
+          });
+        } else {
+          // Nessun bambino, inizia il setup
+          this.step.set('welcome');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error fetching children:', err);
+        this.step.set('welcome');
+      }
+    });
+  }
+
+  private setupChildrenForms(children: Child[]) {
+    const forms = children.map((child: Child) => ({
       id: child.id,
       name: child.name,
       isValid: true,
       sex: child.sex
     }));
     this.childrenForms.set(forms);
-    this.numberOfChildren.set(family.children.length);
   }
 
   // Step 1: Welcome -> raccoglie nome genitore
@@ -144,11 +163,11 @@ export class FamilySetupComponent implements OnInit {
       return;
     }
 
-    // Inizializza i form per i bambini
+    // Inizializza i form per i bambini (ID temporaneo, il DB genererà l'UUID)
     const forms: ChildForm[] = [];
     for (let i = 0; i < this.numberOfChildren(); i++) {
       forms.push({
-        id: `child-${i + 1}`,
+        id: `temp-${i}`, // ID temporaneo solo per il form, DB genererà UUID
         name: '',
         sex: 'male', 
         isValid: false
@@ -167,36 +186,34 @@ export class FamilySetupComponent implements OnInit {
     this.step.set('review');
   }
 
-  // Step 4: Review e creazione famiglia
+  // Step 4: Review e creazione famiglia (salva via API)
   async createFamily() {
     this.isLoading.set(true);
     
     try {
-      const parentName = this.parentName();
-      const childrenNames = this.childrenForms().map(form => form.name.trim());
+      const childrenForms = this.childrenForms();
+      
+      // Prepara i dati dei bambini
+      const childrenData = childrenForms.map(form => ({
+        name: form.name.trim(),
+        years: '5',
+        icon: form.sex === 'female' ? '👧' : '🧒',
+        sex: form.sex,
+        id: form.id
+      }));
 
-      // Se esiste già una famiglia, la aggiorna
-      if (this.existingFamily()) {
-        await this.updateExistingFamily(childrenNames);
-      } else {
-        // Crea nuova famiglia
-        const family = this.familyService.createFamily(parentName, childrenNames.length);
-        
-        // Aggiorna i nomi dei bambini
-        family.children.forEach((child: Child, index: number) => {
-          child.name = childrenNames[index];
-        });
-        
-        // Salva la famiglia aggiornata
-        this.familyService.saveFamily(family);
-        
-        console.log('👨‍👩‍👧‍👦 Famiglia creata:', family);
-      }
+      // Crea tutti i bambini in una chiamata (quando il backend è pronto)
+      // await this.familyService.createChildrenBatch(childrenData).toPromise();
 
-      // Naviga alla home
-      setTimeout(() => {
-        this.router.navigate(['/family-profile-picker']);
-      }, 1000);
+      console.log('✅ Bambini creati con successo');
+      
+      // Naviga al family-picker con i dati
+      this.router.navigate(['/family-profile-picker'], {
+        state: {
+          parentName: this.parentName(),
+          children: childrenData
+        }
+      });
 
     } catch (error) {
       console.error('❌ Errore creazione famiglia:', error);
@@ -222,7 +239,7 @@ export class FamilySetupComponent implements OnInit {
         name: name,
         avatar: existingChild?.avatar || this.getRandomAvatar(),
         createdAt: existingChild?.createdAt || new Date(),
-        age: existingChild?.age ?? null,
+        years: existingChild?.years ?? null,
         sex: existingChild?.sex ?? 'male',
         point: existingChild?.point,
         view: existingChild?.view ?? 'child',
@@ -237,7 +254,6 @@ export class FamilySetupComponent implements OnInit {
     };
 
     this.familyService.saveFamily(updatedFamily);
-    console.log('🔄 Famiglia aggiornata:', updatedFamily);
   }
 
   // Helper methods

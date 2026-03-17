@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+import { Child } from '../models/family.models';
 
 @Injectable({ providedIn: 'root' })
 export class SettingService {
   private base = environment.apiBase;
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // --- Children ---
-  getChildren() {
-    return this.http.get<any[]>(`${this.base}/settings/children`);
+
+  getChildren(): Observable<Child[]> {
+    // The backend will automatically filter by the logged user's ID from the JWT
+    return this.http.get<Child[]>(`${this.base}/settings/children`);
   }
   addChild(child: any) {
     return this.http.post<any>(`${this.base}/settings/children`, child);
@@ -37,16 +41,49 @@ export class SettingService {
   }
 
   // --- Routines ---
-  getRoutines(childId: string) {
-    return this.http.get<any[]>(`${this.base}/settings/routine?childId=${childId}`);
+  getRoutines(childId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/settings/routine`, {
+      params: { childId }
+    });
   }
-  createRoutine(routine: any) {
-    return this.http.post<any>(`${this.base}/settings/routine`, routine);
+
+  getRoutinesForChildren(childIds: string[]): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/settings/routine`, {
+      params: { childIds: childIds.join(',') }
+    });
   }
-  updateRoutine(id: string, routine: any) {
+
+  createRoutine(routine: {
+  childId: string;
+  nametask: string;
+  description?: string;
+  day_of_week: number;
+  start_time?: string;
+  end_time?: string;
+  isDone?: boolean;
+  taskIds?: string[];
+}): Observable<any> {
+  return this.http.post<any>(`${this.base}/settings/routine`, routine);
+}
+
+  // BE expects Partial of same shape
+  updateRoutine(id: string, routine: Partial<{
+    nametask: string;
+    description: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    isDone: boolean;
+    isActive: boolean;
+    days: string[]; 
+    tasks: any[];
+    taskIds: string[];
+    startTime: string;
+  }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);
   }
-  deleteRoutine(id: string) {
+
+  deleteRoutine(id: string): Observable<any> {
     return this.http.delete<any>(`${this.base}/settings/routine/${id}`);
   }
 }

@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import {
   IonContent,
@@ -24,23 +23,25 @@ import { ChildRewardsComponent } from '../components/child-rewards/child-rewards
 import { CalendarService } from '../services/calendar.service';
 import { FamilyService } from '../services/family.service';
 
-import { Family, Child, ChildTask } from '../models/family.models';
-import { environment } from '../../environments/environment';
+import { Family, Child } from '../models/family.models';
 
-// Interfaces
+// Interfaces — allineate alle colonne Supabase
 interface TaskInstance {
   id: string;
   instanceId: string;
-  title: string;
-  color: string;
-  start: string; // ISO string for CalendarBoardComponent
-  end: string;   // ISO string for CalendarBoardComponent
-  done: boolean;
+  title: string;       // activities.name_activity
+  color: string;       // calcolato da childIndex (UI only)
+  start: string;       // activities.date_start (ISO)
+  end: string;         // activities.date_end (ISO)
+  done: boolean;       // activities.done
   doneAt?: string | null;
-  description?: string;
-  childId: string;
-  childName: string;
-  icon: string;
+  description?: string | null; // activities.description
+  childId: string;     // activities.children_id
+  childName: string;   // risolto da children.name
+  icon?: string;  // tasks.icon (solo routine activities)
+  timer?: number | null; // activities.timer (durata in minuti)
+  value?: number | null; // activities.value (punti reward)
+  source?: 'routine' | 'activity'; // campo sintetico dal BE
 }
 
 interface DayTasks {
@@ -97,59 +98,6 @@ export class HomePage implements OnInit, OnDestroy {
     return Object.values(tasks).some(dayTasks => dayTasks.length > 0);
   });
 
-  private generateDemoDay(date: string, children: Child[]): ChildTask[] {
-    const activities = [
-      { icon: "📚", name: "Lettura" },
-      { icon: "🎨", name: "Disegno" },
-      { icon: "🏃‍♂️", name: "Esercizio" },
-      { icon: "🧠", name: "Matematica" },
-      { icon: "🎵", name: "Musica" },
-      { icon: "🧩", name: "Puzzle" },
-      { icon: "🍝", name: "Cena" },
-      { icon: "🚿", name: "Igiene personale" },
-      { icon: "🧹", name: "Riordina la cameretta" },
-      { icon: "🍎", name: "Merenda" }
-    ];
-
-    const tasks: ChildTask[] = [];
-
-    children.forEach((child, index) => {
-      const count = 2 + Math.floor(Math.random() * 3); // 2–4 attività
-
-      for (let i = 0; i < count; i++) {
-        const startHour = 8 + i * 2;
-        const start = new Date(date);
-        start.setHours(startHour, 0, 0);
-
-        const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-        tasks.push({
-          id: `${child.id}-${date}-${i}`,
-          childId: child.id,
-          title: activities[(index + i) % activities.length].name,
-          description: `Attività per ${child.name}`,
-          color: this.getChildColor(child.id),
-          startTime: start.toISOString(),
-          endTime: end.toISOString(),
-          completed: Math.random() > 0.75,
-          icon: activities[(index + i) % activities.length].icon,
-        });
-      }
-    });
-
-    return tasks;
-  }
-
-  private generateDemoWeek(children: Child[]) {
-    const result: { [day: string]: ChildTask[] } = {};
-    const days = this.getWeekDates();
-
-    days.forEach(day => {
-      result[day] = this.generateDemoDay(day, children);
-    });
-
-    return result;
-  }
 
 
 
@@ -209,65 +157,40 @@ export class HomePage implements OnInit, OnDestroy {
 
       this.selectedChildName = this.getSelectedChildName();
     });
-    if (environment.useMockApi) {
-      console.log("(solo FE)");
 
-      // Se esiste famiglia salvata, caricala
-      const savedFamily = localStorage.getItem('calendarKids_family');
-      if (savedFamily) {
-        this.activeFamily.set(JSON.parse(savedFamily));
-      }
+    // Carica i children dell'utente loggato se non sono già in memory
+    this.loadChildrenAndTasks();
+  }
 
-      // Altrimenti crea una demo family
-      if (!this.activeFamily()) {
-        this.activeFamily.set({
-          id: "demo-family",
-          parentName: "Lorena",
-          createdAt: new Date(),
-          children: [
-            { id: "kid1", name: "Sofia", avatar: "🧚‍♀️", point: 0, age: 8, sex: "female", createdAt: new Date(), tasks: [], view: 'teen' },
-            { id: "kid2", name: "Marco", avatar: "🤴", point: 0, age: 6, sex: "male", createdAt: new Date(), tasks: [], view: 'child' },
-            { id: "kid3", name: "Emma", avatar: "🦸‍♀️", point: 0, age: 3, sex: "female", createdAt: new Date(), tasks: [], view: 'child' }
-          ]
-        });
-      }
-
-      const family = this.activeFamily();
-
-      // 1️Genera settimana mock
-      const weekTasksRaw = family ? this.generateDemoWeek(family.children) : {};
-
-      // 2️Converte ChildTask[] in TaskInstance[]
-      const weekTasks: DayTasks = {};
-      for (const [day, childTasks] of Object.entries(weekTasksRaw)) {
-        weekTasks[day] = childTasks.map(childTask => ({
-          id: childTask.id,
-          instanceId: childTask.id, // or generate a unique instanceId if needed
-          title: childTask.title,
-          color: childTask.color,
-          start: childTask.startTime,
-          end: childTask.endTime,
-          done: childTask.completed ?? false,
-          doneAt: null,
-          description: childTask.description,
-          childId: childTask.childId,
-          childName: family && family.children ? family.children.find(c => c.id === childTask.childId)?.name ?? '' : '',
-          icon: childTask.icon ?? ''
-        }));
-      }
-
-      // 3️Salva nel signal
-      this.tasksByDay.set(weekTasks);
-
-      // 3️Calcola i giorni da mostrare
-      this.days = this.getWeekDates();
-
-      this.loading.set(false);
-      return;
+  private loadChildrenAndTasks() {
+    const family = this.activeFamily();
+    
+    // Se la family non è caricata, carica i children dal DB
+    if (!family || !family.children || family.children.length === 0) {
+      this.familyService.fetchChildrenForCurrentUser().subscribe({
+        next: (children) => {
+          console.log('✅ Children caricati dal DB:', children);
+          
+          // Crea una family temporanea con i children reali dal DB
+          const familyFromDB: Family = {
+            id: 'db-family',
+            parentName: '',
+            children: children || [],
+            createdAt: new Date()
+          };
+          
+          this.activeFamily.set(familyFromDB);
+          this.loadTasks();
+        },
+        error: (err) => {
+          console.error('❌ Error loading children from DB:', err);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // Family già caricata, carica i tasks direttamente
+      this.loadTasks();
     }
-
-    // modalità API (non usata)
-    this.loadTasks();
   }
 
 
@@ -276,21 +199,6 @@ export class HomePage implements OnInit, OnDestroy {
     // Clean up subscriptions if any
   }
 
-  private async loadFamily() {
-    try {
-      const family = this.familyService.getCurrentFamily();
-      if (!family) {
-        console.log('❌ Nessuna famiglia trovata, ma questo non dovrebbe accadere perché abbiamo la famiglia di esempio');
-        // Non reindirizzare più automaticamente al login
-        // this.goToLogin();
-        return;
-      }
-      console.log('✅ Famiglia caricata:', family);
-    } catch (err) {
-      console.error('Error loading family:', err);
-      this.error.set('Errore nel caricamento della famiglia');
-    }
-  }
 
   private async loadTasks() {
     try {
@@ -298,42 +206,26 @@ export class HomePage implements OnInit, OnDestroy {
       this.error.set(null);
 
       const family = this.activeFamily();
-      if (!family) {
+      if (!family || !family.children || family.children.length === 0) {
+        console.log('⚠️ No family or children found');
         this.tasksByDay.set({});
         this.loading.set(false);
         return;
       }
 
-      try {
-        // Carica i dati dalla vista corrente
-        const currentView = this.currentCalendarView();
+      const startDate = this.getWeekDates()[0];
+      let activities: any[] = [];
 
-        if (currentView === 'now') {
-          await this.loadCurrentTimeWindow(family.id);
-        } else if (currentView === 'day') {
-          const today = new Date().toISOString().slice(0, 10);
-          await this.loadDayCalendar(family.id, today);
-        } else {
-          await this.loadWeekCalendar(family.id);
-        }
-
-        return;
-
-      } catch (beError) {
-        console.warn('⚠️ BE non disponibile, utilizzo mock:', beError);
-        // Se il BE fallisce, usa i mock come fallback
+      if (this.isParent) {
+        console.log('👨‍👩‍👧 isParent → GET /activities/me/week');
+        activities = await this.calendarService.getActivitiesForMeWeek(startDate).toPromise() ?? [];
+      } else if (this.selectedChildId) {
+        console.log(`👦 isChild (${this.selectedChildId}) → GET /activities/child/:id/week`);
+        activities = await this.calendarService.getActivitiesForWeek(this.selectedChildId, startDate).toPromise() ?? [];
       }
 
-      const weekTasks: DayTasks = {};
-      const weekDates = this.getWeekDates();
-
-      weekDates.forEach((dateStr) => {
-        const date = new Date(dateStr);
-        weekTasks[dateStr] = this.generateMockTasksForDate(date, family);
-      });
-
-      this.tasksByDay.set(weekTasks);
-      console.log('✅ Dati mock caricati');
+      console.log(`📅 Activities (${activities.length}):`, activities);
+      this.tasksByDay.set(this.mapActivitiesToDayTasks(activities, family));
 
     } catch (err) {
       this.error.set('Errore nel caricamento delle attività');
@@ -343,91 +235,114 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  private generateMockTasksForDate(date: Date, family: Family): TaskInstance[] {
-    const tasks: TaskInstance[] = [];
-    const activities = [
-      { name: 'Lettura', icon: '📚', duration: 0.5, timeSlot: 'morning' },
-      { name: 'Disegno', icon: '🎨', duration: 1, timeSlot: 'afternoon' },
-      { name: 'Esercizio', icon: '🏃‍♂️', duration: 1, timeSlot: 'morning' },
-      { name: 'Matematica', icon: '🧠', duration: 1.5, timeSlot: 'morning' },
-      { name: 'Musica', icon: '🎵', duration: 1, timeSlot: 'afternoon' },
-      { name: 'Giardinaggio', icon: '🌱', duration: 0.5, timeSlot: 'afternoon' },
-      { name: 'Cucinare', icon: '🍳', duration: 1, timeSlot: 'afternoon' },
-      { name: 'Pulizie', icon: '🧹', duration: 0.5, timeSlot: 'morning' },
-      { name: 'Compiti', icon: '📖', duration: 2, timeSlot: 'afternoon' },
-      { name: 'Tempo libero', icon: '🎮', duration: 1, timeSlot: 'evening' },
-      { name: 'Igiene personale', icon: '🚿', duration: 0.5, timeSlot: 'morning' },
-      { name: 'Sistemare camera', icon: '🛏️', duration: 0.5, timeSlot: 'morning' },
-      { name: 'Gioco creativo', icon: '🎪', duration: 1, timeSlot: 'afternoon' },
-      { name: 'Tempo schermo', icon: '📱', duration: 1, timeSlot: 'evening' },
-      { name: 'Sport', icon: '🏀', duration: 1.5, timeSlot: 'afternoon' },
-      { name: 'Puzzle', icon: '🧩', duration: 0.5, timeSlot: 'afternoon' }
-    ];
+  private async loadDayTasks(date: string) {
+    try {
+      this.loading.set(true);
+      this.error.set(null);
 
-    // Generate tasks for each child (una sola forEach, quella giusta)
-    (family.children as Child[]).forEach((child: Child, childIndex: number) => {
-      // Number of tasks per child (2-4 per day)
-      const numTasks = Math.floor(Math.random() * 3) + 2;
+      const family = this.activeFamily();
+      let activities: any[] = [];
 
-      const selectedActivities = this.shuffleArray([...activities]).slice(0, numTasks);
+      if (this.isParent) {
+        console.log(`👨‍👩‍👧 isParent → GET /activities/me/day?date=${date}`);
+        activities = await this.calendarService.getActivitiesForMeDay(date).toPromise() ?? [];
+      } else if (this.selectedChildId) {
+        console.log(`👦 isChild → GET /activities/child/:id/day?date=${date}`);
+        activities = await this.calendarService.getActivitiesForDay(this.selectedChildId, date).toPromise() ?? [];
+      }
 
-      selectedActivities.forEach((activity, taskIndex) => {
-        // Calculate start time based on time slot
-        const startHour = this.getTimeSlotStartHour(activity.timeSlot) + (taskIndex * 0.5);
-        const start = new Date(date);
-        start.setHours(Math.floor(startHour));
-        start.setMinutes((startHour % 1) * 60);
+      this.tasksByDay.set(this.mapActivitiesToDayTasks(activities, family));
+      this.days = [date];
 
-        const end = new Date(start);
-        end.setHours(start.getHours() + Math.floor(activity.duration));
-        end.setMinutes(
-          start.getMinutes() + ((activity.duration % 1) * 60)
-        );
+    } catch (err) {
+      this.error.set('Errore nel caricamento del giorno');
+      console.error(err);
+    } finally {
+      this.loading.set(false);
+    }
+  }
 
-        const taskId = `${child.id}-${date.getTime()}-${taskIndex}`;
+  private async loadNowTasks() {
+    try {
+      this.loading.set(true);
+      this.error.set(null);
 
-        tasks.push({
-          id: taskId,
-          instanceId: taskId,
-          title: activity.name,
-          color: this.childColors[childIndex % this.childColors.length],
-          start: start.toISOString(),
-          end: end.toISOString(),
-          done: Math.random() > 0.7, // 30% chance of being completed
-          doneAt: Math.random() > 0.7 ? new Date().toISOString() : null,
-          description: `Attività per ${child.name}`,
-          childId: child.id,
-          childName: child.name,
-          icon: activity.icon
-        });
+      const family = this.activeFamily();
+      let activities: any[] = [];
+
+      if (this.isParent) {
+        console.log('👨‍👩‍👧 isParent → GET /activities/me/now');
+        activities = await this.calendarService.getActivitiesForMeNow().toPromise() ?? [];
+      } else if (this.selectedChildId) {
+        console.log(`👦 isChild → GET /activities/child/:id/now`);
+        activities = await this.calendarService.getActivitiesForNow(this.selectedChildId).toPromise() ?? [];
+      }
+
+      const now = new Date();
+      this.timeWindowData = {
+        currentTime: now.toISOString(),
+        currentDate: now.toISOString().slice(0, 10),
+        tasks: activities.map(a => {
+          const childId = a.children_id ?? this.selectedChildId ?? '';
+          const child = (family?.children as Child[] ?? []).find(c => c.id === childId);
+          return {
+            id: String(a.id),
+            instanceId: String(a.id),
+            title: a.name_activity,
+            color: this.getChildColor(childId),
+            start: new Date(a.date_start).toISOString(),
+            end: new Date(a.date_end ?? a.date_start).toISOString(),
+            done: !!a.done,
+            doneAt: null,
+            description: a.description ?? null,
+            childId,
+            childName: child?.name ?? a.child_name ?? 'Bambino',
+            icon: a.icon ?? undefined,
+            timer: a.timer ?? null,
+            value: a.value ?? null,
+            source: a.source ?? 'activity',
+          };
+        }),
+      };
+
+    } catch (err) {
+      this.error.set('Errore nel caricamento della vista corrente');
+      console.error(err);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private mapActivitiesToDayTasks(activities: any[], family: Family | null): DayTasks {
+    const weekTasks: DayTasks = {};
+    activities.forEach((activity: any) => {
+      const dateStr = new Date(activity.date_start).toISOString().split('T')[0];
+      if (!weekTasks[dateStr]) weekTasks[dateStr] = [];
+
+      const childId = activity.children_id ?? this.selectedChildId ?? '';
+      const child = (family?.children as Child[] ?? []).find((c: Child) => c.id === childId);
+
+      weekTasks[dateStr].push({
+        id: String(activity.id),
+        instanceId: String(activity.id),
+        title: activity.name_activity,
+        color: this.getChildColor(childId),
+        start: new Date(activity.date_start).toISOString(),
+        end: new Date(activity.date_end ?? activity.date_start).toISOString(),
+        done: !!activity.done,
+        doneAt: null,
+        description: activity.description ?? null,
+        childId,
+        childName: child?.name ?? activity.child_name ?? 'Bambino',
+        icon: activity.icon ?? undefined,
+        timer: activity.timer ?? null,
+        value: activity.value ?? null,
+        source: activity.source ?? 'activity',
       });
     });
-
-    return tasks.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    return weekTasks;
   }
 
-  private getTimeSlotStartHour(timeSlot: string): number {
-    switch (timeSlot) {
-      case 'morning': return 8;
-      case 'afternoon': return 14;
-      case 'evening': return 19;
-      default: return 14;
-    }
-  }
-
-  private shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
-  getDayDate(dayName: string): Date {
-    // Non più necessario ma lo manteniamo per compatibilità
-    return new Date(dayName);
-  }
 
   getChildColor(childId: string): string {
     const family = this.currentFamily();
@@ -512,7 +427,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   regenerateActivities() {
-    this.familyService.regenerateExampleFamily();
+    // this.familyService.regenerateExampleFamily();
     this.loadTasks();
   }
 
@@ -578,34 +493,20 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onViewChanged(event: { view: string, date?: string }) {
-    console.log('🔄 Vista cambiata:', event);
-
-    // Aggiorna la vista corrente
     const newView = event.view as 'day' | 'week' | 'now';
     this.currentCalendarView.set(newView);
 
-    const family = this.currentFamily();
-    if (!family) {
-      console.warn('❌ Nessuna famiglia attiva per caricare i dati');
-      return;
-    }
-
-    // Carica i dati specifici per la nuova vista
     if (newView === 'now') {
-      console.log('📅 Caricamento vista "Ora corrente"');
-      this.loadCurrentTimeWindow(family.id);
+      this.loadNowTasks();
     } else if (newView === 'day' && event.date) {
-      console.log('📅 Caricamento vista giorno per:', event.date);
-      this.loadDayCalendar(family.id, event.date);
+      this.loadDayTasks(event.date);
     } else {
-      console.log('📅 Caricamento vista settimana');
-      this.loadWeekCalendar(family.id);
+      this.loadTasks();
     }
   }
 
   onViewSelectorChange(event: any) {
     const newView = event.detail.value as 'day' | 'week' | 'now';
-    console.log('🎯 Vista selezionata dal selettore:', newView);
     this.currentCalendarView.set(newView);
   }
 
@@ -660,14 +561,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     return {
       ...data,
-      groupedTasks   // ⬅️ questa è l’array che userà il template NOW
+      groupedTasks   // ⬅️ questa è l’array che AppUserà il template NOW
     };
   }
 
 
 
   onDateChanged(event: { direction: 'prev' | 'next' }) {
-    console.log('Date changed:', event);
     // Aggiorna le date se necessario
     if (event.direction === 'prev') {
       // Sposta alla settimana precedente
@@ -681,222 +581,6 @@ export class HomePage implements OnInit, OnDestroy {
   //   this.router.navigate(['/login']);
   // }
 
-  // Metodi per caricare dati dal BE
-  async loadWeekCalendar(householdId: string) {
-    this.loading.set(true);
-    this.error.set(null);
-
-    try {
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const tasksByDay = await this.calendarService.loadWeekCalendar(householdId, todayStr);
-
-      if (tasksByDay) {
-        // Converte KidTask[] in TaskInstance[]
-        const convertedTasks: DayTasks = {};
-        const family = this.currentFamily();
-
-        for (const [day, kidTasks] of Object.entries(tasksByDay)) {
-          convertedTasks[day] = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
-        }
-
-        this.tasksByDay.set(convertedTasks);
-        // Genera i giorni della settimana
-        this.days = this.calendarService.generateWeekDays();
-        console.log('✅ Calendario settimanale caricato dal BE:', convertedTasks);
-      }
-    } catch (error) {
-      console.error('❌ Errore caricamento calendario settimanale:', error);
-      this.error.set('Errore nel caricamento del calendario');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loadDayCalendar(householdId: string, date: string) {
-    this.loading.set(true);
-    this.error.set(null);
-
-    try {
-      if (environment.useMockApi) {
-        const family = this.activeFamily();
-        if (!family) {
-          this.error.set('Nessuna famiglia mock trovata');
-          this.loading.set(false);
-          return;
-        }
-        const activities = [
-          "📚 Lettura",
-          "🎨 Disegno",
-          "🏃‍♂️ Esercizio",
-          "🧠 Matematica",
-          "🎵 Musica",
-          "🧩 Puzzle",
-          "🍝 Cena",
-          "🚿 Igiene personale",
-          "🧹 Riordina la cameretta",
-          "🍎 Merenda"
-        ];
-        const tasks: TaskInstance[] = [];
-        family.children.forEach((child, childIndex) => {
-          activities.forEach((title, i) => {
-            const startHour = 8 + i;
-            const start = new Date(date);
-            start.setHours(startHour, 0, 0);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-            tasks.push({
-              id: `${child.id}-${date}-${i}`,
-              instanceId: `${child.id}-${date}-${i}`,
-              title,
-              color: this.childColors[childIndex % this.childColors.length],
-              start: start.toISOString(),
-              end: end.toISOString(),
-              done: false,
-              doneAt: null,
-              description: `Attività per ${child.name}`,
-              childId: child.id,
-              childName: child.name,
-              icon: ''
-            });
-          });
-        });
-        const dayTasks = { [date]: tasks };
-        this.tasksByDay.set(dayTasks);
-        this.days = [date];
-        console.log('✅ Calendario giornaliero mock FE:', dayTasks);
-        this.loading.set(false);
-        return;
-      }
-      // BE mode
-      const kidTasks = await this.calendarService.loadDayCalendar(householdId, date);
-      if (kidTasks) {
-        const family = this.currentFamily();
-        const tasks = kidTasks.map(kidTask => this.convertKidTaskToTaskInstance(kidTask, family));
-        const dayTasks = { [date]: tasks };
-        this.tasksByDay.set(dayTasks);
-        this.days = [date];
-        console.log('✅ Calendario giornaliero caricato dal BE:', dayTasks);
-      }
-    } catch (error) {
-      console.error('❌ Errore caricamento calendario giornaliero:', error);
-      this.error.set('Errore nel caricamento del calendario');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loadCurrentTimeWindow(householdId: string) {
-    this.loading.set(true);
-    this.error.set(null);
-
-    try {
-      if (environment.useMockApi) {
-        const family = this.activeFamily();
-        if (!family) {
-          this.error.set('Nessuna famiglia mock trovata');
-          this.loading.set(false);
-          return;
-        }
-        const activities = [
-          "📚 Lettura",
-          "🎨 Disegno",
-          "🏃‍♂️ Esercizio",
-          "🧠 Matematica",
-          "🎵 Musica",
-          "🧩 Puzzle",
-          "🍝 Cena",
-          "🚿 Igiene personale",
-          "🧹 Riordina la cameretta",
-          "🍎 Merenda"
-        ];
-        const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10);
-        const startHour = now.getHours();
-        const tasks: TaskInstance[] = [];
-        family.children.forEach((child, childIndex) => {
-          activities.slice(0, 3).forEach((title, i) => {
-            const start = new Date(dateStr);
-            start.setHours(startHour + i, 0, 0);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-            tasks.push({
-              id: `${child.id}-now-${i}`,
-              instanceId: `${child.id}-now-${i}`,
-              title,
-              color: this.childColors[childIndex % this.childColors.length],
-              start: start.toISOString(),
-              end: end.toISOString(),
-              done: false,
-              doneAt: null,
-              description: `Attività per ${child.name}`,
-              childId: child.id,
-              childName: child.name,
-              icon: ''
-            });
-          });
-        });
-        this.timeWindowData = {
-          currentTime: now.toISOString(),
-          currentDate: dateStr,
-          timeWindow: {
-            start: new Date(now.setMinutes(0, 0, 0)).toISOString(),
-            end: new Date(now.setHours(now.getHours() + 2)).toISOString()
-          },
-          tasks,
-          summary: {
-            total: tasks.length,
-            current: tasks.length,
-            completed: 0,
-            pending: tasks.length,
-            upcoming: 0
-          }
-        };
-        console.log('✅ Vista "Ora corrente" mock FE:', this.timeWindowData);
-        this.loading.set(false);
-        return;
-      }
-      // BE mode
-      const timeWindowData = await this.calendarService.loadCurrentTimeWindow(householdId);
-
-      if (timeWindowData) {
-        // Per la vista "now" non usiamo tasksByDay ma passiamo i dati direttamente al calendario
-        this.timeWindowData = timeWindowData;
-        console.log('✅ Vista "Ora corrente" caricata dal BE:', timeWindowData);
-      }
-    } catch (error) {
-      console.error('❌ Errore caricamento vista "Ora corrente":', error);
-      this.error.set('Errore nel caricamento della vista corrente');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  // Converte KidTask in TaskInstance per compatibilità
-  private convertKidTaskToTaskInstance(kidTask: any, family: Family | null): TaskInstance {
-    const childId = kidTask.assigneeProfileId || kidTask.childId || 'unknown';
-    let childName = 'Bambino';
-
-    if (family) {
-      const child = family.children.find((c: Child) => c.id === childId);
-      if (child) {
-        childName = child.name;
-      }
-    }
-
-    return {
-      id: kidTask.id,
-      instanceId: kidTask.instanceId,
-      title: kidTask.title,
-      color: kidTask.color,
-      start: kidTask.start,
-      end: kidTask.end,
-      done: kidTask.done,
-      doneAt: kidTask.doneAt,
-      description: kidTask.description,
-      childId: childId,
-      childName: childName,
-      icon: kidTask.icon
-    };
-  }
-
   isVisible() {
     return this.isParent;
   }
@@ -909,7 +593,6 @@ export class HomePage implements OnInit, OnDestroy {
     const family = this.currentFamily();
     if (!family || !this.selectedChildId) return null;
     const child = family.children.find((c: Child) => c.id === this.selectedChildId);
-    console.log(child?.name)
     return child ? child.name : null;
 
   }

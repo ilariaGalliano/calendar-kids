@@ -1,12 +1,16 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiService } from '../common/api.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { CalendarResponse, CalendarWeek, CalendarDay, calendarTaskToKidTask, CurrentTimeWindowData } from '../models/calendar.models';
 import { KidTask } from '../models/kid.models';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarService {
   private api = inject(ApiService);
+  private http = inject(HttpClient);
+  private baseUrl = environment.apiBase;
   
   // Signals per lo state management
   loading = signal<boolean>(false);
@@ -15,6 +19,34 @@ export class CalendarService {
   currentMonth = signal<CalendarResponse | null>(null);
 
   constructor() {}
+
+  // Nuove API per activities
+  getActivitiesForWeek(childId: string, startDate: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/week?startDate=${startDate}`);
+  }
+
+  /** Singola chiamata: tutte le attività per tutti i figli dell'utente loggato */
+  getActivitiesForMeWeek(startDate: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/week?startDate=${startDate}`);
+  }
+
+  /** Giorno specifico per tutti i figli dell'utente loggato */
+  getActivitiesForMeDay(date: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/day?date=${date}`);
+  }
+
+  /** Ora corrente (+/-2h) per tutti i figli dell'utente loggato */
+  getActivitiesForMeNow(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/me/now`);
+  }
+
+  getActivitiesForDay(childId: string, date: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/day?date=${date}`);
+  }
+
+  getActivitiesForNow(childId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/now`);
+  }
 
   /**
    * Carica il calendario settimanale dal backend

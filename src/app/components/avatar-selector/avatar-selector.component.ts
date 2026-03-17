@@ -48,15 +48,12 @@ export class AvatarSelectorComponent {
   }
 
   selectAvatar(avatar: KidAvatar) {
-    console.log('👆 Selezionato avatar:', avatar.name);
     this.selectedAvatar = avatar;
     // Non emettiamo ancora l'evento, solo selezioniamo l'avatar
   }
 
   confirmSelection() {
-    console.log('🎯 Confermando selezione avatar:', this.selectedAvatar);
     if (this.selectedAvatar) {
-      console.log('📤 Emettendo evento avatarSelected per:', this.selectedAvatar.name);
       this.avatarSelected.emit(this.selectedAvatar);
     } else {
       console.warn('⚠️ Nessun avatar selezionato!');
@@ -64,7 +61,6 @@ export class AvatarSelectorComponent {
   }
 
   cancel() {
-    console.log('↩️ Emettendo evento cancelled');
     this.cancelled.emit();
   }
 

@@ -24,6 +24,8 @@ import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.comp
 import { KidProfileService } from '../../services/kid-profile.service';
 import { KidAvatar } from '../../models/avatar.models';
 import { AuthService } from '../../common/auth.service';
+import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -59,38 +61,18 @@ export class LoginComponent implements OnInit {
   constructor(
     private router: Router,
     private kidProfileService: KidProfileService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.loginForm = new FormGroup({
       email: new FormControl('', [Validators.email, Validators.required]),
       password: new FormControl('', Validators.required),
     });
   }
 
-  // async loginParent() {
-  //   if (this.loginForm.valid) {
-  //     const { email, password } = this.loginForm.value;
-  //     try {
-  //       const response = await this.authService.login(email, password); // Call BE API
-  //       if (response) {
-  //         // await this.authService.setToken(response.token);
-  //         console.log('respo', response);
-  //         this.router.navigate(['/family-setup']);
-  //       } else {
-  //         alert('❌ Login fallito. Controlla le credenziali.');
-  //       }
-  //     } catch (error) {
-  //       alert('Errore di login. Riprova più tardi.');
-  //     }
-  //   } else {
-  //     alert('Inserisci email e password validi!');
-  //   }
-  // }
   async login() {
-    console.log("🔐 Fake login enabled (mock mode)");
-    console.log('respo', this.loginForm.value);
 
     const demoFamily = {
       id: "demo-family",
@@ -98,8 +80,8 @@ export class LoginComponent implements OnInit {
       createdAt: new Date(),
       children: [
         { id: "kid1", name: "Sofia", avatar: "🧚‍♀️", age: 8, point: 0, sex: "female", createdAt: new Date(), tasks: [] },
-        { id: "kid2", name: "Marco", avatar: "🤴", age: 6, point: 0, sex: "male", createdAt: new Date(), tasks: []  },
-        { id: "kid3", name: "Emma",  avatar: "🦸‍♀️", age: 3, point: 0, sex: "female", createdAt: new Date(), tasks: []  }
+        { id: "kid2", name: "Marco", avatar: "🤴", age: 6, point: 0, sex: "male", createdAt: new Date(), tasks: [] },
+        { id: "kid3", name: "Emma", avatar: "🦸‍♀️", age: 3, point: 0, sex: "female", createdAt: new Date(), tasks: [] }
       ]
     };
 
@@ -107,6 +89,11 @@ export class LoginComponent implements OnInit {
     await this.authService.setToken('token');
     // this.router.navigateByUrl('/home', { replaceUrl: true });
     this.router.navigate(['/family-setup']);
+  }
+
+  async loginWithGoogle() {
+    // Avvia login Google (redirect)
+    await this.authService.loginWithGoogle();
   }
 
 }

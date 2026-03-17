@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, Signal, signal } from '@angular/core';
+import { Component, EventEmitter, Output, Input, Signal, WritableSignal, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
 import { KidAvatar, PREDEFINED_AVATARS } from '../../models/avatar.models';
@@ -9,7 +9,7 @@ import { ProfileService } from 'src/app/services/profile-service';
 export interface FamilyProfile {
   id: string;
   name: string;
-  avatar: string;
+  icon: string;
   isParent?: boolean;
 }
 
@@ -20,15 +20,12 @@ export interface FamilyProfile {
   templateUrl: './family-profile-picker.component.html',
   styleUrls: ['./family-profile-picker.component.scss']
 })
-export class FamilyProfilePickerComponent {
-  @Input() profiles: FamilyProfile[] = [
-    { id: 'kid1', name: 'Sofia', avatar: '🧚‍♀️' },
-    { id: 'kid2', name: 'Marco', avatar: '🤴' },
-    { id: 'kid3', name: 'Emma', avatar: '🦸‍♀️' }
-  ];
+export class FamilyProfilePickerComponent implements OnInit {
+  @Input() profiles: FamilyProfile[] = [];
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
-  userLogged: Signal<string> = signal('Lorena');
+  private router = inject(Router);
+  AppUserLogged: WritableSignal<string> = signal('');
 
   showAvatarSelector: boolean = false;
   newKidName: string = '';
@@ -36,12 +33,36 @@ export class FamilyProfilePickerComponent {
 
   parentProfile: FamilyProfile = {
     id: 'parent',
-    name: this.userLogged(),
-    avatar: '👩',
+    name: '',
+    icon: '👩',
     isParent: true
   };
 
-  constructor(private router: Router, private profileService: ProfileService) { }
+  constructor(private profileService: ProfileService) { }
+
+  ngOnInit() {
+    // Recupera i dati passati dalla navigazione
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || (window as any).history?.state;
+    
+    console.log('📍 Family Profile Picker - state:', state);
+    
+    if (state?.parentName) {
+      console.log('👨 Parent name received:', state.parentName);
+      this.AppUserLogged.set(state.parentName);
+      this.parentProfile.name = state.parentName;
+    }
+    
+    if (state?.children && Array.isArray(state.children)) {
+      console.log('👶 Children received:', state.children);
+      this.profiles = state.children.map((child: any) => ({
+        id: child.id,
+        name: child.name,
+        icon: child.icon || '🧒',
+        isParent: false
+      }));
+    }
+  }
 
   selectProfile(profile: FamilyProfile) {
     if (!profile.id) { // Now the add-profile uses id: ''
@@ -78,7 +99,7 @@ export class FamilyProfilePickerComponent {
           const newProfile: FamilyProfile = {
             id: createdProfile.id,
             name: createdProfile.displayName,
-            avatar: createdProfile.avatar || avatar.emoji
+            icon: createdProfile.icon || avatar.emoji
           };
           this.profileSelected.emit(newProfile);
           this.showAvatarSelector = false;

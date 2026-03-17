@@ -126,14 +126,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   // Drag & Drop migliorato per riordino interno
   drop(event: CdkDragDrop<KidTask[]>, targetDay: string) {
-    console.log('Drop event:', {
-      previousContainer: event.previousContainer.id,
-      container: event.container.id,
-      sameContainer: event.previousContainer === event.container,
-      previousIndex: event.previousIndex,
-      currentIndex: event.currentIndex,
-      targetDay
-    });
 
     const lists = this.lists();
     const prev = event.previousContainer.data;

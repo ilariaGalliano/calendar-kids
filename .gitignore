@@ -6,7 +6,7 @@
 .tmp
 *.tmp
 *.tmp.*
-UserInterfaceState.xcuserstate
+AppUserInterfaceState.xcAppUserstate
 $RECYCLE.BIN/
 
 *.log
