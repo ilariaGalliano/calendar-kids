@@ -127,7 +127,7 @@
         <ion-card-content>
           <div class="names-grid">
             <div 
-              *ngFor="let form of childrenForms(); let i = index" 
+              *ngFor="let form of childrenForms(); let i = index; trackBy: trackByIndex" 
               class="name-input-container">
               
               <div class="child-number">
@@ -139,18 +139,36 @@
                   [label]="'👶 Bambino ' + (i + 1)"
                   labelPlacement="stacked"
                   [value]="form.name"
-                  (ionInput)="onChildNameChange(i, $event.detail.value!)"
+                  (ionChange)="onChildNameChange(i, $event.detail.value!)"
                   placeholder="Inserisci nome..."
                   maxlength="25">
                 </ion-input>
               </ion-item>
 
-              <!-- Suggerimenti nomi -->
+              <!-- Gender selection -->
+              <div class="gender-selector">
+                <ion-button 
+                  [fill]="form.sex === 'male' ? 'solid' : 'outline'"
+                  [color]="form.sex === 'male' ? 'primary' : 'medium'"
+                  size="small"
+                  (click)="onGenderChange(i, 'male')">
+                  👦 Maschio
+                </ion-button>
+                <ion-button 
+                  [fill]="form.sex === 'female' ? 'solid' : 'outline'"
+                  [color]="form.sex === 'female' ? 'secondary' : 'medium'"
+                  size="small"
+                  (click)="onGenderChange(i, 'female')">
+                  👧 Femmina
+                </ion-button>
+              </div>
+
+              <!-- Suggerimenti nomi basati sul genere -->
               <div class="name-suggestions" *ngIf="form.name.length === 0">
                 <small>Suggerimenti:</small>
                 <div class="suggestion-chips">
                   <ion-button 
-                    *ngFor="let name of suggestedNames.boys.slice(0, 3)" 
+                    *ngFor="let name of (form.sex === 'male' ? suggestedNames.boys : suggestedNames.girls).slice(0, 3)" 
                     size="small" 
                     fill="outline" 
                     color="primary"

@@ -217,6 +217,27 @@
         }
       }
 
+      .gender-selector {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+        margin-bottom: 8px;
+
+        ion-button {
+          --height: 36px;
+          font-size: 0.9rem;
+          --border-radius: 12px;
+          flex: 1;
+          max-width: 140px;
+          font-weight: 600;
+          
+          &[fill="outline"] {
+            --border-width: 2px;
+          }
+        }
+      }
+
       .name-suggestions {
         margin-top: 8px;
         text-align: center;

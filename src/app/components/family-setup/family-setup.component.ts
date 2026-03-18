@@ -267,13 +267,25 @@ export class FamilySetupComponent implements OnInit {
   }
 
   // Helper methods
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   onChildNameChange(index: number, name: string) {
     const forms = this.childrenForms();
     forms[index] = {
       ...forms[index],
       name: name,
-      sex: forms[index].sex,
       isValid: name.trim().length >= 2
+    };
+    this.childrenForms.set([...forms]);
+  }
+
+  onGenderChange(index: number, sex: 'male' | 'female') {
+    const forms = this.childrenForms();
+    forms[index] = {
+      ...forms[index],
+      sex: sex
     };
     this.childrenForms.set([...forms]);
   }

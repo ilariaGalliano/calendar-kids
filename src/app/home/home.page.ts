@@ -77,6 +77,7 @@ export class HomePage implements OnInit, OnDestroy {
   // Signals
   activeFamily = this.familyService.getActiveFamily(); // writable signal
   selectedChild = signal<Child | null>(null);
+  parentName = signal<string>('');
 
   // Computed signals
   currentFamily = computed(() => this.activeFamily());
@@ -142,6 +143,13 @@ export class HomePage implements OnInit, OnDestroy {
   // }
 
   ngOnInit() {
+    // Recupera parentName dal router state
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || (window as any).history?.state;
+    if (state?.parentName) {
+      this.parentName.set(state.parentName);
+    }
+
     this.route.queryParams.subscribe(params => {
       const childId = params['childId'];
       if (childId) {
@@ -174,7 +182,7 @@ export class HomePage implements OnInit, OnDestroy {
           // Crea una family temporanea con i children reali dal DB
           const familyFromDB: Family = {
             id: 'db-family',
-            parentName: '',
+            parentName: this.parentName() || 'Famiglia',
             children: children || [],
             createdAt: new Date()
           };
@@ -188,7 +196,14 @@ export class HomePage implements OnInit, OnDestroy {
         }
       });
     } else {
-      // Family già caricata, carica i tasks direttamente
+      // Family già caricata, aggiorna parentName se ricevuto
+      if (this.parentName() && family.parentName !== this.parentName()) {
+        this.activeFamily.set({
+          ...family,
+          parentName: this.parentName()
+        });
+      }
+      // Carica i tasks direttamente
       this.loadTasks();
     }
   }

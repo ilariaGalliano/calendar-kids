@@ -76,14 +76,16 @@ export class FamilyProfilePickerComponent implements OnInit {
 
     if (profile.isParent) {
       this.router.navigate(['/home'], {
-        queryParams: { mode: 'parent' }
+        queryParams: { mode: 'parent' },
+        state: { parentName: this.parentProfile.name }
       });
     } else {
       this.router.navigate(['/home'], {
         queryParams: {
           mode: 'child',
           childId: profile.id
-        }
+        },
+        state: { parentName: this.parentProfile.name }
       });
     }
   }
@@ -114,7 +116,8 @@ export class FamilyProfilePickerComponent implements OnInit {
             queryParams: {
               mode: 'child',
               childId: newProfile.id
-            }
+            },
+            state: { parentName: this.parentProfile.name }
           });
         },
         error: (error) => {
