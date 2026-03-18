@@ -90,17 +90,24 @@ export class FamilyProfilePickerComponent implements OnInit {
 
   onAvatarSelected(avatar: KidAvatar) {
     this.selectedAvatar = avatar;
-    // Call the backend API to create the new kid profile
-    // Replace 'householdId' with the actual household id from your app context
-    const householdId = 'your-household-id'; // <-- replace with real value
-    this.profileService.createChildProfile(householdId, this.newKidName || 'Nuovo Bambino', avatar.emoji)
+    
+    // Crea nuovo bambino tramite FamilyService
+    const newChildData = {
+      name: this.newKidName || 'Nuovo Bambino',
+      icon: avatar.emoji,
+      years: '5',
+      sex: 'male'
+    };
+
+    this.profileService.createChildProfile('', this.newKidName || 'Nuovo Bambino', avatar.emoji)
       .subscribe({
         next: (createdProfile: any) => {
           const newProfile: FamilyProfile = {
             id: createdProfile.id,
-            name: createdProfile.displayName,
+            name: createdProfile.displayName || createdProfile.name,
             icon: createdProfile.icon || avatar.emoji
           };
+          this.profiles.push(newProfile);
           this.profileSelected.emit(newProfile);
           this.showAvatarSelector = false;
           this.router.navigate(['/home'], {
@@ -110,8 +117,8 @@ export class FamilyProfilePickerComponent implements OnInit {
             }
           });
         },
-        error: () => {
-          // handle error (show toast, etc)
+        error: (error) => {
+          console.error('Errore creazione bambino:', error);
           this.showAvatarSelector = false;
         }
       });

@@ -57,6 +57,11 @@ export class FamilyService {
     return this.http.get<Child[]>(`${this.baseUrl}/children/me`);
   }
 
+  // API: crea batch di bambini
+  createChildrenBatch(children: Array<{name: string, icon: string, years: string, sex: string}>) {
+    return this.http.post<Child[]>(`${this.baseUrl}/children/batch`, { children });
+  }
+
   // Crea una famiglia di esempio per testare l'app
   private createExampleFamily() {
     const family: Family = {

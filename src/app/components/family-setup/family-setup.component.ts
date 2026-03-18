@@ -198,20 +198,30 @@ export class FamilySetupComponent implements OnInit {
         name: form.name.trim(),
         years: '5',
         icon: form.sex === 'female' ? '👧' : '🧒',
-        sex: form.sex,
-        id: form.id
+        sex: form.sex
       }));
 
-      // Crea tutti i bambini in una chiamata (quando il backend è pronto)
-      // await this.familyService.createChildrenBatch(childrenData).toPromise();
-
-      console.log('✅ Bambini creati con successo');
-      
-      // Naviga al family-picker con i dati
-      this.router.navigate(['/family-profile-picker'], {
-        state: {
-          parentName: this.parentName(),
-          children: childrenData
+      // Crea tutti i bambini tramite API
+      this.familyService.createChildrenBatch(childrenData).subscribe({
+        next: (createdChildren) => {
+          // Naviga al family-picker con i bambini creati
+          this.router.navigate(['/family-profile-picker'], {
+            state: {
+              parentName: this.parentName(),
+              children: createdChildren.map(child => ({
+                id: child.id,
+                name: child.name,
+                icon: (child as any).icon || '🧒',
+                isParent: false
+              }))
+            }
+          });
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('❌ Errore creazione famiglia:', error);
+          this.showAlertMessage('Errore durante la creazione della famiglia. Riprova.');
+          this.isLoading.set(false);
         }
       });
 
