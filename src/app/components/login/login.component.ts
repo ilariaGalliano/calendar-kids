@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent,
@@ -8,17 +8,8 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-  IonItem,
-  IonInput,
   IonButton,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonIcon,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonModal
+  IonIcon
 } from '@ionic/angular/standalone';
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
 import { KidProfileService } from '../../services/kid-profile.service';
@@ -38,25 +29,15 @@ import { HttpClient } from '@angular/common/http';
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonItem,
-    IonInput,
     IonButton,
-    IonIcon,
-    ReactiveFormsModule
+    IonIcon
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
-  @ViewChild('avatarModal', { static: false }) avatarModal!: IonModal;
-
-  email = '';
-  password = '';
-
   showAvatarSelector = false;
   selectedKidName: string | null = null;
-
-  loginForm!: FormGroup;
 
   constructor(
     private router: Router,
@@ -66,10 +47,7 @@ export class LoginComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    this.loginForm = new FormGroup({
-      email: new FormControl('', [Validators.email, Validators.required]),
-      password: new FormControl('', Validators.required),
-    });
+    // Google OAuth only
   }
 
   async login() {

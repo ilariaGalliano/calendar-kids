@@ -19,41 +19,17 @@
         <ion-card-title>Accedi alla tua famiglia</ion-card-title>
       </ion-card-header>
 
-      <form [formGroup]="loginForm">
-        <ion-card-content>
-          <!-- Login per genitori -->
-          <div class="login-section parent-section">
-            <h3>👨‍👩‍👧‍👦 Genitori</h3>
-            <ion-item class="custom-item">
-              <ion-input label="📧 Email" labelPlacement="stacked" type="email" placeholder="email@esempio.com"
-                formControlName="email" required>
-              </ion-input>
-              <!-- //TODO: aggiungere testo di controllo errore -->
-            </ion-item>
+      <ion-card-content>
+        <!-- Login per genitori -->
+        <div class="login-section parent-section">
+          <h3>👨‍👩‍👧‍👦 Genitori</h3>
 
-            <ion-item class="custom-item">
-              <ion-input label="🔒 Password" labelPlacement="stacked" type="password" placeholder="••••••••"
-                formControlName="password" required>
-              </ion-input>
-            </ion-item>
-
-            <ion-button expand="block" color="primary" (click)="login()" class="login-btn parent-btn"
-              [disabled]="loginForm.invalid">
-              <ion-icon name="log-in-outline" slot="start"></ion-icon>
-              Accedi come Genitore
-            </ion-button>
-
-            <ion-button expand="block" color="primary" (click)="loginWithGoogle()" class="login-btn parent-btn">
-
-              <ion-icon slot="start" name="logo-google"></ion-icon>
-              Accedi con Google
-
-            </ion-button>
-
-
-          </div>
-        </ion-card-content>
-      </form>
+          <ion-button expand="block" color="primary" (click)="loginWithGoogle()" class="login-btn parent-btn">
+            <ion-icon slot="start" name="logo-google"></ion-icon>
+            Accedi con Google
+          </ion-button>
+        </div>
+      </ion-card-content>
     </ion-card>
 
     <!-- Footer carino -->
