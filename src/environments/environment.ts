@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   apiBase: 'http://127.0.0.1:3000',
-  // frontendUrl: 'https://calendar-kids.vercel.app',
+  frontendUrl: 'https://calendar-kids.vercel.app',
   useMockApi: false, // Set to false for real API
   mockLogin: true,
   supabaseUrl: 'https://pntcmsezdbpulkdbujkz.supabase.co',
