@@ -45,16 +45,12 @@ export class FamilyProfilePickerComponent implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state || (window as any).history?.state;
     
-    console.log('📍 Family Profile Picker - state:', state);
-    
     if (state?.parentName) {
-      console.log('👨 Parent name received:', state.parentName);
       this.AppUserLogged.set(state.parentName);
       this.parentProfile.name = state.parentName;
     }
     
     if (state?.children && Array.isArray(state.children)) {
-      console.log('👶 Children received:', state.children);
       this.profiles = state.children.map((child: any) => ({
         id: child.id,
         name: child.name,

@@ -114,10 +114,8 @@ export class FamilySetupComponent implements OnInit {
   private loadChildrenFromAPI() {
     this.familyService.fetchChildrenForCurrentUser().subscribe({
       next: (children) => {
-        console.log('👶 Children from API:', children);
         if (children && children.length > 0) {
           // Se ci sono già bambini, vai direttamente a family-picker con i dati
-          console.log('✅ Bambini già presenti, reindirizzamento a family-picker');
           this.router.navigate(['/family-profile-picker'], {
             state: {
               parentName: this.parentName(),

@@ -496,7 +496,6 @@ export class SettingsComponent implements OnInit {
     await new Promise<void>((resolve) => {
       this.settingService.getTasks().subscribe({
         next: (data) => {
-          console.log('Loaded tasks:', data); // Debug
           this.tasks.set(data);
           resolve();
         },
@@ -508,7 +507,6 @@ export class SettingsComponent implements OnInit {
     });
 
     const existingTasks = this.tasks();
-    console.log('Available tasks for selection:', existingTasks.length); // Debug
     
     if (existingTasks.length === 0) {
       // No tasks exist, create a new one
@@ -559,14 +557,11 @@ export class SettingsComponent implements OnInit {
 
   private async selectExistingTaskForRoutine(routine: Routine, day: string) {
     const existingTasks = this.tasks();
-    console.log('Tasks in selection modal:', existingTasks); // Debug
     
     // Get current tasks for this day to mark them as checked
     const dayNumber = this.dayCodeToNumber(day);
     const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
     const currentTaskIds = currentTasksForDay.map(t => String(typeof t === 'string' ? t : t.id));
-    
-    console.log('Current task IDs for day', day, ':', currentTaskIds); // Debug
     
     const taskOptions = existingTasks.map(task => ({
       name: task.title,
@@ -575,8 +570,6 @@ export class SettingsComponent implements OnInit {
       value: task.id,
       checked: currentTaskIds.includes(String(task.id)) // Pre-check if already added
     }));
-
-    console.log('Task options:', taskOptions.length); // Debug
 
     const alert = document.createElement('ion-alert');
     alert.header = `${this.getDayLabel(day)} - ${routine.name}`;
@@ -590,7 +583,6 @@ export class SettingsComponent implements OnInit {
       {
         text: 'Salva',
         handler: (selectedTaskIds: string[]) => {
-          console.log('Selected task IDs:', selectedTaskIds); // Debug
           if (!selectedTaskIds || selectedTaskIds.length === 0) {
             return;
           }

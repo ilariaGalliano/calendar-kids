@@ -109,36 +109,6 @@ export class HomePage implements OnInit, OnDestroy {
   // Colors for children
   private childColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726', '#66BB6A', '#AB47BC', '#F48FB1', '#81C784'];
 
-  // ngOnInit() {
-  //   if (environment.useMockApi) {
-  //     console.log("🟩 FE Mock Mode active");
-
-  //     // load or create demo family
-  //     const saved = localStorage.getItem('calendarKids_family');
-  //     if (saved) {
-  //       this.activeFamily.set(JSON.parse(saved));
-  //     }
-
-  //     const family = this.activeFamily();
-  //     if (!family) {
-  //       console.error("❌ No family found");
-  //       return;
-  //     }
-
-  //     // generate mock weekly tasks
-  //     this.tasksByDay.set(this.generateMockWeek());
-
-  //     // define visible week days
-  //     this.days = this.getWeekDates();
-
-  //     this.loading.set(false);
-  //     return;
-  //   }
-
-  //   // normal BE mode (unused)
-  //   this.loadTasks();
-  // }
-
   ngOnInit() {
     // Recupera parentName dal router state
     const navigation = this.router.getCurrentNavigation();
@@ -174,8 +144,6 @@ export class HomePage implements OnInit, OnDestroy {
     if (!family || !family.children || family.children.length === 0) {
       this.familyService.fetchChildrenForCurrentUser().subscribe({
         next: (children) => {
-          console.log('✅ Children caricati dal DB:', children);
-          
           // Crea una family temporanea con i children reali dal DB
           const familyFromDB: Family = {
             id: 'db-family',
@@ -219,7 +187,6 @@ export class HomePage implements OnInit, OnDestroy {
 
       const family = this.activeFamily();
       if (!family || !family.children || family.children.length === 0) {
-        console.log('⚠️ No family or children found');
         this.tasksByDay.set({});
         this.loading.set(false);
         return;
@@ -229,14 +196,10 @@ export class HomePage implements OnInit, OnDestroy {
       let activities: any[] = [];
 
       if (this.isParent) {
-        console.log('👨‍👩‍👧 isParent → GET /activities/me/week');
         activities = await this.calendarService.getActivitiesForMeWeek(startDate).toPromise() ?? [];
       } else if (this.selectedChildId) {
-        console.log(`👦 isChild (${this.selectedChildId}) → GET /activities/child/:id/week`);
         activities = await this.calendarService.getActivitiesForWeek(this.selectedChildId, startDate).toPromise() ?? [];
       }
-
-      console.log(`📅 Activities (${activities.length}):`, activities);
       this.tasksByDay.set(this.mapActivitiesToDayTasks(activities, family));
 
     } catch (err) {
@@ -256,10 +219,8 @@ export class HomePage implements OnInit, OnDestroy {
       let activities: any[] = [];
 
       if (this.isParent) {
-        console.log(`👨‍👩‍👧 isParent → GET /activities/me/day?date=${date}`);
         activities = await this.calendarService.getActivitiesForMeDay(date).toPromise() ?? [];
       } else if (this.selectedChildId) {
-        console.log(`👦 isChild → GET /activities/child/:id/day?date=${date}`);
         activities = await this.calendarService.getActivitiesForDay(this.selectedChildId, date).toPromise() ?? [];
       }
 
@@ -283,10 +244,8 @@ export class HomePage implements OnInit, OnDestroy {
       let activities: any[] = [];
 
       if (this.isParent) {
-        console.log('👨‍👩‍👧 isParent → GET /activities/me/now');
         activities = await this.calendarService.getActivitiesForMeNow().toPromise() ?? [];
       } else if (this.selectedChildId) {
-        console.log(`👦 isChild → GET /activities/child/:id/now`);
         activities = await this.calendarService.getActivitiesForNow(this.selectedChildId).toPromise() ?? [];
       }
 
