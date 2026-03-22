@@ -41,24 +41,6 @@
           <div class="child-selector" *ngIf="isVisible()">
             <div class="selector-header">
               <h3>Visualizza calendario di: </h3>
-
-              <!-- View selector -->
-              <div class="view-selector-mini">
-                <ion-segment [value]="currentCalendarView()" (ionChange)="onViewSelectorChange($event)">
-                  <ion-segment-button value="now">
-                    <ion-icon name="time-outline"></ion-icon>
-                    <ion-label>Ora</ion-label>
-                  </ion-segment-button>
-                  <ion-segment-button value="day">
-                    <ion-icon name="today"></ion-icon>
-                    <ion-label>Giorno</ion-label>
-                  </ion-segment-button>
-                  <ion-segment-button value="week">
-                    <ion-icon name="calendar-outline"></ion-icon>
-                    <ion-label>Settimana</ion-label>
-                  </ion-segment-button>
-                </ion-segment>
-              </div>
             </div>
 
             <div class="child-tabs child-tabs-large">

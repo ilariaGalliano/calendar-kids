@@ -13,10 +13,7 @@ export interface Routine {
   name: string;
   description?: string;
   days: string[];
-  startTime: string;
-  endTime: string;
   tasks: any[];
-  isDone: boolean;
   isActive: boolean;
   category: string;
   createdAt: string;

@@ -133,13 +133,10 @@ export class SettingsComponent implements OnInit {
           days: Array.isArray(r.days) && r.days.length > 0
             ? r.days
             : [this.dayNumberToCode(r.day_of_week)],
-          startTime: r.start_time ?? r.startTime,
-          endTime: r.end_time ?? r.endTime,
           tasks: Array.isArray(r.tasks)
             ? r.tasks.map((t: any) => this.normalizeRoutineTask(t))
             : [],
-          isDone: !!r.isDone,
-          isActive: typeof r.isActive === 'boolean' ? r.isActive : !r.isDone,
+          isActive: typeof r.isActive === 'boolean' ? r.isActive : true,
           category: 'custom',
           createdAt: r.created_at ?? r.createdAt
         })) as Routine[];
@@ -198,9 +195,6 @@ export class SettingsComponent implements OnInit {
         nametask: result.data.name ?? 'Nuova routine',
         description: result.data.description ?? '',
         day_of_week: dayNumber,
-        start_time: result.data.startTime ?? '08:00',
-        end_time: result.data.endTime ?? '',
-        isDone: false,
         taskIds
       };
 
@@ -217,9 +211,7 @@ export class SettingsComponent implements OnInit {
       nametask: routine.name,
       description: routine.description,
       day_of_week: dayNumber,
-      start_time: routine.startTime,
-      end_time: routine.endTime,
-      isDone: !routine.isActive
+      isActive: routine.isActive
     }).subscribe(() => this.loadRoutines());
   }
 
@@ -370,8 +362,7 @@ export class SettingsComponent implements OnInit {
       nametask: routine.name,
       isActive: routine.isActive,
       days: routine.days,
-      taskIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id)),
-      startTime: routine.startTime
+      taskIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id))
     }).subscribe(() => this.loadRoutines());
   }
 
@@ -411,8 +402,7 @@ export class SettingsComponent implements OnInit {
             nametask: updatedRoutine.name,
             isActive: updatedRoutine.isActive,
             days: updatedRoutine.days,
-            taskIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id)),
-            startTime: updatedRoutine.startTime
+            taskIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id))
           }).subscribe(() => {
             this.loadRoutines();
             this.closeTaskModal();
@@ -427,7 +417,69 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  addTaskRoutine(routine: Routine, day: string) {
+  async addTaskRoutine(routine: Routine, day: string) {
+    const existingTasks = this.tasks();
+    
+    if (existingTasks.length === 0) {
+      // No tasks exist, create a new one
+      this.createNewTaskForRoutine(routine, day);
+      return;
+    }
+
+    // Show selection modal
+    const modal = await this.modalCtrl.create({
+      component: 'ion-alert',
+      componentProps: {
+        header: 'Aggiungi Attività',
+        message: 'Vuoi selezionare un\'attività esistente o crearne una nuova?',
+        buttons: [
+          {
+            text: 'Seleziona Esistente',
+            handler: () => {
+              this.selectExistingTaskForRoutine(routine, day);
+            }
+          },
+          {
+            text: 'Crea Nuova',
+            handler: () => {
+              this.createNewTaskForRoutine(routine, day);
+            }
+          },
+          {
+            text: 'Annulla',
+            role: 'cancel'
+          }
+        ]
+      }
+    });
+
+    // Use alert instead
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Aggiungi Attività';
+    alert.message = 'Vuoi selezionare un\'attività esistente o crearne una nuova?';
+    alert.buttons = [
+      {
+        text: 'Seleziona Esistente',
+        handler: () => {
+          this.selectExistingTaskForRoutine(routine, day);
+        }
+      },
+      {
+        text: 'Crea Nuova',
+        handler: () => {
+          this.createNewTaskForRoutine(routine, day);
+        }
+      },
+      {
+        text: 'Annulla',
+        role: 'cancel'
+      }
+    ];
+    document.body.appendChild(alert);
+    await alert.present();
+  }
+
+  private createNewTaskForRoutine(routine: Routine, day: string) {
     this.taskForm = {
       emoji: '🎯',
       title: '',
@@ -440,6 +492,53 @@ export class SettingsComponent implements OnInit {
     this.showTaskModal.set(true);
     this.addingToRoutine = routine;
     this.addingToDay = day;
+  }
+
+  private async selectExistingTaskForRoutine(routine: Routine, day: string) {
+    const existingTasks = this.tasks();
+    const taskOptions = existingTasks.map(task => ({
+      name: task.title,
+      type: 'checkbox',
+      label: `${task.emoji} ${task.title} (${task.duration}min, 🏆${task.reward})`,
+      value: task.id,
+      checked: false
+    }));
+
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Seleziona Attività';
+    alert.inputs = taskOptions as any;
+    alert.buttons = [
+      {
+        text: 'Annulla',
+        role: 'cancel'
+      },
+      {
+        text: 'Aggiungi',
+        handler: (selectedTaskIds: string[]) => {
+          if (!selectedTaskIds || selectedTaskIds.length === 0) {
+            return;
+          }
+          this.addSelectedTasksToRoutine(routine, day, selectedTaskIds);
+        }
+      }
+    ];
+    document.body.appendChild(alert);
+    await alert.present();
+  }
+
+  private addSelectedTasksToRoutine(routine: Routine, day: string, taskIds: string[]) {
+    const currentTaskIds = routine.tasks.map(t => String(typeof t === 'string' ? t : t.id));
+    const newTaskIds = [...new Set([...currentTaskIds, ...taskIds])];
+    
+    // Set the routine to only this specific day
+    const dayNumber = this.dayCodeToNumber(day);
+
+    this.settingService.updateRoutine(routine.id, {
+      nametask: routine.name,
+      isActive: routine.isActive,
+      day_of_week: dayNumber,
+      taskIds: newTaskIds
+    }).subscribe(() => this.loadRoutines());
   }
 
   closeTaskModal() {

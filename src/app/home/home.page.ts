@@ -520,11 +520,6 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  onViewSelectorChange(event: any) {
-    const newView = event.detail.value as 'day' | 'week' | 'now';
-    this.currentCalendarView.set(newView);
-  }
-
   // Ritorna i task visibili in base al bambino selezionato (Tutti / uno solo)
   getVisibleTasksByDay(): DayTasks {
     const selected = this.currentSelectedChild();

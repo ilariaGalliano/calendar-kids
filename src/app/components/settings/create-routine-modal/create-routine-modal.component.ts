@@ -95,7 +95,6 @@ export class CreateRoutineModalComponent implements OnInit {
   @Input() childId!: string;
 
   name = 'Nuova Routine';
-  startTime = '07:00';
   selectedDays = ['mon', 'tue', 'wed', 'thu', 'fri'];
   tasksByDay: any = {
     mon: [],
@@ -135,7 +134,6 @@ onDayToggle(dayKey: string, checked: boolean) {
     const routinePayload = {
       childId: this.childId,
       name: this.name,
-      startTime: this.startTime,
       days: this.selectedDays,
       tasksByDay: this.tasksByDay,
       isActive: true,

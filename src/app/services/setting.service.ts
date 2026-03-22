@@ -58,9 +58,6 @@ export class SettingService {
   nametask: string;
   description?: string;
   day_of_week: number;
-  start_time?: string;
-  end_time?: string;
-  isDone?: boolean;
   taskIds?: string[];
 }): Observable<any> {
   return this.http.post<any>(`${this.base}/settings/routine`, routine);
@@ -71,14 +68,10 @@ export class SettingService {
     nametask: string;
     description: string;
     day_of_week: number;
-    start_time: string;
-    end_time: string;
-    isDone: boolean;
     isActive: boolean;
     days: string[]; 
     tasks: any[];
     taskIds: string[];
-    startTime: string;
   }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);
   }

@@ -369,7 +369,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   // Metodi per le statistiche del bambino attivo
   getTotalTasksCount(): number {
     if (this.currentView() === 'now') {
-      return this.timeWindowData()?.summary.total || 0;
+      return this.timeWindowData()?.summary?.total || 0;
     }
 
     const allTasks: KidTask[] = [];
@@ -381,7 +381,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   getCompletedTasksCount(): number {
     if (this.currentView() === 'now') {
-      return this.timeWindowData()?.summary.completed || 0;
+      return this.timeWindowData()?.summary?.completed || 0;
     }
 
     const allTasks: KidTask[] = [];
