@@ -8,7 +8,7 @@ import {
   IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption,
   IonList, IonToggle,
   IonFab, IonFabButton, IonModal,
-  IonSegment, IonSegmentButton, IonBadge, IonAvatar,
+  IonSegment, IonSegmentButton, IonBadge, IonAvatar, IonToast,
   ModalController
 } from '@ionic/angular/standalone';
 import { Routine, Task, TaskPayload } from 'src/app/models/task.models';
@@ -69,12 +69,31 @@ export class SettingsComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // Carica prima i bambini, poi task e routine
-    this.settingService.getChildren().subscribe(childrenData => {
-      this.children.set(childrenData);
-      this.loadTasks();
-      this.loadRoutines();
-    });
+    // Carica solo i bambini all'inizio
+    this.loadChildren();
+    
+    // Carica i dati della sezione attiva
+    this.loadActiveSection();
+  }
+
+  private loadActiveSection() {
+    switch (this.activeSegment) {
+      case 'tasks':
+        if (this.tasks().length === 0) {
+          this.loadTasks();
+        }
+        break;
+      case 'routines':
+        if (this.routines().length === 0) {
+          this.loadRoutines();
+        }
+        break;
+    }
+  }
+
+  onSegmentChange(event: any) {
+    this.activeSegment = event.detail.value;
+    this.loadActiveSection();
   }
 
   loadChildren() {
@@ -96,6 +115,27 @@ export class SettingsComponent implements OnInit {
       6: 'sat'
     };
     return map[day] ?? 'mon';
+  }
+
+  private dayCodeToNumber(day: string): number {
+    const map: Record<string, number> = {
+      'sun': 0,
+      'mon': 1,
+      'tue': 2,
+      'wed': 3,
+      'thu': 4,
+      'fri': 5,
+      'sat': 6
+    };
+    return map[day] ?? 1;
+  }
+
+  private normalizeTasksByDay(tasksByDay: Record<number, any[]>): Record<number, any[]> {
+    const result: Record<number, any[]> = {};
+    for (const [dayNum, tasks] of Object.entries(tasksByDay)) {
+      result[Number(dayNum)] = tasks.map((t: any) => this.normalizeRoutineTask(t));
+    }
+    return result;
   }
 
   private normalizeRoutineTask(task: any): Task {
@@ -125,21 +165,39 @@ export class SettingsComponent implements OnInit {
     this.settingService.getRoutinesForChildren(childIds).subscribe({
       next: (rows: any[]) => {
         // Transform DB/mock shape to FE shape
-        const routinesArr = (rows ?? []).map((r: any) => ({
-          id: r.id,
-          childId: r.child_id ?? r.childId,
-          name: r.nametask ?? r.name ?? 'Nuova routine',
-          description: r.description,
-          days: Array.isArray(r.days) && r.days.length > 0
-            ? r.days
-            : [this.dayNumberToCode(r.day_of_week)],
-          tasks: Array.isArray(r.tasks)
-            ? r.tasks.map((t: any) => this.normalizeRoutineTask(t))
-            : [],
-          isActive: typeof r.isActive === 'boolean' ? r.isActive : true,
-          category: 'custom',
-          createdAt: r.created_at ?? r.createdAt
-        })) as Routine[];
+        const routinesArr = (rows ?? []).map((r: any) => {
+          // Normalize tasksByDay first
+          const normalizedTasksByDay = r.tasksByDay ? this.normalizeTasksByDay(r.tasksByDay) : undefined;
+          
+          // Build days array from tasksByDay keys (which days have tasks)
+          let daysArray: string[] = [];
+          if (normalizedTasksByDay && Object.keys(normalizedTasksByDay).length > 0) {
+            // Get all days that have tasks
+            daysArray = Object.keys(normalizedTasksByDay)
+              .map(dayNum => this.dayNumberToCode(Number(dayNum)));
+          } else if (Array.isArray(r.days) && r.days.length > 0) {
+            // Fallback to days field if present
+            daysArray = r.days;
+          } else {
+            // Default to all weekdays if no data
+            daysArray = ['mon', 'tue', 'wed', 'thu', 'fri'];
+          }
+          
+          return {
+            id: r.id,
+            childId: r.child_id ?? r.childId,
+            name: r.nametask ?? r.name ?? 'Nuova routine',
+            description: r.description,
+            days: daysArray,
+            tasks: Array.isArray(r.tasks)
+              ? r.tasks.map((t: any) => this.normalizeRoutineTask(t))
+              : [],
+            tasksByDay: normalizedTasksByDay,
+            isActive: typeof r.isActive === 'boolean' ? r.isActive : true,
+            category: 'custom',
+            createdAt: r.created_at ?? r.createdAt
+          };
+        }) as Routine[];
 
         this.routines.set(routinesArr);
       },
@@ -155,8 +213,18 @@ export class SettingsComponent implements OnInit {
   }
 
   getTasksForRoutineDay(routine: Routine, day: string): Task[] {
-    if (!routine?.days?.includes(day) || !routine?.tasks) return [];
-    return routine.tasks.filter(t => typeof t !== 'string');
+    // Get day number from day code
+    const dayNumber = this.dayCodeToNumber(day);
+    
+    // Use tasksByDay if available (new structure)
+    if (routine.tasksByDay && routine.tasksByDay[dayNumber]) {
+      return routine.tasksByDay[dayNumber]
+        .filter(t => typeof t !== 'string')
+        .map((t: any) => this.normalizeRoutineTask(t));
+    }
+    
+    // No tasks for this day
+    return [];
   }
 
   getDayLabel(day: string) {
@@ -183,19 +251,27 @@ export class SettingsComponent implements OnInit {
         : 'mon';
 
       const dayNumber = this.dayCodeToNumber(firstDay);
-      const taskIds = Array.from(new Set(
-        Object.values(result.data.tasksByDay ?? {})
-          .flatMap((dayTasks: any) => Array.isArray(dayTasks) ? dayTasks : [])
-          .map((task: any) => String(task?.id ?? ''))
-          .filter((id: string) => !!id)
-      ));
+      
+      // Convert tasksByDay from string keys to number keys
+      const tasksByDayNumeric: Record<number, string[]> = {};
+      if (result.data.tasksByDay && typeof result.data.tasksByDay === 'object') {
+        for (const [dayKey, tasks] of Object.entries(result.data.tasksByDay)) {
+          const dayNum = this.dayCodeToNumber(dayKey);
+          const taskArray = Array.isArray(tasks) ? tasks : [];
+          if (taskArray.length > 0) {
+            tasksByDayNumeric[dayNum] = taskArray
+              .map((task: any) => String(task?.id ?? ''))
+              .filter((id: string) => !!id);
+          }
+        }
+      }
 
       const payload = {
         childId,
         nametask: result.data.name ?? 'Nuova routine',
         description: result.data.description ?? '',
         day_of_week: dayNumber,
-        taskIds
+        tasksByDay: Object.keys(tasksByDayNumeric).length > 0 ? tasksByDayNumeric : undefined
       };
 
       this.settingService.createRoutine(payload).subscribe(() => this.loadRoutines());
@@ -213,19 +289,6 @@ export class SettingsComponent implements OnInit {
       day_of_week: dayNumber,
       isActive: routine.isActive
     }).subscribe(() => this.loadRoutines());
-  }
-
-  private dayCodeToNumber(day: string): number {
-    const map: Record<string, number> = {
-      sun: 0,
-      mon: 1,
-      tue: 2,
-      wed: 3,
-      thu: 4,
-      fri: 5,
-      sat: 6
-    };
-    return map[day] ?? 1;
   }
 
   editRoutine(routine: Routine) {
@@ -349,21 +412,32 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  removeTaskFromRoutine(routine: Routine, task: Task) {
-    const confirmed = window.confirm(`Rimuovere "${task.title}" da questa routine?`);
+  removeTaskFromRoutine(routine: Routine, day: string, task: Task) {
+    const confirmed = window.confirm(`Rimuovere "${task.title}" da ${this.getDayLabel(day)}?`);
     if (!confirmed) return;
 
-    const remainingTasks = (routine.tasks ?? []).filter((t: any) => {
+    const dayNumber = this.dayCodeToNumber(day);
+    
+    // Get current tasks for this specific day
+    const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
+    const remainingTasks = currentTasksForDay.filter((t: any) => {
       const id = String(typeof t === 'string' ? t : t?.id);
       return id !== String(task.id);
     });
 
+    // Update only this day's tasks
+    const tasksByDay: Record<number, string[]> = {
+      [dayNumber]: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id))
+    };
+
     this.settingService.updateRoutine(routine.id, {
       nametask: routine.name,
       isActive: routine.isActive,
-      days: routine.days,
-      taskIds: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id))
-    }).subscribe(() => this.loadRoutines());
+      tasksByDay
+    }).subscribe(() => {
+      this.loadRoutines();
+      this.showToast(`🗑️ "${task.title}" rimosso da ${this.getDayLabel(day)}`);
+    });
   }
 
   saveTask() {
@@ -418,7 +492,23 @@ export class SettingsComponent implements OnInit {
   }
 
   async addTaskRoutine(routine: Routine, day: string) {
+    // Forza il caricamento dei tasks anche se già caricati (per refresh)
+    await new Promise<void>((resolve) => {
+      this.settingService.getTasks().subscribe({
+        next: (data) => {
+          console.log('Loaded tasks:', data); // Debug
+          this.tasks.set(data);
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error loading tasks:', err);
+          resolve();
+        }
+      });
+    });
+
     const existingTasks = this.tasks();
+    console.log('Available tasks for selection:', existingTasks.length); // Debug
     
     if (existingTasks.length === 0) {
       // No tasks exist, create a new one
@@ -426,37 +516,10 @@ export class SettingsComponent implements OnInit {
       return;
     }
 
-    // Show selection modal
-    const modal = await this.modalCtrl.create({
-      component: 'ion-alert',
-      componentProps: {
-        header: 'Aggiungi Attività',
-        message: 'Vuoi selezionare un\'attività esistente o crearne una nuova?',
-        buttons: [
-          {
-            text: 'Seleziona Esistente',
-            handler: () => {
-              this.selectExistingTaskForRoutine(routine, day);
-            }
-          },
-          {
-            text: 'Crea Nuova',
-            handler: () => {
-              this.createNewTaskForRoutine(routine, day);
-            }
-          },
-          {
-            text: 'Annulla',
-            role: 'cancel'
-          }
-        ]
-      }
-    });
-
-    // Use alert instead
+    // Use alert to show options
     const alert = document.createElement('ion-alert');
-    alert.header = 'Aggiungi Attività';
-    alert.message = 'Vuoi selezionare un\'attività esistente o crearne una nuova?';
+    alert.header = `Aggiungi Attività - ${this.getDayLabel(day)}`;
+    alert.message = `Routine: ${routine.name}`;
     alert.buttons = [
       {
         text: 'Seleziona Esistente',
@@ -496,16 +559,28 @@ export class SettingsComponent implements OnInit {
 
   private async selectExistingTaskForRoutine(routine: Routine, day: string) {
     const existingTasks = this.tasks();
+    console.log('Tasks in selection modal:', existingTasks); // Debug
+    
+    // Get current tasks for this day to mark them as checked
+    const dayNumber = this.dayCodeToNumber(day);
+    const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
+    const currentTaskIds = currentTasksForDay.map(t => String(typeof t === 'string' ? t : t.id));
+    
+    console.log('Current task IDs for day', day, ':', currentTaskIds); // Debug
+    
     const taskOptions = existingTasks.map(task => ({
       name: task.title,
       type: 'checkbox',
       label: `${task.emoji} ${task.title} (${task.duration}min, 🏆${task.reward})`,
       value: task.id,
-      checked: false
+      checked: currentTaskIds.includes(String(task.id)) // Pre-check if already added
     }));
 
+    console.log('Task options:', taskOptions.length); // Debug
+
     const alert = document.createElement('ion-alert');
-    alert.header = 'Seleziona Attività';
+    alert.header = `${this.getDayLabel(day)} - ${routine.name}`;
+    alert.message = 'Seleziona le attività da aggiungere a questo giorno';
     alert.inputs = taskOptions as any;
     alert.buttons = [
       {
@@ -513,8 +588,9 @@ export class SettingsComponent implements OnInit {
         role: 'cancel'
       },
       {
-        text: 'Aggiungi',
+        text: 'Salva',
         handler: (selectedTaskIds: string[]) => {
+          console.log('Selected task IDs:', selectedTaskIds); // Debug
           if (!selectedTaskIds || selectedTaskIds.length === 0) {
             return;
           }
@@ -527,18 +603,45 @@ export class SettingsComponent implements OnInit {
   }
 
   private addSelectedTasksToRoutine(routine: Routine, day: string, taskIds: string[]) {
-    const currentTaskIds = routine.tasks.map(t => String(typeof t === 'string' ? t : t.id));
-    const newTaskIds = [...new Set([...currentTaskIds, ...taskIds])];
-    
-    // Set the routine to only this specific day
     const dayNumber = this.dayCodeToNumber(day);
-
+    
+    // Get existing tasks for this specific day
+    const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
+    const currentTaskIds = currentTasksForDay.map(t => String(typeof t === 'string' ? t : t.id));
+    
+    // The taskIds array contains ALL selected tasks (both existing and new)
+    // We need to calculate which ones are actually new
+    const newlyAddedIds = taskIds.filter(id => !currentTaskIds.includes(id));
+    const newlyAddedCount = newlyAddedIds.length;
+    
+    // Build tasksByDay object with only the updated day
+    const tasksByDay: Record<number, string[]> = {
+      [dayNumber]: taskIds // Send all selected task IDs
+    };
+    
+    // Update routine with new structure
     this.settingService.updateRoutine(routine.id, {
       nametask: routine.name,
       isActive: routine.isActive,
-      day_of_week: dayNumber,
-      taskIds: newTaskIds
-    }).subscribe(() => this.loadRoutines());
+      tasksByDay
+    }).subscribe(() => {
+      this.loadRoutines();
+      if (newlyAddedCount > 0) {
+        this.showToast(`✅ ${newlyAddedCount} nuova attività aggiunta a ${this.getDayLabel(day)}`);
+      } else {
+        this.showToast(`✅ Attività aggiornate per ${this.getDayLabel(day)}`);
+      }
+    });
+  }
+
+  private async showToast(message: string) {
+    const toast = document.createElement('ion-toast');
+    toast.message = message;
+    toast.duration = 2000;
+    toast.position = 'bottom';
+    toast.color = 'success';
+    document.body.appendChild(toast);
+    await toast.present();
   }
 
   closeTaskModal() {

@@ -23,7 +23,7 @@
     </div>
 
     <!-- Segmenti di navigazione -->
-    <ion-segment [(ngModel)]="activeSegment" class="main-segment">
+    <ion-segment [(ngModel)]="activeSegment" (ionChange)="onSegmentChange($event)" class="main-segment">
       <ion-segment-button value="children">
         <ion-label>👶 Bambini</ion-label>
       </ion-segment-button>
@@ -180,7 +180,7 @@
 
                     <div class="task-actions">
                       <ion-button fill="clear" size="small" (click)="editTask(task)">✏️</ion-button>
-                      <ion-button fill="clear" size="small" color="danger" (click)="removeTaskFromRoutine(routine, task)">🗑️</ion-button>
+                      <ion-button fill="clear" size="small" color="danger" (click)="removeTaskFromRoutine(routine, day, task)">🗑️</ion-button>
                     </div>
                   </div>
                   }

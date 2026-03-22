@@ -60,9 +60,6 @@ interface DayTasks {
     IonIcon,
     IonSpinner,
     IonText,
-    IonSegment,
-    IonSegmentButton,
-    IonLabel,
     CalendarBoardComponent,
     PointsAnimationComponent,
     ChildRewardsComponent
@@ -515,6 +512,10 @@ export class HomePage implements OnInit, OnDestroy {
       this.loadNowTasks();
     } else if (newView === 'day' && event.date) {
       this.loadDayTasks(event.date);
+    } else if (newView === 'week') {
+      // Ripristina l'array dei giorni della settimana
+      this.days = this.getWeekDates();
+      this.loadTasks();
     } else {
       this.loadTasks();
     }

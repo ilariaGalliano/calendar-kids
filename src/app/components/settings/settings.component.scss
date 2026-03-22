@@ -375,6 +375,74 @@
 
   .board-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .day-section {
+    min-width: 100%;
+  }
+
+  .routine-board-header {
+    flex-direction: column;
+    text-align: center;
+    
+    ion-button {
+      width: 100%;
+    }
+  }
+
+  .routine-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+
+    ion-button {
+      width: 100%;
+    }
+  }
+
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+
+    ion-button {
+      width: 100%;
+    }
+  }
+
+  .settings-container {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    h1 {
+      font-size: 1.5rem;
+    }
+    
+    p {
+      font-size: 0.85rem;
+    }
+  }
+
+  .routine-child-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .day-title {
+    font-size: 0.85rem;
+  }
+
+  .task-card-mini {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
   }
 }
 

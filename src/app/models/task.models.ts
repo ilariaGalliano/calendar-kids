@@ -14,6 +14,7 @@ export interface Routine {
   description?: string;
   days: string[];
   tasks: any[];
+  tasksByDay?: Record<number, any[]>; // NEW: tasks organized by day (0=Sun, 1=Mon, ..., 6=Sat)
   isActive: boolean;
   category: string;
   createdAt: string;

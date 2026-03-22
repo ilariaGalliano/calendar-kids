@@ -59,6 +59,7 @@ export class SettingService {
   description?: string;
   day_of_week: number;
   taskIds?: string[];
+  tasksByDay?: Record<number, string[]>;
 }): Observable<any> {
   return this.http.post<any>(`${this.base}/settings/routine`, routine);
 }
@@ -72,6 +73,7 @@ export class SettingService {
     days: string[]; 
     tasks: any[];
     taskIds: string[];
+    tasksByDay: Record<number, string[]>; // NEW: tasks per day (0=Sun, 1=Mon, ..., 6=Sat)
   }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);
   }
