@@ -527,18 +527,37 @@ export class HomePage implements OnInit, OnDestroy {
   // Gestisce il salvataggio delle modifiche drag & drop
   async onSaveCalendarChanges(event: {
     tasks: Record<string, any[]>,
-    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>
+    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>,
+    orderUpdates?: Array<{ taskId: string, childId: string, day: string, newPosition: number }>
   }) {
     try {
       this.loading.set(true);
+      
+      let totalUpdated = 0;
+      const allErrors: string[] = [];
 
-      // Chiama l'API per aggiornare lo schedule
-      const result = await this.calendarService.updateSchedule(event.movedTasks).toPromise();
+      // 1. Chiama l'API per aggiornare lo schedule (spostamenti tra giorni/bambini)
+      if (event.movedTasks && event.movedTasks.length > 0) {
+        const scheduleResult = await this.calendarService.updateSchedule(event.movedTasks).toPromise();
+        totalUpdated += scheduleResult?.updated || 0;
+        if (scheduleResult?.errors) {
+          allErrors.push(...scheduleResult.errors);
+        }
+      }
 
-      if (result?.success) {
+      // 2. Chiama l'API per aggiornare l'ordine (riordino interno)
+      if (event.orderUpdates && event.orderUpdates.length > 0) {
+        const orderResult = await this.calendarService.updateTaskOrder(event.orderUpdates).toPromise();
+        totalUpdated += orderResult?.updated || 0;
+        if (orderResult?.errors) {
+          allErrors.push(...orderResult.errors);
+        }
+      }
+
+      if (allErrors.length === 0) {
         const alert = await this.alertController.create({
           header: 'Modifiche salvate',
-          message: `${result.updated} task aggiornati con successo!`,
+          message: `${totalUpdated} task aggiornati con successo!`,
           buttons: ['OK']
         });
         await alert.present();
@@ -548,7 +567,7 @@ export class HomePage implements OnInit, OnDestroy {
       } else {
         const alert = await this.alertController.create({
           header: 'Attenzione',
-          message: `Salvate ${result?.updated || 0} modifiche. Errori: ${result?.errors.join(', ')}`,
+          message: `Salvate ${totalUpdated} modifiche. Errori: ${allErrors.join(', ')}`,
           buttons: ['OK']
         });
         await alert.present();

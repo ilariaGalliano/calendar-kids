@@ -6,7 +6,7 @@ import {
   IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon,
   IonText
 } from '@ionic/angular/standalone';
-import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragPlaceholder, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDragHandle, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { KidTaskCardComponent } from '../kid-task-card/kid-task-card.component';
 import { KidTask } from 'src/app/models/kid.models';
 import { CurrentTimeWindowData } from 'src/app/models/calendar.models';
@@ -20,7 +20,7 @@ import { calendar, today, chevronBack, chevronForward, moveOutline, calendarOutl
     CommonModule, DatePipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
     IonSegment, IonSegmentButton, IonLabel, IonIcon,
-    CdkDropList, CdkDrag, CdkDragPlaceholder, KidTaskCardComponent, IonText
+    CdkDropList, CdkDrag, CdkDragPlaceholder, CdkDragHandle, KidTaskCardComponent, IonText
   ],
   templateUrl: './calendar-board.component.html',
   styleUrls: ['./calendar-board.component.scss']
@@ -40,7 +40,8 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   @Output() viewChanged = new EventEmitter<{ view: 'day' | 'week' | 'now', date?: string }>();
   @Output() changesRequested = new EventEmitter<{
     tasks: Record<string, KidTask[]>,
-    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>
+    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>,
+    orderUpdates: Array<{ taskId: string, childId: string, day: string, newPosition: number }>
   }>();
 
   // Signal per la gestione della vista
@@ -51,7 +52,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   hasUnsavedChanges = signal<boolean>(false);
   isSaving = signal<boolean>(false);
   
-  // Array per tracciare i task spostati
+  // Array per tracciare i task spostati (tra giorni/bambini)
   private movedTasksLog: Array<{ 
     taskId: string, 
     fromDay: string, 
@@ -60,13 +61,20 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     toChildId: string,
     task: KidTask 
   }> = [];
+  
+  // Array per tracciare i cambiamenti di ordine (riordino interno)
+  private orderChangesLog: Array<{
+    taskId: string,
+    childId: string,
+    day: string,
+    newPosition: number
+  }> = [];
 
   // Signal interno solo per il drag & drop
   lists = signal<Record<string, KidTask[]>>({});
 
   // Signal per la vista "Ora Corrente"
   timeWindowData = signal<any>(null);
-
 
   ngOnInit() {
     // Registra le icone
@@ -144,47 +152,161 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
 
   // Drag & Drop migliorato per riordino interno e trasferimento tra griglie
   drop(event: CdkDragDrop<KidTask[]>, targetDay?: string, targetChildId?: string) {
-    const lists = this.lists();
-    const prev = event.previousContainer.data;
-    const curr = event.container.data;
+    console.log('🎯 DROP EVENT:', {
+      previousContainer: event.previousContainer.id,
+      container: event.container.id,
+      previousIndex: event.previousIndex,
+      currentIndex: event.currentIndex,
+      targetDay,
+      targetChildId
+    });
+    
+    // Helper per parsare l'ID del container
+    // Formato: 'drop-list-{YYYY-MM-DD}-{UUID}' o 'drop-list-now-{UUID}'
+    const parseContainerId = (containerId: string): { day: string, childId: string } => {
+      const withoutPrefix = containerId.replace('drop-list-', '');
+      
+      if (withoutPrefix.startsWith('now-')) {
+        return { day: 'now', childId: withoutPrefix.substring(4) };
+      }
+      
+      // Formato data: YYYY-MM-DD (10 caratteri), poi trattino, poi UUID
+      const day = withoutPrefix.substring(0, 10); // '2026-03-26'
+      const childId = withoutPrefix.substring(11); // UUID dopo il trattino
+      return { day, childId };
+    };
+    
+    const fromParsed = parseContainerId(event.previousContainer.id);
+    const toParsed = parseContainerId(event.container.id);
+    
+    const fromDay = fromParsed.day;
+    const fromChildId = fromParsed.childId;
+    const toDay = targetDay || toParsed.day;
+    const toChildId = targetChildId || toParsed.childId;
+    
+    console.log('📍 From:', { fromDay, fromChildId }, 'To:', { toDay, toChildId });
+
+    // Ottieni una copia delle liste correnti
+    const lists = { ...this.lists() };
+    
+    // Ricostruisci gli array per il giorno di origine filtrati per bambino
+    const fromDayTasks = lists[fromDay] || [];
+    const toDayTasks = fromDay === toDay ? fromDayTasks : (lists[toDay] || []);
+    
+    // Filtra i task del bambino di origine
+    const fromChildTasks = fromDayTasks.filter(
+      (t: any) => (t.childId || t.assigneeProfileId) === fromChildId
+    );
+    
+    // Trova il task da spostare usando l'indice nel gruppo del bambino
+    const movedTask = fromChildTasks[event.previousIndex];
+    
+    if (!movedTask) {
+      console.error('❌ Task non trovato!', { fromChildTasks, index: event.previousIndex });
+      return;
+    }
+    
+    console.log('🎯 Task da spostare:', movedTask);
 
     if (event.previousContainer === event.container) {
-      // Riordino interno nella stessa drop zone
-      moveItemInArray(curr, event.previousIndex, event.currentIndex);
-      // Anche il riordino è una modifica
+      // Riordino interno nella stessa drop zone (stesso bambino, stesso giorno)
+      console.log('📝 Riordino interno (stesso bambino/giorno)');
+      
+      // Trova gli indici reali nell'array del giorno (non filtrato per bambino)
+      const fromRealIndex = fromDayTasks.findIndex((t: any) => t.instanceId === movedTask.instanceId);
+      
+      // Calcola l'indice di destinazione nell'array completo
+      // Trova il task nella posizione di destinazione tra i task del bambino
+      const toChildTasks = fromDayTasks.filter(
+        (t: any) => (t.childId || t.assigneeProfileId) === fromChildId
+      );
+      
+      if (event.currentIndex < toChildTasks.length) {
+        const targetTask = toChildTasks[event.currentIndex];
+        const toRealIndex = fromDayTasks.findIndex((t: any) => t.instanceId === targetTask.instanceId);
+        
+        // Rimuovi dalla posizione originale
+        fromDayTasks.splice(fromRealIndex, 1);
+        // Inserisci nella nuova posizione
+        fromDayTasks.splice(toRealIndex > fromRealIndex ? toRealIndex : toRealIndex, 0, movedTask);
+      } else {
+        // Se l'indice è oltre, metti alla fine
+        fromDayTasks.splice(fromRealIndex, 1);
+        fromDayTasks.push(movedTask);
+      }
+      
+      // Registra tutti i cambiamenti di ordine per i task di questo bambino in questo giorno
+      const updatedChildTasks = fromDayTasks.filter(
+        (t: any) => (t.childId || t.assigneeProfileId) === fromChildId
+      );
+      
+      // Rimuovi eventuali ordini precedenti per questo giorno/bambino
+      this.orderChangesLog = this.orderChangesLog.filter(
+        o => !(o.day === fromDay && o.childId === fromChildId)
+      );
+      
+      // Aggiungi i nuovi ordini
+      updatedChildTasks.forEach((task, index) => {
+        this.orderChangesLog.push({
+          taskId: task.instanceId || task.id,
+          childId: fromChildId,
+          day: fromDay,
+          newPosition: index
+        });
+      });
+      
+      console.log('📋 Order changes:', this.orderChangesLog);
       this.hasUnsavedChanges.set(true);
     } else {
       // Trasferimento tra drop zone diverse (diversi bambini o giorni)
-      const movedTask = prev[event.previousIndex];
+      console.log('🔄 Trasferimento tra zone diverse');
       
-      // Estrai informazioni sul task spostato prima del trasferimento
-      const fromContainerId = event.previousContainer.id;
-      const toContainerId = event.container.id;
-      
-      // Estrai day e childId dagli ID dei container
-      // Formato: 'drop-list-{day}-{childId}' o 'drop-list-now-{childId}'
-      const fromParts = fromContainerId.split('-');
-      const toParts = toContainerId.split('-');
-      
-      const fromDay = fromParts[2] === 'now' ? 'now' : fromParts[2];
-      const fromChildId = fromParts[2] === 'now' ? fromParts[3] : fromParts[3];
-      const toDay = targetDay || (toParts[2] === 'now' ? 'now' : toParts[2]);
-      const toChildId = targetChildId || (toParts[2] === 'now' ? toParts[3] : toParts[3]);
-      
-      transferArrayItem(prev, curr, event.previousIndex, event.currentIndex);
-
-      // Se stiamo trasferendo tra bambini o giorni, aggiorna i metadati del task
-      if (targetDay && curr[event.currentIndex]) {
-        const updatedTask = curr[event.currentIndex];
-        // Aggiorna il childId se stiamo cambiando bambino
-        if (targetChildId && (updatedTask as any).childId !== targetChildId) {
-          (updatedTask as any).childId = targetChildId;
-        }
+      // Rimuovi il task dal giorno di origine
+      const fromTaskIndex = fromDayTasks.findIndex((t: any) => t.instanceId === movedTask.instanceId);
+      if (fromTaskIndex > -1) {
+        fromDayTasks.splice(fromTaskIndex, 1);
       }
       
-      // Log del task spostato
+      // Aggiorna i metadati del task se necessario
+      if (toChildId && (movedTask as any).childId !== toChildId) {
+        (movedTask as any).childId = toChildId;
+        (movedTask as any).assigneeProfileId = toChildId;
+      }
+      
+      // Aggiorna la data se stiamo cambiando giorno
+      if (fromDay !== toDay && toDay !== 'now' && fromDay !== 'now') {
+        (movedTask as any).scheduledDate = toDay;
+        (movedTask as any).scheduleDate = toDay;
+        (movedTask as any).startTime = toDay;
+      }
+      
+      // Aggiungi al giorno di destinazione
+      if (fromDay === toDay) {
+        // Stesso giorno, già rimosso sopra, ora aggiungi nella posizione corretta
+        fromDayTasks.splice(event.currentIndex, 0, movedTask);
+      } else {
+        // Giorno diverso
+        if (!lists[toDay]) {
+          lists[toDay] = [];
+        }
+        lists[toDay].push(movedTask);
+      }
+      
+      // Log del task spostato - usa instanceId che contiene le info necessarie
+      const taskIdentifier = movedTask.instanceId || movedTask.id;
+      console.log('📋 Adding to movedTasksLog:', {
+        taskId: taskIdentifier,
+        instanceId: movedTask.instanceId,
+        id: movedTask.id,
+        taskId_field: (movedTask as any).taskId,
+        fromDay,
+        toDay,
+        fromChildId,
+        toChildId
+      });
+      
       this.movedTasksLog.push({
-        taskId: movedTask.id,
+        taskId: taskIdentifier,
         fromDay,
         toDay,
         fromChildId,
@@ -196,8 +318,9 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       this.hasUnsavedChanges.set(true);
     }
 
-    // Aggiorna il signal con una nuova referenza dell'oggetto
-    this.lists.set({ ...lists });
+    // Aggiorna il signal con la nuova struttura
+    console.log('✅ Aggiornamento lists:', lists);
+    this.lists.set(lists);
   }
 
   // Gestione completamento task
@@ -401,20 +524,30 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     this.isSaving.set(true);
     
     try {
+      const movedTasksPayload = this.movedTasksLog.map(log => ({
+        taskId: log.taskId,
+        fromDay: log.fromDay,
+        toDay: log.toDay,
+        fromChildId: log.fromChildId,
+        toChildId: log.toChildId
+      }));
+      
+      console.log('💾 Saving changes:');
+      console.log('  movedTasksLog length:', this.movedTasksLog.length);
+      console.log('  movedTasksLog:', this.movedTasksLog);
+      console.log('  movedTasksPayload:', movedTasksPayload);
+      console.log('  orderChangesLog:', this.orderChangesLog);
+      
       // Emetti evento con tutte le modifiche
       this.changesRequested.emit({
         tasks: this.lists(),
-        movedTasks: this.movedTasksLog.map(log => ({
-          taskId: log.taskId,
-          fromDay: log.fromDay,
-          toDay: log.toDay,
-          fromChildId: log.fromChildId,
-          toChildId: log.toChildId
-        }))
+        movedTasks: movedTasksPayload,
+        orderUpdates: this.orderChangesLog
       });
       
       // Resetta il log e le modifiche non salvate
       this.movedTasksLog = [];
+      this.orderChangesLog = [];
       this.hasUnsavedChanges.set(false);
     } catch (error) {
       console.error('Errore durante il salvataggio:', error);
@@ -428,6 +561,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     // Ricarica i dati originali dal tasksByDay input
     this.lists.set({ ...this.tasksByDay });
     this.movedTasksLog = [];
+    this.orderChangesLog = [];
     this.hasUnsavedChanges.set(false);
   }
 

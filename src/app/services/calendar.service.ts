@@ -62,6 +62,19 @@ export class CalendarService {
     );
   }
 
+  /** Aggiorna l'ordine dei task (sort_order) per il riordino interno */
+  updateTaskOrder(orderUpdates: Array<{
+    taskId: string;
+    childId: string;
+    day: string;
+    newPosition: number;
+  }>): Observable<{ success: boolean; updated: number; errors: string[] }> {
+    return this.http.post<{ success: boolean; updated: number; errors: string[] }>(
+      `${this.baseUrl}/activities/update-order`,
+      { orderUpdates }
+    );
+  }
+
   /** Aggiorna lo stato done di un'attività */
   updateActivityStatus(activityId: string, done: boolean): Observable<any> {
     return this.http.patch(`${this.baseUrl}/activities/${activityId}`, { done });

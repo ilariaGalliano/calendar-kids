@@ -615,11 +615,32 @@
         &.cdk-drag-preview .drag-handle-wrapper {
           opacity: 0;
         }
+        
+        // Stile per l'elemento mentre viene trascinato (preview)
+        &.cdk-drag-preview {
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          opacity: 0.9;
+          transform: rotate(2deg);
+          z-index: 1000;
+          
+          app-kid-task-card {
+            opacity: 1;
+          }
+        }
+        
+        // Animazione smooth quando l'elemento torna in posizione
+        &.cdk-drag-animating {
+          transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
       }
       
       &.cdk-drop-list-dragging {
         background-color: rgba(55, 48, 163, 0.06);
         border: 2px dashed #3730a3;
+        
+        .task-wrapper:not(.cdk-drag-placeholder) {
+          transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
       }
       
       &.cdk-drop-list-receiving {

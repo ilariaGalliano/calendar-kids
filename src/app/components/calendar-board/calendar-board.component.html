@@ -167,7 +167,7 @@
             </div>
 
             <div cdkDropList [id]="'drop-list-' + d + '-' + child.id" [cdkDropListData]="child.tasks"
-              (cdkDropListDropped)="drop($event, d, child.id)" class="child-drop-zone" cdkDropListSortingDisabled="false"
+              (cdkDropListDropped)="drop($event, d, child.id)" class="child-drop-zone"
               [cdkDropListConnectedTo]="getConnectedDropLists(d, child.id)">
 
               @for (task of child.tasks; track task.instanceId) {
@@ -232,7 +232,7 @@
                   </ion-badge>
                 </div>
                 <div cdkDropList [id]="'drop-list-' + d + '-' + kid.id" [cdkDropListData]="kid.tasks"
-                  (cdkDropListDropped)="drop($event, d, kid.id)" class="child-drop-zone" cdkDropListSortingDisabled="false"
+                  (cdkDropListDropped)="drop($event, d, kid.id)" class="child-drop-zone"
                   [cdkDropListConnectedTo]="getConnectedDropLists(d, kid.id)">
                   @for (task of kid.tasks; track task.instanceId) {
                     <div cdkDrag [cdkDragData]="task" [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
