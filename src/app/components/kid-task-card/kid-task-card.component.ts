@@ -9,7 +9,7 @@ import { RewardsService } from '../../services/rewards.service';
 @Component({
   selector: 'app-kid-task-card',
   standalone: true,
-  imports: [IonItem, IonLabel, IonBadge, DatePipe, CommonModule, IonIcon, IonCheckbox, FormsModule],
+  imports: [IonItem, IonLabel, IonBadge, DatePipe, CommonModule, IonCheckbox, FormsModule],
   templateUrl: './kid-task-card.component.html',
   styleUrls: ['./kid-task-card.component.scss'],
   animations: [

@@ -576,6 +576,7 @@
             flex: 1;
             border-radius: 12px;
             overflow: hidden;
+            pointer-events: auto; // Permette interazione con checkbox e altri elementi
           }
           
           .drag-handle-wrapper {
@@ -587,17 +588,19 @@
             cursor: grab;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
-            padding: 6px;
-            opacity: 0;
+            padding: 8px;
+            opacity: 0.7;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             
             &:active {
               cursor: grabbing;
+              background: rgba(55, 48, 163, 0.1);
             }
             
             .external-drag-handle {
-              font-size: 1.3rem;
+              font-size: 1.4rem;
               color: #3730a3;
             }
           }
@@ -605,7 +608,8 @@
         
         &:hover .drag-handle-wrapper {
           opacity: 1;
-          transform: translateY(-50%) scale(1.05);
+          transform: translateY(-50%) scale(1.1);
+          box-shadow: 0 4px 8px rgba(55, 48, 163, 0.2);
         }
         
         &.cdk-drag-preview .drag-handle-wrapper {
@@ -844,10 +848,11 @@
           .task-content {
             .drag-handle-wrapper {
               right: 8px;
-              padding: 4px;
+              padding: 6px;
+              opacity: 1; // Sempre visibile su mobile
               
               .external-drag-handle {
-                font-size: 1.1rem;
+                font-size: 1.2rem;
               }
             }
           }
@@ -860,6 +865,15 @@
 @media (max-width: 480px) {
   .calendar-container {
     padding: 12px;
+  }
+  
+  // Drag handle ancora più grande su mobile piccolo
+  .drop-zone .task-wrapper .task-content .drag-handle-wrapper {
+    padding: 8px;
+    
+    .external-drag-handle {
+      font-size: 1.4rem;
+    }
   }
   
   .calendar-header {
