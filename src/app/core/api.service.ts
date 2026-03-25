@@ -20,7 +20,6 @@ export class ApiService {
   
   // Calendario mensile completo
   getMonthCalendar(householdId: string, year: number, month: number) {
-    console.log('[API CALL]', 'calendar/month', { householdId, year, month });
     const params = new HttpParams()
       .set('householdId', householdId)
       .set('year', year.toString())

@@ -151,16 +151,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   }
 
   // Drag & Drop migliorato per riordino interno e trasferimento tra griglie
-  drop(event: CdkDragDrop<KidTask[]>, targetDay?: string, targetChildId?: string) {
-    console.log('🎯 DROP EVENT:', {
-      previousContainer: event.previousContainer.id,
-      container: event.container.id,
-      previousIndex: event.previousIndex,
-      currentIndex: event.currentIndex,
-      targetDay,
-      targetChildId
-    });
-    
+  drop(event: CdkDragDrop<KidTask[]>, targetDay?: string, targetChildId?: string) {    
     // Helper per parsare l'ID del container
     // Formato: 'drop-list-{YYYY-MM-DD}-{UUID}' o 'drop-list-now-{UUID}'
     const parseContainerId = (containerId: string): { day: string, childId: string } => {
@@ -183,8 +174,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     const fromChildId = fromParsed.childId;
     const toDay = targetDay || toParsed.day;
     const toChildId = targetChildId || toParsed.childId;
-    
-    console.log('📍 From:', { fromDay, fromChildId }, 'To:', { toDay, toChildId });
 
     // Ottieni una copia delle liste correnti
     const lists = { ...this.lists() };
@@ -205,12 +194,9 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       console.error('❌ Task non trovato!', { fromChildTasks, index: event.previousIndex });
       return;
     }
-    
-    console.log('🎯 Task da spostare:', movedTask);
 
     if (event.previousContainer === event.container) {
       // Riordino interno nella stessa drop zone (stesso bambino, stesso giorno)
-      console.log('📝 Riordino interno (stesso bambino/giorno)');
       
       // Trova gli indici reali nell'array del giorno (non filtrato per bambino)
       const fromRealIndex = fromDayTasks.findIndex((t: any) => t.instanceId === movedTask.instanceId);
@@ -255,11 +241,9 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
         });
       });
       
-      console.log('📋 Order changes:', this.orderChangesLog);
       this.hasUnsavedChanges.set(true);
     } else {
       // Trasferimento tra drop zone diverse (diversi bambini o giorni)
-      console.log('🔄 Trasferimento tra zone diverse');
       
       // Rimuovi il task dal giorno di origine
       const fromTaskIndex = fromDayTasks.findIndex((t: any) => t.instanceId === movedTask.instanceId);
@@ -294,16 +278,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       
       // Log del task spostato - usa instanceId che contiene le info necessarie
       const taskIdentifier = movedTask.instanceId || movedTask.id;
-      console.log('📋 Adding to movedTasksLog:', {
-        taskId: taskIdentifier,
-        instanceId: movedTask.instanceId,
-        id: movedTask.id,
-        taskId_field: (movedTask as any).taskId,
-        fromDay,
-        toDay,
-        fromChildId,
-        toChildId
-      });
       
       this.movedTasksLog.push({
         taskId: taskIdentifier,
@@ -318,8 +292,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
       this.hasUnsavedChanges.set(true);
     }
 
-    // Aggiorna il signal con la nuova struttura
-    console.log('✅ Aggiornamento lists:', lists);
     this.lists.set(lists);
   }
 
@@ -531,12 +503,6 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
         fromChildId: log.fromChildId,
         toChildId: log.toChildId
       }));
-      
-      console.log('💾 Saving changes:');
-      console.log('  movedTasksLog length:', this.movedTasksLog.length);
-      console.log('  movedTasksLog:', this.movedTasksLog);
-      console.log('  movedTasksPayload:', movedTasksPayload);
-      console.log('  orderChangesLog:', this.orderChangesLog);
       
       // Emetti evento con tutte le modifiche
       this.changesRequested.emit({
