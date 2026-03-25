@@ -48,6 +48,25 @@ export class CalendarService {
     return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/now`);
   }
 
+  /** Salva le modifiche dello schedule (drag & drop) */
+  updateSchedule(movedTasks: Array<{
+    taskId: string;
+    fromDay: string;
+    toDay: string;
+    fromChildId: string;
+    toChildId: string;
+  }>): Observable<{ success: boolean; updated: number; errors: string[] }> {
+    return this.http.post<{ success: boolean; updated: number; errors: string[] }>(
+      `${this.baseUrl}/activities/update-schedule`,
+      { movedTasks }
+    );
+  }
+
+  /** Aggiorna lo stato done di un'attività */
+  updateActivityStatus(activityId: string, done: boolean): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/activities/${activityId}`, { done });
+  }
+
   /**
    * Carica il calendario settimanale dal backend
    */

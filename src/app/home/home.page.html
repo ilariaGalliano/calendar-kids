@@ -72,7 +72,9 @@
           <app-calendar-board [days]="days" [tasksByDay]="getVisibleTasksByDay()"
             [householdId]="currentFamily()?.id || ''" [currentViewInput]="currentCalendarView()"
             [timeWindowInput]="getVisibleTimeWindowData()" [activeKidProfile]="getActiveKidProfile()"
-            (taskDone)="onTaskDone($event)" (viewChanged)="onViewChanged($event)">
+            (taskDone)="onTaskDone($event)" 
+            (viewChanged)="onViewChanged($event)"
+            (changesRequested)="onSaveCalendarChanges($event)">
           </app-calendar-board>
 
         </div>

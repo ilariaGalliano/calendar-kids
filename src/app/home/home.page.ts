@@ -14,6 +14,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { AlertController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 
 import { AccountSidebarComponent } from '../features/account-sidebar/account-sidebar.component';
 import { CalendarBoardComponent } from '../components/calendar-board/calendar-board.component';
@@ -70,6 +71,7 @@ export class HomePage implements OnInit, OnDestroy {
   private familyService = inject(FamilyService);
   private router = inject(Router);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
   private route = inject(ActivatedRoute)
   // Signals
   activeFamily = this.familyService.getActiveFamily(); // writable signal
@@ -286,31 +288,33 @@ export class HomePage implements OnInit, OnDestroy {
 
   private mapActivitiesToDayTasks(activities: any[], family: Family | null): DayTasks {
     const weekTasks: DayTasks = {};
-    activities.forEach((activity: any) => {
-      const dateStr = new Date(activity.date_start).toISOString().split('T')[0];
-      if (!weekTasks[dateStr]) weekTasks[dateStr] = [];
+    activities
+      .filter((activity: any) => !activity.done) // Nascondi task completati
+      .forEach((activity: any) => {
+        const dateStr = new Date(activity.date_start).toISOString().split('T')[0];
+        if (!weekTasks[dateStr]) weekTasks[dateStr] = [];
 
-      const childId = activity.children_id ?? this.selectedChildId ?? '';
-      const child = (family?.children as Child[] ?? []).find((c: Child) => c.id === childId);
+        const childId = activity.children_id ?? this.selectedChildId ?? '';
+        const child = (family?.children as Child[] ?? []).find((c: Child) => c.id === childId);
 
-      weekTasks[dateStr].push({
-        id: String(activity.id),
-        instanceId: String(activity.id),
-        title: activity.name_activity,
-        color: this.getChildColor(childId),
-        start: new Date(activity.date_start).toISOString(),
-        end: new Date(activity.date_end ?? activity.date_start).toISOString(),
-        done: !!activity.done,
-        doneAt: null,
-        description: activity.description ?? null,
-        childId,
-        childName: child?.name ?? activity.child_name ?? 'Bambino',
-        icon: activity.icon ?? undefined,
-        timer: activity.timer ?? null,
-        value: activity.value ?? null,
-        source: activity.source ?? 'activity',
+        weekTasks[dateStr].push({
+          id: String(activity.id),
+          instanceId: String(activity.id),
+          title: activity.name_activity,
+          color: this.getChildColor(childId),
+          start: new Date(activity.date_start).toISOString(),
+          end: new Date(activity.date_end ?? activity.date_start).toISOString(),
+          done: !!activity.done,
+          doneAt: null,
+          description: activity.description ?? null,
+          childId,
+          childName: child?.name ?? activity.child_name ?? 'Bambino',
+          icon: activity.icon ?? undefined,
+          timer: activity.timer ?? null,
+          value: activity.value ?? null,
+          source: activity.source ?? 'activity',
+        });
       });
-    });
     return weekTasks;
   }
 
@@ -364,32 +368,72 @@ export class HomePage implements OnInit, OnDestroy {
     this.sidebarExpanded.set(false);
   }
 
-  onTaskDone(event: { instanceId: string; done: boolean }) {
-    const currentTasks = this.tasksByDay();
-    const updatedTasks: DayTasks = { ...currentTasks };
+  async onTaskDone(event: { instanceId: string; done: boolean }) {
+    try {
+      // Aggiorna l'UI immediatamente
+      const currentTasks = this.tasksByDay();
+      const updatedTasks: DayTasks = { ...currentTasks };
 
-    Object.keys(updatedTasks).forEach(day => {
-      const dayTasks = updatedTasks[day];
-      const taskIndex = dayTasks.findIndex(t => t.instanceId === event.instanceId);
+      Object.keys(updatedTasks).forEach(day => {
+        const dayTasks = updatedTasks[day];
+        const taskIndex = dayTasks.findIndex(t => t.instanceId === event.instanceId);
 
-      if (taskIndex >= 0) {
-        // Update task done status
-        dayTasks[taskIndex] = { ...dayTasks[taskIndex], done: event.done };
+        if (taskIndex >= 0) {
+          // Update task done status
+          dayTasks[taskIndex] = { ...dayTasks[taskIndex], done: event.done };
 
-        // Find the child and add points if task is marked done
-        if (event.done) {
-          const family = this.currentFamily();
-          if (family) {
-            const child = family.children.find(c => c.id === dayTasks[taskIndex].childId);
-            if (child) {
-              child.point = (child.point ?? 0) + 10;
+          // Find the child and add points if task is marked done
+          if (event.done) {
+            const family = this.currentFamily();
+            if (family) {
+              const child = family.children.find(c => c.id === dayTasks[taskIndex].childId);
+              if (child) {
+                child.point = (child.point ?? 0) + 10;
+              }
             }
           }
         }
-      }
-    });
+      });
 
-    this.tasksByDay.set(updatedTasks);
+      this.tasksByDay.set(updatedTasks);
+
+      // Salva sul backend
+      await this.calendarService.updateActivityStatus(event.instanceId, event.done).toPromise();
+
+      // Mostra toast di conferma
+      if (event.done) {
+        const toast = await this.toastController.create({
+          message: '✅ Attività completata! Ben fatto!',
+          duration: 2000,
+          position: 'top',
+          color: 'success',
+          cssClass: 'task-done-toast'
+        });
+        await toast.present();
+      }
+
+      // Se il task è completato, ricarica per nasconderlo
+      if (event.done) {
+        // Aspetta un momento per permettere all'animazione di completarsi
+        setTimeout(() => {
+          this.loadTasks();
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Errore nell\'aggiornamento del task:', error);
+      
+      // Mostra toast di errore
+      const toast = await this.toastController.create({
+        message: '❌ Errore nel salvataggio. Riprova.',
+        duration: 3000,
+        position: 'top',
+        color: 'danger'
+      });
+      await toast.present();
+      
+      // Ripristina lo stato precedente in caso di errore
+      this.loadTasks();
+    }
   }
 
   reload() {
@@ -477,6 +521,49 @@ export class HomePage implements OnInit, OnDestroy {
       this.loadTasks();
     } else {
       this.loadTasks();
+    }
+  }
+
+  // Gestisce il salvataggio delle modifiche drag & drop
+  async onSaveCalendarChanges(event: {
+    tasks: Record<string, any[]>,
+    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>
+  }) {
+    try {
+      this.loading.set(true);
+
+      // Chiama l'API per aggiornare lo schedule
+      const result = await this.calendarService.updateSchedule(event.movedTasks).toPromise();
+
+      if (result?.success) {
+        const alert = await this.alertController.create({
+          header: 'Modifiche salvate',
+          message: `${result.updated} task aggiornati con successo!`,
+          buttons: ['OK']
+        });
+        await alert.present();
+
+        // Ricarica i dati aggiornati
+        this.loadTasks();
+      } else {
+        const alert = await this.alertController.create({
+          header: 'Attenzione',
+          message: `Salvate ${result?.updated || 0} modifiche. Errori: ${result?.errors.join(', ')}`,
+          buttons: ['OK']
+        });
+        await alert.present();
+      }
+
+    } catch (err) {
+      console.error('Errore nel salvataggio:', err);
+      const alert = await this.alertController.create({
+        header: 'Errore',
+        message: 'Impossibile salvare le modifiche. Riprova più tardi.',
+        buttons: ['OK']
+      });
+      await alert.present();
+    } finally {
+      this.loading.set(false);
     }
   }
 

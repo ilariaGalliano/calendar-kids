@@ -38,10 +38,28 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   // Output per comunicare con il parent
   @Output() taskDone = new EventEmitter<{ instanceId: string; done: boolean }>();
   @Output() viewChanged = new EventEmitter<{ view: 'day' | 'week' | 'now', date?: string }>();
+  @Output() changesRequested = new EventEmitter<{
+    tasks: Record<string, KidTask[]>,
+    movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>
+  }>();
 
   // Signal per la gestione della vista
   currentView = signal<'day' | 'week' | 'now'>('week');
   currentDate = signal<string>('');
+  
+  // Signal per tracciare modifiche non salvate
+  hasUnsavedChanges = signal<boolean>(false);
+  isSaving = signal<boolean>(false);
+  
+  // Array per tracciare i task spostati
+  private movedTasksLog: Array<{ 
+    taskId: string, 
+    fromDay: string, 
+    toDay: string, 
+    fromChildId: string, 
+    toChildId: string,
+    task: KidTask 
+  }> = [];
 
   // Signal interno solo per il drag & drop
   lists = signal<Record<string, KidTask[]>>({});
@@ -124,20 +142,58 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     return 'warning'; // Arancione per molte task
   }
 
-  // Drag & Drop migliorato per riordino interno
-  drop(event: CdkDragDrop<KidTask[]>, targetDay: string) {
-
+  // Drag & Drop migliorato per riordino interno e trasferimento tra griglie
+  drop(event: CdkDragDrop<KidTask[]>, targetDay?: string, targetChildId?: string) {
     const lists = this.lists();
     const prev = event.previousContainer.data;
     const curr = event.container.data;
 
     if (event.previousContainer === event.container) {
-      // Riordino interno nello stesso giorno
+      // Riordino interno nella stessa drop zone
       moveItemInArray(curr, event.previousIndex, event.currentIndex);
-
+      // Anche il riordino è una modifica
+      this.hasUnsavedChanges.set(true);
     } else {
-      // Trasferimento tra giorni diversi
+      // Trasferimento tra drop zone diverse (diversi bambini o giorni)
+      const movedTask = prev[event.previousIndex];
+      
+      // Estrai informazioni sul task spostato prima del trasferimento
+      const fromContainerId = event.previousContainer.id;
+      const toContainerId = event.container.id;
+      
+      // Estrai day e childId dagli ID dei container
+      // Formato: 'drop-list-{day}-{childId}' o 'drop-list-now-{childId}'
+      const fromParts = fromContainerId.split('-');
+      const toParts = toContainerId.split('-');
+      
+      const fromDay = fromParts[2] === 'now' ? 'now' : fromParts[2];
+      const fromChildId = fromParts[2] === 'now' ? fromParts[3] : fromParts[3];
+      const toDay = targetDay || (toParts[2] === 'now' ? 'now' : toParts[2]);
+      const toChildId = targetChildId || (toParts[2] === 'now' ? toParts[3] : toParts[3]);
+      
       transferArrayItem(prev, curr, event.previousIndex, event.currentIndex);
+
+      // Se stiamo trasferendo tra bambini o giorni, aggiorna i metadati del task
+      if (targetDay && curr[event.currentIndex]) {
+        const updatedTask = curr[event.currentIndex];
+        // Aggiorna il childId se stiamo cambiando bambino
+        if (targetChildId && (updatedTask as any).childId !== targetChildId) {
+          (updatedTask as any).childId = targetChildId;
+        }
+      }
+      
+      // Log del task spostato
+      this.movedTasksLog.push({
+        taskId: movedTask.id,
+        fromDay,
+        toDay,
+        fromChildId,
+        toChildId,
+        task: movedTask
+      });
+      
+      // Marca che ci sono modifiche non salvate
+      this.hasUnsavedChanges.set(true);
     }
 
     // Aggiorna il signal con una nuova referenza dell'oggetto
@@ -338,32 +394,85 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     this.timeWindowData.set(data);
   }
 
-  // Restituisce l'array di drop lists connessi per permettere il drag tra giorni
-  getConnectedDropLists(currentDay: string): string[] {
-    if (this.currentView() === 'day') {
-      // Per la vista giornaliera con bambini, permetti il trasferimento tra tutti i bambini dello stesso giorno
-      // e anche verso gli altri giorni
-      const connectedLists: string[] = [];
-
-      // Aggiungi tutte le drop list dei bambini per il giorno corrente
-      const children = this.getChildrenWithTasksForDay(currentDay);
-      children.forEach(child => {
-        connectedLists.push(`drop-list-${currentDay}-${child.id}`);
+  // Salva le modifiche e notifica il parent
+  async saveChanges() {
+    if (!this.hasUnsavedChanges()) return;
+    
+    this.isSaving.set(true);
+    
+    try {
+      // Emetti evento con tutte le modifiche
+      this.changesRequested.emit({
+        tasks: this.lists(),
+        movedTasks: this.movedTasksLog.map(log => ({
+          taskId: log.taskId,
+          fromDay: log.fromDay,
+          toDay: log.toDay,
+          fromChildId: log.fromChildId,
+          toChildId: log.toChildId
+        }))
       });
-
-      // Aggiungi le drop list degli altri giorni (per vista settimana/mese)
-      this.getDisplayDays().forEach(day => {
-        if (day !== currentDay) {
-          connectedLists.push(`drop-list-${day}`);
-        }
-      });
-
-      return connectedLists;
-    } else {
-      // Vista normale settimana/mese
-      return this.getDisplayDays()
-        .map(day => `drop-list-${day}`);
+      
+      // Resetta il log e le modifiche non salvate
+      this.movedTasksLog = [];
+      this.hasUnsavedChanges.set(false);
+    } catch (error) {
+      console.error('Errore durante il salvataggio:', error);
+    } finally {
+      this.isSaving.set(false);
     }
+  }
+
+  // Scarta le modifiche e ricarica i dati originali
+  discardChanges() {
+    // Ricarica i dati originali dal tasksByDay input
+    this.lists.set({ ...this.tasksByDay });
+    this.movedTasksLog = [];
+    this.hasUnsavedChanges.set(false);
+  }
+
+  // Restituisce l'array di drop lists connessi per permettere il drag tra giorni
+  getConnectedDropLists(currentDay?: string, currentChildId?: string): string[] {
+    const connectedLists: string[] = [];
+
+    // Vista "now" - connetti a tutte le drop zone dei bambini
+    if (this.currentView() === 'now') {
+      const nowData = this.timeWindowData();
+      if (nowData && nowData.tasks) {
+        nowData.tasks.forEach((kid: any) => {
+          connectedLists.push(`drop-list-now-${kid.childId}`);
+        });
+      }
+      return connectedLists;
+    }
+
+    // Vista giornaliera/settimanale - connetti tutte le drop zone di tutti i bambini di tutti i giorni
+    this.getDisplayDays().forEach(day => {
+      if (this.currentView() === 'day') {
+        // Vista giornaliera: connetti tutti i bambini del giorno
+        const children = this.getChildrenWithTasksForDay(day);
+        children.forEach(child => {
+          connectedLists.push(`drop-list-${day}-${child.id}`);
+        });
+      } else {
+        // Vista settimanale: connetti tutti i bambini di ogni giorno
+        const children = this.getWeekChildrenForDay(day);
+        children.forEach(child => {
+          connectedLists.push(`drop-list-${day}-${child.id}`);
+        });
+      }
+    });
+
+    // Rimuovi la drop list corrente per evitare self-reference
+    if (currentDay && currentChildId) {
+      const currentListId = `drop-list-${currentDay}-${currentChildId}`;
+      const index = connectedLists.indexOf(currentListId);
+      if (index > -1) {
+        connectedLists.splice(index, 1);
+      }
+    }
+
+    return connectedLists;
   }
 
   // Metodi per le statistiche del bambino attivo

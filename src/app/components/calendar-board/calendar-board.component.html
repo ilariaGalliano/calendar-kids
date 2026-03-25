@@ -85,9 +85,17 @@
                 </div>
                 <ion-badge>{{ kid.tasks.length }}</ion-badge>
               </div>
-              <div class="kid-task-list child-drop-zone">
+              <div cdkDropList 
+                   [id]="'drop-list-now-' + kid.childId" 
+                   [cdkDropListData]="kid.tasks"
+                   (cdkDropListDropped)="drop($event, undefined, kid.childId)" 
+                   [cdkDropListConnectedTo]="getConnectedDropLists(undefined, kid.childId)"
+                   class="kid-task-list child-drop-zone">
                 @for (task of kid.tasks; track task.instanceId) {
-                  <div class="task-wrapper child-task">
+                  <div cdkDrag 
+                       [cdkDragData]="task" 
+                       [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
+                       class="task-wrapper child-task">
                     <div class="task-content">
                       <app-kid-task-card [task]="task" (doneChange)="onDone($event)"></app-kid-task-card>
                       <div class="drag-handle-wrapper" cdkDragHandle>
@@ -100,6 +108,12 @@
                         <span>Rilascia qui</span>
                       </div>
                     </div>
+                  </div>
+                }
+                @if (kid.tasks.length === 0) {
+                  <div class="empty-child-zone">
+                    <ion-icon name="happy-outline"></ion-icon>
+                    <p>Nessuna attività per {{ kid.childName }}</p>
                   </div>
                 }
               </div>
@@ -153,8 +167,8 @@
             </div>
 
             <div cdkDropList [id]="'drop-list-' + d + '-' + child.id" [cdkDropListData]="child.tasks"
-              (cdkDropListDropped)="drop($event, d)" class="child-drop-zone" cdkDropListSortingDisabled="false"
-              [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+              (cdkDropListDropped)="drop($event, d, child.id)" class="child-drop-zone" cdkDropListSortingDisabled="false"
+              [cdkDropListConnectedTo]="getConnectedDropLists(d, child.id)">
 
               @for (task of child.tasks; track task.instanceId) {
               <div cdkDrag [cdkDragData]="task" [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
@@ -218,8 +232,8 @@
                   </ion-badge>
                 </div>
                 <div cdkDropList [id]="'drop-list-' + d + '-' + kid.id" [cdkDropListData]="kid.tasks"
-                  (cdkDropListDropped)="drop($event, d)" class="child-drop-zone" cdkDropListSortingDisabled="false"
-                  [cdkDropListConnectedTo]="getConnectedDropLists(d)">
+                  (cdkDropListDropped)="drop($event, d, kid.id)" class="child-drop-zone" cdkDropListSortingDisabled="false"
+                  [cdkDropListConnectedTo]="getConnectedDropLists(d, kid.id)">
                   @for (task of kid.tasks; track task.instanceId) {
                     <div cdkDrag [cdkDragData]="task" [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
                       class="task-wrapper child-task">
@@ -263,9 +277,185 @@
   </div>
 </ion-content>
 
+<!-- Floating Save Button - appare solo quando ci sono modifiche -->
+@if (hasUnsavedChanges()) {
+  <div class="save-actions-fab">
+    <div class="fab-container">
+      <button class="discard-btn" (click)="discardChanges()" [disabled]="isSaving()">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span>Annulla</span>
+      </button>
+      <button class="save-btn" (click)="saveChanges()" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <ion-icon name="sync-outline" class="spinning"></ion-icon>
+          <span>Salvataggio...</span>
+        } @else {
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>Salva modifiche</span>
+        }
+      </button>
+    </div>
+    <div class="changes-indicator">
+      <ion-icon name="warning-outline"></ion-icon>
+      <span>Hai modifiche non salvate</span>
+    </div>
+  </div>
+}
+
 <style>
 .disabled-section {
   pointer-events: none;
   opacity: 0.5;
+}
+
+/* Floating Save Actions */
+.save-actions-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.fab-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.save-btn,
+.discard-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+}
+
+.save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.discard-btn {
+  background: white;
+  color: #666;
+  border: 2px solid #e0e0e0;
+}
+
+.discard-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.discard-btn:active:not(:disabled) {
+  background: #eeeeee;
+}
+
+.discard-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save-btn ion-icon,
+.discard-btn ion-icon {
+  font-size: 20px;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 152, 0, 0.95);
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.changes-indicator ion-icon {
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .save-actions-fab {
+    bottom: 80px;
+    right: 16px;
+    left: 16px;
+    align-items: stretch;
+  }
+
+  .fab-container {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .save-btn,
+  .discard-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 16px 24px;
+  }
+
+  .changes-indicator {
+    align-self: center;
+  }
 }
 </style>
