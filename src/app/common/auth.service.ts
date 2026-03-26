@@ -58,12 +58,16 @@ export class AuthService {
   }
 
   async loginWithGoogle(): Promise<string | null> {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const redirectTo = `${environment.frontendUrl}/auth/callback`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo }
+    });
     if (error) {
       console.error('Google login error:', error);
       return null;
     }
-    // L'utente viene reindirizzato, quindi il token sarà disponibile dopo il redirect
+    // L'utente viene reindirizzato a /auth/callback dopo il login Google
     return null;
   }
 

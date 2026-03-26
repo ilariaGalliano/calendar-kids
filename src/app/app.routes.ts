@@ -4,6 +4,11 @@ import { AuthGuard } from './common/auth.guard';
 
 export const routes: Routes = [
   {
+    // Callback OAuth Google/Supabase - NESSUN guard, gestisce il code exchange PKCE
+    path: 'auth/callback',
+    loadComponent: () => import('./components/auth-callback/auth-callback.component').then((m) => m.AuthCallbackComponent),
+  },
+  {
     path: 'home',
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
     canActivate: [AuthGuard]
