@@ -37,7 +37,10 @@ export class AuthCallbackComponent implements OnInit {
     const { data } = await supabase.auth.getSession();
     if (data.session) return data.session;
 
-    // Aspetta l'evento onAuthStateChange se la sessione non è ancora pronta
+    // Aspetta SIGNED_IN oppure INITIAL_SESSION con sessione.
+    // - INITIAL_SESSION con sessione: PKCE già completato prima che ci iscrivessimo
+    // - SIGNED_IN: PKCE completato dopo la nostra iscrizione
+    // - INITIAL_SESSION senza sessione: PKCE in corso, continuiamo ad aspettare
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         sub.data.subscription.unsubscribe();
@@ -45,11 +48,12 @@ export class AuthCallbackComponent implements OnInit {
       }, timeoutMs);
 
       const sub = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
           clearTimeout(timer);
           sub.data.subscription.unsubscribe();
           resolve(session);
         }
+        // INITIAL_SESSION senza sessione = PKCE ancora in corso, continuiamo ad aspettare
       });
     });
   }

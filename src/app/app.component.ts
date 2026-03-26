@@ -20,25 +20,26 @@ export class AppComponent {
 
   async ngOnInit() {
     supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user?.id) {
-        await this.auth.setUserId(session.user.id);
-        // Navigate only when coming from login/root (new login or OAuth redirect).
-        // Do NOT navigate on token refresh (SIGNED_IN fires every ~1h).
-        const currentUrl = this.router.url;
-        const isOnAuthPage = currentUrl === '/' || currentUrl === '/login' || currentUrl.startsWith('/login');
-        if (isOnAuthPage) {
-          this.router.navigate(['/family-setup']);
-        }
-      }
 
-      if (event === 'INITIAL_SESSION' && session?.user?.id) {
-        // App reloaded with existing session — restore userId but don't redirect
+      const currentUrl = this.router.url;
+      const isOnAuthPage =
+        currentUrl === '/' ||
+        currentUrl === '/login' ||
+        currentUrl.startsWith('/login') ||
+        currentUrl.startsWith('/auth/callback');
+
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user?.id) {
         await this.auth.setUserId(session.user.id);
+        // Naviga a family-setup solo se siamo su una pagina di auth/root.
+        // Questo copre sia il caso "PKCE veloce" (INITIAL_SESSION) che quello normale (SIGNED_IN).
+        if (isOnAuthPage) {
+          this.router.navigate(['/family-setup'], { replaceUrl: true });
+        }
       }
 
       if (event === 'SIGNED_OUT') {
         await this.auth.clearToken();
-        this.router.navigate(['/login']);
+        this.router.navigate(['/login'], { replaceUrl: true });
       }
     });
 
