@@ -87,7 +87,7 @@ export interface CurrentTimeWindowData {
 }
 
 // Utility per convertire CalendarTask in KidTask (compatibilità)
-export function calendarTaskToKidTask(calendarTask: CalendarTask, date: string): import('./kid.models').KidTask {
+export function calendarTaskToKidTask(calendarTask: CalendarTask & { timer?: number }, date: string): import('./kid.models').KidTask {
   return {
     id: calendarTask.taskId,
     instanceId: calendarTask.id,
@@ -102,6 +102,7 @@ export function calendarTaskToKidTask(calendarTask: CalendarTask, date: string):
     description: calendarTask.description,
     icon: calendarTask.icon,
     childId: calendarTask.childId,
-    childName: calendarTask.childName
+    childName: calendarTask.childName,
+    duration: typeof calendarTask.timer === 'number' ? calendarTask.timer : undefined
   };
 }

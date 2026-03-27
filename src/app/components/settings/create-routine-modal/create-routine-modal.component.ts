@@ -2,13 +2,13 @@ import { Component, Input, OnInit } from '@angular/core';
 import { NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonContent, IonLabel, IonInput, IonCheckbox, IonList, IonModal } from "@ionic/angular/standalone";
+import { IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonContent, IonLabel, IonInput, IonCheckbox, IonList, IonModal, IonTextarea } from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-create-routine-modal',
   templateUrl: './create-routine-modal.component.html',
   styleUrls: ['./create-routine-modal.component.scss'],
-  imports: [IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonContent, IonLabel, IonInput, IonCheckbox, IonList, FormsModule, NgForOf, IonModal],
+  imports: [IonButton, IonItem, IonButtons, IonHeader, IonTitle, IonToolbar, IonContent, IonLabel, IonInput, IonCheckbox, IonList, FormsModule, NgForOf, IonModal, IonTextarea],
   providers: [ModalController],
   standalone: true
 })
@@ -24,9 +24,11 @@ export class CreateRoutineModalComponent implements OnInit {
     emoji: '🎯',
     title: '',
     description: '',
-    duration: 5,
+    duration: 30,
     reward: 10,
-    color: '#4ECDC4'
+    color: '#4ECDC4',
+    startTime: '08:00',
+    endTime: '08:30'
   };
   taskColors = [
     '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -42,9 +44,11 @@ export class CreateRoutineModalComponent implements OnInit {
       emoji: '🎯',
       title: '',
       description: '',
-      duration: 5,
+      duration: 30,
       reward: 10,
-      color: '#4ECDC4'
+      color: '#4ECDC4',
+      startTime: '08:00',
+      endTime: '08:30'
     };
     this.showTaskModalSignal = true;
   }
@@ -53,7 +57,11 @@ export class CreateRoutineModalComponent implements OnInit {
   openEditTaskModal(day: string, task: any) {
     this.addingToDay = day;
     this.editingTaskObj = task;
-    this.taskForm = { ...task };
+    this.taskForm = { 
+      ...task,
+      startTime: task.startTime || '08:00',
+      endTime: task.endTime || '08:30'
+    };
     this.showTaskModalSignal = true;
   }
 
@@ -64,16 +72,32 @@ export class CreateRoutineModalComponent implements OnInit {
   }
 
   saveTask() {
+    // Validazione obbligatoria
+    if (!this.taskForm.title?.trim()) {
+      alert('Inserisci il nome del task');
+      return;
+    }
+    if (!this.taskForm.startTime || !this.taskForm.endTime) {
+      alert('Inserisci ora di inizio e fine');
+      return;
+    }
+    
     if (this.addingToDay) {
+      const taskData = {
+        ...this.taskForm,
+        startTime: this.taskForm.startTime,
+        endTime: this.taskForm.endTime,
+      };
+      
       if (this.editingTaskObj) {
         // Update existing task
         const idx = this.tasksByDay[this.addingToDay].findIndex((t: any) => t.id === this.editingTaskObj.id);
         if (idx > -1) {
-          this.tasksByDay[this.addingToDay][idx] = { ...this.taskForm, id: this.editingTaskObj.id };
+          this.tasksByDay[this.addingToDay][idx] = { ...taskData, id: this.editingTaskObj.id };
         }
       } else {
         // Add new task
-        this.tasksByDay[this.addingToDay].push({ ...this.taskForm, id: crypto.randomUUID() });
+        this.tasksByDay[this.addingToDay].push({ ...taskData, id: crypto.randomUUID() });
       }
     }
     this.closeTaskModal();

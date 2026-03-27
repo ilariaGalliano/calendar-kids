@@ -27,4 +27,5 @@ export interface KidTask {
   reminders?: number[];
   timerActive?: boolean;
   timerValue?: number; 
+  duration?: number; // minuti, opzionale
 }

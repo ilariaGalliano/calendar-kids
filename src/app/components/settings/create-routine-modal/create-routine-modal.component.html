@@ -35,8 +35,14 @@
     <ion-list>
       <ion-item *ngFor="let task of tasksByDay[day.key]">
         <ion-label>
-          {{ task.title }} — {{task.duration}} min
+          {{ task.emoji }} {{ task.title }} — {{task.duration}} min
+          @if (task.startTime) {
+            <span class="time-badge">🕐 {{ task.startTime }} - {{ task.endTime }}</span>
+          }
         </ion-label>
+        <ion-button slot="end" fill="clear" size="small" (click)="openEditTaskModal(day.key, task)">
+          ✏️
+        </ion-button>
       </ion-item>
     </ion-list>
 
@@ -89,6 +95,21 @@
             <ion-input type="number" [(ngModel)]="taskForm.duration" placeholder="5">
             </ion-input>
           </ion-item>
+
+          <!-- Time Range Section - OBBLIGATORIO -->
+          <div class="time-section required">
+            <h4>⏰ Orario *</h4>
+            
+            <ion-item>
+              <ion-label position="stacked">Ora inizio *</ion-label>
+              <ion-input type="time" [(ngModel)]="taskForm.startTime" required></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Ora fine *</ion-label>
+              <ion-input type="time" [(ngModel)]="taskForm.endTime" required></ion-input>
+            </ion-item>
+          </div>
 
           <ion-item>
             <ion-label position="stacked">Ricompensa</ion-label>

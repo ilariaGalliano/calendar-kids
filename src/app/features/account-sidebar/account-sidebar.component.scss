@@ -1,18 +1,26 @@
-.sidebar-content { 
-  background: var(--ion-card-background);
+// ── Layout radice ──────────────────────────────────────────────────────────
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  padding: 16px;
+  // Usa l'altezza intera della viewport, rispettando le safe-area iOS
+  height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: 100%;
+  background: var(--ion-card-background);
+  overflow: hidden; // il contenuto scrollabile è ion-content
 }
 
 .sidebar-header {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--ion-color-medium);
-  margin-bottom: 16px;
-  
-  h2 { 
-    margin: 0; 
+  flex-shrink: 0; // non si comprime mai
+  padding: 20px 16px 16px;
+  padding-top: calc(20px + env(safe-area-inset-top));
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.3);
+  background: var(--ion-card-background);
+
+  h2 {
+    margin: 0;
     color: var(--kids-text-dark);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
     background: linear-gradient(45deg, var(--kids-blue), var(--kids-pink));
     -webkit-background-clip: text;
@@ -21,36 +29,55 @@
   }
 }
 
+ion-content.sidebar-scroll {
+  flex: 1;
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
 .current-AppUser-section {
-  margin-bottom: 24px;
-  
+  margin-bottom: 20px;
+
   h3 {
     color: var(--kids-text-dark);
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 10px 0;
+    opacity: 0.55;
   }
 }
 
 .family-section {
-  margin-bottom: 24px;
-  
+  margin-bottom: 20px;
+
   .section-header {
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    margin-bottom: 12px;
-    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
     h3 {
       color: var(--kids-text-dark);
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
       margin: 0;
+      opacity: 0.55;
     }
-    
+
     ion-button {
       --color: var(--kids-blue);
-      --background: rgba(108, 140, 255, 0.1);
+      --background: rgba(108, 140, 255, 0.12);
+      --border-radius: 8px;
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 32px;
     }
   }
 }
@@ -130,56 +157,50 @@ ion-item {
 }
 
 .actions-section {
-  padding-top: 16px;
-  border-top: 1px solid var(--ion-color-medium);
-  
-  ion-button { 
+  flex-shrink: 0; // non si comprime mai
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.3);
+  background: var(--ion-card-background);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  ion-button {
+    margin: 0;
+    --border-radius: 12px;
     --border-color: rgba(108, 140, 255, 0.3);
     --color: var(--kids-text-dark);
-    margin-bottom: 8px;
-    
-    &[color="danger"] {
-      --border-color: rgba(255, 181, 194, 0.5);
+    font-weight: 600;
+
+    &[color='danger'] {
+      --border-color: transparent;
+      --background: rgba(var(--ion-color-danger-rgb), 0.08);
       --color: var(--ion-color-danger);
     }
   }
 }
 
-// Mobile responsive
 @media (max-width: 768px) {
-  .sidebar-content {
-    padding: 12px;
-  }
-
   .sidebar-header {
-    padding: 12px 0;
-    
-    h2 {
-      font-size: 1.3rem;
-    }
+    padding: 16px 14px 14px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+
+    h2 { font-size: 1.25rem; }
   }
 
-  .current-AppUser-section,
-  .family-section {
-    margin-bottom: 16px;
-    
-    h3 {
-      font-size: 0.9rem;
-    }
+  ion-content.sidebar-scroll {
+    --padding-start: 12px;
+    --padding-end: 12px;
   }
 
   ion-item {
     --padding-start: 8px;
     --padding-end: 8px;
-    
+
     ion-label {
-      h2 {
-        font-size: 0.95rem;
-      }
-      
-      p {
-        font-size: 0.85rem;
-      }
+      h2 { font-size: 0.95rem; }
+      p  { font-size: 0.82rem; }
     }
   }
 
@@ -192,31 +213,9 @@ ion-item {
     font-size: 10px;
     padding: 3px 8px;
   }
-}
-
-@media (max-width: 480px) {
-  .sidebar-content {
-    padding: 8px;
-  }
-
-  .sidebar-header h2 {
-    font-size: 1.2rem;
-  }
-
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 8px;
-
-    ion-button {
-      width: 100%;
-    }
-  }
 
   .actions-section {
-    ion-button {
-      width: 100%;
-      margin-bottom: 6px;
-    }
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 }

@@ -51,9 +51,11 @@ export class SettingsComponent implements OnInit {
     emoji: '🎯',
     title: '',
     description: '',
-    duration: 5,
+    duration: 30,
     reward: 15,
-    color: '#4ECDC4'
+    color: '#4ECDC4',
+    startTime: '08:00',
+    endTime: '08:30'
   };
 
   taskColors = [
@@ -150,7 +152,9 @@ export class SettingsComponent implements OnInit {
       color: task?.color ?? '#4ECDC4',
       description: task?.description ?? '',
       isActive: task?.isActive ?? true,
-    };
+      startTime: task?.startTime ?? null,
+      endTime: task?.endTime ?? null,
+    } as Task;
   }
 
   loadRoutines() {
@@ -384,9 +388,11 @@ export class SettingsComponent implements OnInit {
       emoji: '🎯',
       title: '',
       description: '',
-      duration: 5,
+      duration: 30,
       color: '#4ECDC4',
-      reward: 10
+      reward: 10,
+      startTime: '08:00',
+      endTime: '08:30'
     };
     this.editingTask.set(null);
     this.showTaskModal.set(true);
@@ -399,7 +405,9 @@ export class SettingsComponent implements OnInit {
       description: task.description ?? '',
       duration: task.duration,
       color: task.color ?? '#4ECDC4',
-      reward: task.reward
+      reward: task.reward,
+      startTime: (task as any).startTime || '08:00',
+      endTime: (task as any).endTime || '08:30'
     };
     this.editingTask.set(task);
     this.showTaskModal.set(true);
@@ -425,9 +433,14 @@ export class SettingsComponent implements OnInit {
       return id !== String(task.id);
     });
 
-    // Update only this day's tasks
-    const tasksByDay: Record<number, string[]> = {
-      [dayNumber]: remainingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id))
+    // Update only this day's tasks — preserve startTime/endTime/duration for remaining tasks
+    const tasksByDay: Record<number, any[]> = {
+      [dayNumber]: remainingTasks.map((t: any) => ({
+        id: typeof t === 'string' ? t : t.id,
+        startTime: t.startTime || null,
+        endTime: t.endTime || null,
+        duration: t.duration || null
+      }))
     };
 
     this.settingService.updateRoutine(routine.id, {
@@ -441,14 +454,26 @@ export class SettingsComponent implements OnInit {
   }
 
   saveTask() {
-    const payload: TaskPayload = {
+    // Validazione
+    if (!this.taskForm.title?.trim()) {
+      alert('Inserisci il nome del task');
+      return;
+    }
+    if (!this.taskForm.startTime || !this.taskForm.endTime) {
+      alert('Inserisci ora di inizio e fine');
+      return;
+    }
+
+    const payload = {
       title: this.taskForm.title,
       emoji: this.taskForm.emoji,
       color: this.taskForm.color,
       duration: this.taskForm.duration,
       description: this.taskForm.description,
       reward: this.taskForm.reward,
-      isActive: this.editingTask()?.isActive ?? true
+      isActive: this.editingTask()?.isActive ?? true,
+      startTime: this.taskForm.startTime,
+      endTime: this.taskForm.endTime
     };
 
     const editing = this.editingTask();
@@ -464,19 +489,31 @@ export class SettingsComponent implements OnInit {
       this.settingService.createTask(payload).subscribe((createdTask: Task) => {
         // If adding to a routine/day, update the routine
         if (this.addingToRoutine && this.addingToDay) {
-          // Add the new task to the routine's tasks and day if not present
-          const updatedRoutine = { ...this.addingToRoutine };
-          if (!updatedRoutine.tasks.map((t: any) => typeof t === 'string' ? t : t.id).includes(createdTask.id)) {
-            updatedRoutine.tasks.push(createdTask);
-          }
-          if (!updatedRoutine.days.includes(this.addingToDay)) {
-            updatedRoutine.days.push(this.addingToDay);
-          }
-          this.settingService.updateRoutine(updatedRoutine.id, {
-            nametask: updatedRoutine.name,
-            isActive: updatedRoutine.isActive,
-            days: updatedRoutine.days,
-            taskIds: updatedRoutine.tasks.map(t => String(typeof t === 'string' ? t : t.id))
+          const dayNumber = this.dayCodeToNumber(this.addingToDay);
+          const currentTasksForDay = this.addingToRoutine.tasksByDay?.[dayNumber] || [];
+
+          // Build task entries: preserve existing tasks + new task with time info
+          const taskEntries = [
+            ...currentTasksForDay.map((t: any) => ({
+              id: typeof t === 'string' ? t : t.id,
+              startTime: t.startTime || null,
+              endTime: t.endTime || null,
+              duration: t.duration || null
+            })),
+            {
+              id: createdTask.id,
+              startTime: this.taskForm.startTime,
+              endTime: this.taskForm.endTime,
+              duration: this.taskForm.duration
+            }
+          ];
+
+          this.settingService.updateRoutine(this.addingToRoutine.id, {
+            nametask: this.addingToRoutine.name,
+            isActive: this.addingToRoutine.isActive,
+            tasksByDay: {
+              [dayNumber]: taskEntries
+            }
           }).subscribe(() => {
             this.loadRoutines();
             this.closeTaskModal();
@@ -545,9 +582,11 @@ export class SettingsComponent implements OnInit {
       emoji: '🎯',
       title: '',
       description: '',
-      duration: 5,
+      duration: 30,
       color: '#4ECDC4',
-      reward: 10
+      reward: 10,
+      startTime: '08:00',
+      endTime: '08:30'
     };
     this.editingTask.set(null);
     this.showTaskModal.set(true);
@@ -568,12 +607,12 @@ export class SettingsComponent implements OnInit {
       type: 'checkbox',
       label: `${task.emoji} ${task.title} (${task.duration}min, 🏆${task.reward})`,
       value: task.id,
-      checked: currentTaskIds.includes(String(task.id)) // Pre-check if already added
+      checked: currentTaskIds.includes(String(task.id))
     }));
 
     const alert = document.createElement('ion-alert');
     alert.header = `${this.getDayLabel(day)} - ${routine.name}`;
-    alert.message = 'Seleziona le attività da aggiungere a questo giorno';
+    alert.message = 'Seleziona le attività da aggiungere';
     alert.inputs = taskOptions as any;
     alert.buttons = [
       {
@@ -581,12 +620,13 @@ export class SettingsComponent implements OnInit {
         role: 'cancel'
       },
       {
-        text: 'Salva',
+        text: 'Avanti →',
         handler: (selectedTaskIds: string[]) => {
           if (!selectedTaskIds || selectedTaskIds.length === 0) {
             return;
           }
-          this.addSelectedTasksToRoutine(routine, day, selectedTaskIds);
+          // Show time picker for each new task
+          this.promptTimesForTasks(routine, day, selectedTaskIds, currentTasksForDay);
         }
       }
     ];
@@ -594,35 +634,133 @@ export class SettingsComponent implements OnInit {
     await alert.present();
   }
 
-  private addSelectedTasksToRoutine(routine: Routine, day: string, taskIds: string[]) {
+  private async promptTimesForTasks(routine: Routine, day: string, allTaskIds: string[], existingTasks: any[]) {
+    const dayNumber = this.dayCodeToNumber(day);
+    const existingTaskIds = existingTasks.map(t => String(typeof t === 'string' ? t : t.id));
+    
+    // Find newly added tasks (not in existing)
+    const newTaskIds = allTaskIds.filter(id => !existingTaskIds.includes(id));
+    
+    if (newTaskIds.length === 0) {
+      // No new tasks, just update
+      this.finalizeTasksToRoutine(routine, day, existingTasks);
+      return;
+    }
+
+    // Get task details for new tasks
+    const allTasks = this.tasks();
+    const tasksToAdd: any[] = [];
+    
+    for (const taskId of newTaskIds) {
+      const task = allTasks.find(t => t.id === taskId);
+      if (task) {
+        // Prompt for time
+        const times = await this.promptTimeForTask(task, day);
+        if (times) {
+          tasksToAdd.push({
+            id: task.id,
+            startTime: times.startTime,
+            endTime: times.endTime,
+            duration: times.duration
+          });
+        }
+      }
+    }
+
+    // Combine existing tasks with new tasks (with times and duration)
+    const finalTasks = [
+      ...existingTasks.map(t => ({
+        id: typeof t === 'string' ? t : t.id,
+        startTime: t.startTime || null,
+        endTime: t.endTime || null,
+        duration: t.duration || null
+      })),
+      ...tasksToAdd
+    ];
+
+    this.finalizeTasksToRoutine(routine, day, finalTasks);
+  }
+
+  private promptTimeForTask(task: Task, day: string): Promise<{ startTime: string, endTime: string, duration: number } | null> {
+    return new Promise((resolve) => {
+      const alert = document.createElement('ion-alert');
+      alert.header = `⏰ Orario per ${task.emoji} ${task.title}`;
+      alert.subHeader = this.getDayLabel(day);
+      alert.inputs = [
+        {
+          name: 'startTime',
+          type: 'time',
+          value: '08:00',
+          label: 'Ora inizio'
+        },
+        {
+          name: 'endTime',
+          type: 'time',
+          value: '08:30',
+          label: 'Ora fine'
+        }
+      ];
+      alert.buttons = [
+        {
+          text: 'Salta',
+          role: 'cancel',
+          handler: () => resolve(null)
+        },
+        {
+          text: 'Conferma',
+          handler: (data) => {
+            const startTime = data.startTime || '08:00';
+            const endTime = data.endTime || '08:30';
+            const duration = this.calculateDurationFromTimes(startTime, endTime);
+            resolve({
+              startTime,
+              endTime,
+              duration
+            });
+          }
+        }
+      ];
+      document.body.appendChild(alert);
+      alert.present();
+    });
+  }
+
+  /**
+   * Calcola la durata in minuti dalla differenza tra endTime e startTime
+   */
+  private calculateDurationFromTimes(startTime: string, endTime: string): number {
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
+    
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    
+    let duration = endTotalMinutes - startTotalMinutes;
+    
+    // Se la durata è negativa (es. 23:00 - 01:00), aggiungi 24 ore
+    if (duration < 0) {
+      duration += 24 * 60;
+    }
+    
+    // Minimo 1 minuto
+    return Math.max(1, duration);
+  }
+
+  private finalizeTasksToRoutine(routine: Routine, day: string, tasks: any[]) {
     const dayNumber = this.dayCodeToNumber(day);
     
-    // Get existing tasks for this specific day
-    const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
-    const currentTaskIds = currentTasksForDay.map(t => String(typeof t === 'string' ? t : t.id));
-    
-    // The taskIds array contains ALL selected tasks (both existing and new)
-    // We need to calculate which ones are actually new
-    const newlyAddedIds = taskIds.filter(id => !currentTaskIds.includes(id));
-    const newlyAddedCount = newlyAddedIds.length;
-    
-    // Build tasksByDay object with only the updated day
-    const tasksByDay: Record<number, string[]> = {
-      [dayNumber]: taskIds // Send all selected task IDs
+    // Build tasksByDay with task objects including times
+    const tasksByDay: Record<number, any[]> = {
+      [dayNumber]: tasks
     };
     
-    // Update routine with new structure
     this.settingService.updateRoutine(routine.id, {
       nametask: routine.name,
       isActive: routine.isActive,
       tasksByDay
     }).subscribe(() => {
       this.loadRoutines();
-      if (newlyAddedCount > 0) {
-        this.showToast(`✅ ${newlyAddedCount} nuova attività aggiunta a ${this.getDayLabel(day)}`);
-      } else {
-        this.showToast(`✅ Attività aggiornate per ${this.getDayLabel(day)}`);
-      }
+      this.showToast(`✅ Attività aggiornate per ${this.getDayLabel(day)}`);
     });
   }
 

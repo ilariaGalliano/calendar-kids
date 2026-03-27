@@ -73,7 +73,7 @@ export class SettingService {
     days: string[]; 
     tasks: any[];
     taskIds: string[];
-    tasksByDay: Record<number, string[]>; // NEW: tasks per day (0=Sun, 1=Mon, ..., 6=Sat)
+    tasksByDay: Record<number, any[]>; // tasks per day (0=Sun, 1=Mon, ..., 6=Sat), can be IDs or objects with times
   }>): Observable<any> {
     return this.http.put<any>(`${this.base}/settings/routine/${id}`, routine);
   }

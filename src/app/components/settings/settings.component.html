@@ -174,7 +174,12 @@
                       <span class="task-emoji">{{ task.emoji }}</span>
                       <div>
                         <div class="task-title">{{ task.title }}</div>
-                        <div class="task-meta">{{ task.duration }} min · 🏆 {{ task.reward }}</div>
+                        <div class="task-meta">
+                          @if (task.startTime) {
+                            <span class="task-time">🕐 {{ task.startTime }} - {{ task.endTime }}</span> · 
+                          }
+                          {{ task.duration }} min · 🏆 {{ task.reward }}
+                        </div>
                       </div>
                     </div>
 
@@ -247,9 +252,22 @@
 
           <ion-item>
             <ion-label position="stacked">Durata (minuti)</ion-label>
-            <ion-input type="number" [(ngModel)]="taskForm.duration" placeholder="5">
+            <ion-input type="number" [(ngModel)]="taskForm.duration" placeholder="30">
             </ion-input>
           </ion-item>
+
+          <!-- Orario Obbligatorio -->
+          <div class="time-section">
+            <h4>⏰ Orario *</h4>
+            <ion-item>
+              <ion-label position="stacked">Ora inizio *</ion-label>
+              <ion-input type="time" [(ngModel)]="taskForm.startTime" required></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Ora fine *</ion-label>
+              <ion-input type="time" [(ngModel)]="taskForm.endTime" required></ion-input>
+            </ion-item>
+          </div>
 
           <ion-item>
             <ion-label position="stacked">Ricompensa</ion-label>

@@ -627,3 +627,40 @@
     }
   }
 }
+
+// Time section styling for task modal
+.time-section {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  border: 2px solid var(--ion-color-primary);
+  
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
+  
+  ion-item {
+    --background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    
+    ion-input {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  }
+}
+
+// Task time display
+.task-time {
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary-shade);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

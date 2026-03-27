@@ -32,6 +32,8 @@ export interface Task {
   duration: number; // minuti
   description?: string;
   reward: number;
+  startTime?: string | null; // 'HH:mm' - ora inizio
+  endTime?: string | null;   // 'HH:mm' - ora fine
   // category: 'morning' | 'afternoon' | 'evening' | 'custom';
 }
 
@@ -57,4 +59,6 @@ export interface TaskPayload {
   color: string;
   isActive: boolean;
   reward: number;
+  startTime?: string;
+  endTime?: string;
 }

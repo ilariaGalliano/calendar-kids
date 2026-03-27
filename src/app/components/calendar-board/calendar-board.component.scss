@@ -1,6 +1,6 @@
 // Skylight Calendar Max inspired design
 .kids-page {
-  --background: linear-gradient(135deg, #f8fafb 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --background: linear-gradient(160deg, #f0f4ff 0%, #f8fafc 45%, #eef2ff 100%);
   position: relative;
   overflow: visible;
   min-height: 100vh;
@@ -44,23 +44,26 @@
 .calendar-container {
   position: relative;
   z-index: 2;
-  padding: 24px;
+  padding: clamp(12px, 3vw, 24px);
   max-width: 1400px;
   margin: 0 auto;
+  padding-bottom: calc(clamp(12px, 3vw, 24px) + env(safe-area-inset-bottom));
 }
 
 // Modern family header inspired by Skylight Calendar
 .kid-profile-header {
-  background: rgba(255, 255, 255, 0.98);
+  background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(238,242,255,0.95) 100%);
   backdrop-filter: blur(24px);
-  padding: 20px 32px;
+  padding: clamp(16px, 3vw, 20px) clamp(16px, 4vw, 32px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 16px 16px 0 0;
-  margin-bottom: 0;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
+  margin-bottom: clamp(12px, 2vw, 16px);
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(199, 210, 254, 0.6);
+  gap: 16px;
+  flex-wrap: wrap;
   
   .kid-welcome {
     display: flex;
@@ -137,16 +140,16 @@
 // Clean, professional calendar header
 .calendar-header {
   background: rgba(255, 255, 255, 0.98);
-  border-radius: 0 0 16px 16px;
-  padding: 24px 32px;
-  
-  &:first-child {
-    border-radius: 16px;
-  }
-  margin-bottom: 32px;
+  border-radius: 20px;
+  padding: clamp(16px, 3vw, 24px) clamp(16px, 4vw, 32px);
+  margin-bottom: clamp(16px, 3vw, 32px);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(226, 232, 240, 0.6);
+
+  &:first-child {
+    border-radius: 20px;
+  }
 
   .header-top {
     display: flex;
@@ -156,7 +159,7 @@
 
     h1 {
       margin: 0;
-      font-size: 2rem;
+      font-size: clamp(1.3rem, 4vw, 2rem);
       font-weight: 800;
       color: #1e293b;
       letter-spacing: -0.025em;
@@ -192,10 +195,10 @@
 
     .date-title {
       flex: 1;
-      
+
       h2 {
         margin: 0;
-        font-size: 1.4rem;
+        font-size: clamp(1rem, 3vw, 1.4rem);
         color: #475569;
         font-weight: 600;
         letter-spacing: -0.025em;
@@ -223,8 +226,8 @@
 // Modern grid layout inspired by Skylight Calendar
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: clamp(12px, 2vw, 24px);
   padding-bottom: 48px;
 
   &.single-day {
@@ -703,6 +706,36 @@
   }
 }
 
+// Vista "Ora corrente" - now wrapper
+.now-wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+
+  .now-title {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+  }
+}
+
+.no-now-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  border: 2px dashed #c7d2fe;
+
+  ion-text {
+    font-size: 1rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
 .task-disabled {
   opacity: 0.45;
   pointer-events: none;
@@ -729,158 +762,110 @@
 // Responsive design for modern layout
 @media (max-width: 768px) {
   .calendar-container {
-    padding: 16px;
+    padding: 12px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)); // spazio per tab bar
   }
 
   .calendar-header {
-    padding: 20px 16px;
-    margin-bottom: 24px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 16px;
 
     .header-top {
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       text-align: center;
+      margin-bottom: 14px;
 
-      h1 {
-        font-size: 1.6rem;
-      }
-
-      .nav-controls {
-        gap: 8px;
-        
-        .today-btn, .nav-btn {
-          --padding-start: 12px;
-          --padding-end: 12px;
-        }
-      }
+      h1 { font-size: 1.5rem; }
     }
 
     .header-bottom {
       flex-direction: column;
-      text-align: center;
-      gap: 16px;
+      align-items: stretch;
+      gap: 12px;
 
-      .date-title h2 {
-        font-size: 1.2rem;
-      }
+      .date-title { text-align: center; }
 
       .view-selector {
-        min-width: 240px;
+        min-width: unset;
         width: 100%;
-        max-width: 300px;
       }
     }
   }
 
   .kid-profile-header {
-    padding: 16px 20px;
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-    
+    padding: 14px 16px;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 12px;
+
     .kid-welcome {
-      justify-content: center;
-      
       .kid-avatar-circle {
-        width: 56px;
-        height: 56px;
-        
-        .kid-emoji {
-          font-size: 2rem;
-        }
+        width: 48px;
+        height: 48px;
+        .kid-emoji { font-size: 1.7rem; }
       }
-      
-      .kid-info h2 {
-        font-size: 1.3rem;
-      }
+      .kid-info h2 { font-size: 1.1rem; }
+      .kid-info .kid-theme { font-size: 0.78rem; }
     }
-    
+
     .kid-stats {
-      gap: 24px;
-      justify-content: center;
+      gap: 16px;
+      margin-left: auto;
+      .stat-item .stat-number { font-size: 1.4rem; }
+      .stat-item .stat-label { font-size: 0.72rem; }
     }
   }
 
   .days-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-    
-    &.single-day {
-      .day-card {
-        .day-header {
-          padding: 20px 16px;
-          
-          .day-emoji {
-            font-size: 2.8rem;
-          }
-          
-          ion-card-title {
-            font-size: 1.3rem;
-          }
-        }
-        
-        ion-card-content {
-          padding: 20px 16px;
-        }
-      }
+    gap: 12px;
+  }
+
+  .day-card {
+    border-radius: 14px;
+
+    .day-header {
+      padding: 16px;
+      .day-emoji { font-size: 2rem; margin-bottom: 8px; }
+      ion-card-title { font-size: 1.1rem; }
+      .day-date { font-size: 0.85rem; }
     }
-    
-    &.now-view {
-      .now-card {
-        .now-header .current-time-section {
-          .time-emoji {
-            font-size: 2.8rem;
-          }
-          
-          ion-card-title {
-            font-size: 1.8rem;
-          }
-        }
-        
-        ion-card-content {
-          padding: 20px 16px;
-        }
+
+    ion-card-content {
+      padding: 14px;
+
+      .drop-zone .task-wrapper .task-content .drag-handle-wrapper {
+        right: 6px;
+        padding: 6px;
+        opacity: 1;
+        .external-drag-handle { font-size: 1.2rem; }
       }
     }
   }
 
-  .day-card {
-    .day-header {
-      padding: 20px 16px;
-      
-      .day-emoji {
-        font-size: 2.4rem;
+  .child-section {
+    margin-bottom: 20px;
+
+    .child-header {
+      padding: 14px 16px;
+
+      .child-avatar-container {
+        gap: 10px;
+        .child-avatar { width: 44px; height: 44px; font-size: 1.6rem; }
+        .child-info .child-name { font-size: 1rem; }
+        .child-info .child-progress { font-size: 0.8rem; }
       }
-      
-      ion-card-title {
-        font-size: 1.2rem;
-      }
-      
-      .day-date {
-        font-size: 0.9rem;
-      }
+
+      .completion-badge { font-size: 0.72rem; padding: 5px 8px; }
     }
-    
-    ion-card-content {
-      padding: 20px 16px;
-      
-      .drop-zone {
-        .task-wrapper {
-          .task-content {
-            .drag-handle-wrapper {
-              right: 8px;
-              padding: 6px;
-              opacity: 1; // Sempre visibile su mobile
-              
-              .external-drag-handle {
-                font-size: 1.2rem;
-              }
-            }
-          }
-        }
-      }
-    }
+
+    .child-drop-zone { padding: 10px 14px 14px; }
   }
+
+  .now-wrapper { padding-bottom: 24px; }
 }
 
 @media (max-width: 480px) {
