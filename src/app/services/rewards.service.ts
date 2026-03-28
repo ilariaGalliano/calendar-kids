@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 export interface RewardPoints {
   childId: string;
@@ -16,17 +19,29 @@ export interface PointsAnimation {
   timestamp: number;
 }
 
+export interface RedemptionRecord {
+  childId: string;
+  childName: string;
+  pointsRedeemed: number;
+  redeemedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RewardsService {
   private readonly POINTS_PER_TASK = 10;
   private readonly STORAGE_KEY = 'calendarKids_rewards';
+  private readonly REDEMPTION_HISTORY_KEY = 'calendarKids_redemptions';
+  private http = inject(HttpClient);
+  private baseUrl = environment.apiBase;
   
   // Signals per il reactive state
   childrenPoints = signal<RewardPoints[]>([]);
   pointsAnimations = signal<PointsAnimation[]>([]);
+  redemptionHistory = signal<RedemptionRecord[]>([]);
 
   constructor() {
     this.loadPointsFromStorage();
+    this.loadRedemptionHistory();
   }
 
   // Aggiunge punti quando un'attività viene completata
@@ -123,6 +138,55 @@ export class RewardsService {
     }, 2000);
   }
 
+  // ─── PIN & Riscossione ──────────────────────────────────────────────────
+
+  /** Controlla se il genitore ha già impostato un PIN */
+  hasPinSet(): Observable<boolean> {
+    return this.http.get<{ hasPin: boolean }>(`${this.baseUrl}/users/me/pin/status`)
+      .pipe(map(r => r.hasPin));
+  }
+
+  /** Imposta o aggiorna il PIN del genitore */
+  setPin(pin: string): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.baseUrl}/users/me/pin`, { pin });
+  }
+
+  /** Verifica il PIN — restituisce { valid: true/false } */
+  verifyPin(pin: string): Observable<{ valid: boolean }> {
+    return this.http.post<{ valid: boolean }>(`${this.baseUrl}/users/me/pin/verify`, { pin });
+  }
+
+  /** Azzera i punti del bambino dopo riscossione */
+  redeemPoints(childId: string): void {
+    const points = this.childrenPoints();
+    const idx = points.findIndex(p => p.childId === childId);
+    if (idx < 0) return;
+
+    const record: RedemptionRecord = {
+      childId,
+      childName: points[idx].childName,
+      pointsRedeemed: points[idx].totalPoints,
+      redeemedAt: new Date().toISOString(),
+    };
+
+    points[idx] = {
+      ...points[idx],
+      totalPoints: 0,
+      dailyPoints: 0,
+      tasksCompleted: 0,
+    };
+
+    this.childrenPoints.set([...points]);
+    this.savePointsToStorage();
+
+    // Salva nella cronologia
+    const history = this.redemptionHistory();
+    this.redemptionHistory.set([record, ...history]);
+    this.saveRedemptionHistory();
+  }
+
+  // ─── Storage helpers ────────────────────────────────────────────────────
+
   // Salva i punti nel localStorage
   private savePointsToStorage(): void {
     try {
@@ -143,6 +207,19 @@ export class RewardsService {
     } catch (error) {
       console.error('❌ Errore nel caricamento punti:', error);
     }
+  }
+
+  private saveRedemptionHistory(): void {
+    try {
+      localStorage.setItem(this.REDEMPTION_HISTORY_KEY, JSON.stringify(this.redemptionHistory()));
+    } catch { /* ignore */ }
+  }
+
+  private loadRedemptionHistory(): void {
+    try {
+      const saved = localStorage.getItem(this.REDEMPTION_HISTORY_KEY);
+      if (saved) this.redemptionHistory.set(JSON.parse(saved) as RedemptionRecord[]);
+    } catch { /* ignore */ }
   }
 
   // Ottiene il numero totale di stelle guadagnate

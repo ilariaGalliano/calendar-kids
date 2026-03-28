@@ -1,13 +1,14 @@
-import { Component, Input, inject, computed } from '@angular/core';
+import { Component, Input, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonBadge } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { IonIcon, IonBadge, IonModal, IonButton, IonInput, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner } from '@ionic/angular/standalone';
 import { RewardsService } from '../../services/rewards.service';
 import { Child } from '../../models/family.models';
 
 @Component({
   selector: 'app-child-rewards',
   standalone: true,
-  imports: [CommonModule, IonIcon, IonBadge],
+  imports: [CommonModule, FormsModule, IonIcon, IonBadge, IonModal, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner],
   template: `
     <div class="child-rewards">
       <div class="rewards-header">
@@ -15,9 +16,14 @@ import { Child } from '../../models/family.models';
           <span class="child-avatar">{{ child.avatar }}</span>
           <span class="child-name">{{ child.name }}</span>
         </div>
-        <div class="points-display">
-          <ion-icon name="star" class="star-icon"></ion-icon>
-          <span class="points-text">{{ childPoints()?.totalPoints || 0 }}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="points-display">
+            <ion-icon name="star" class="star-icon"></ion-icon>
+            <span class="points-text">{{ childPoints()?.totalPoints || 0 }}</span>
+          </div>
+          @if ((childPoints()?.totalPoints || 0) > 0) {
+            <button class="redeem-btn" (click)="openRedeemModal()">🎁</button>
+          }
         </div>
       </div>
       
@@ -49,6 +55,59 @@ import { Child } from '../../models/family.models';
         </ion-badge>
       }
     </div>
+
+    <!-- Modal PIN riscossione -->
+    <ion-modal [isOpen]="showPinModal()" (willDismiss)="closePinModal()" [breakpoints]="[0, 0.55]" [initialBreakpoint]="0.55">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ isSettingPin() ? '🔐 Crea PIN Genitore' : '🎁 Riscuota Punti' }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="closePinModal()">✖️</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <div style="text-align:center; padding: 8px 0 20px;">
+            @if (isSettingPin()) {
+              <p style="color: var(--ion-color-medium); font-size:0.9rem; margin-bottom:4px;">
+                Crea un PIN a 4 cifre che userai per riscuotere i premi dei bambini.
+              </p>
+            } @else {
+              <p style="color: var(--ion-color-medium); font-size:0.9rem; margin-bottom:4px;">
+                Inserisci il PIN genitore per riscuotere
+                <strong>{{ childPoints()?.totalPoints || 0 }} punti</strong>
+                di <strong>{{ child.name }}</strong>.
+              </p>
+            }
+
+            <!-- Dots indicator -->
+            <div style="display:flex; justify-content:center; gap:12px; margin: 16px 0;">
+              @for (i of [0,1,2,3]; track i) {
+                <div [style]="'width:14px;height:14px;border-radius:50%;background:' + (pinValue().length > i ? 'var(--ion-color-primary)' : 'var(--ion-color-light-shade)')"></div>
+              }
+            </div>
+
+            <!-- Tastierino numerico -->
+            <div class="pin-pad">
+              @for (n of [1,2,3,4,5,6,7,8,9]; track n) {
+                <button class="pin-key" (click)="appendPin(n.toString())" [disabled]="pinLoading()">{{ n }}</button>
+              }
+              <button class="pin-key pin-key--ghost" disabled></button>
+              <button class="pin-key" (click)="appendPin('0')" [disabled]="pinLoading()">0</button>
+              <button class="pin-key pin-key--delete" (click)="deletePin()" [disabled]="pinLoading()">⌫</button>
+            </div>
+
+            @if (pinError()) {
+              <p style="color:var(--ion-color-danger); font-weight:600; margin-top:12px;">{{ pinError() }}</p>
+            }
+            @if (pinLoading()) {
+              <ion-spinner name="crescent" color="primary" style="margin-top:16px;"></ion-spinner>
+            }
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     .child-rewards {
@@ -156,34 +215,146 @@ import { Child } from '../../models/family.models';
       --padding-start: 8px;
       --padding-end: 8px;
     }
+
+    .redeem-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.35);
+      transition: transform 0.15s;
+      &:active { transform: scale(0.93); }
+    }
+
+    .pin-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      gap: 10px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .pin-key {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: none;
+      background: var(--ion-color-light);
+      font-size: 1.4rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--ion-color-dark);
+      transition: background 0.12s, transform 0.1s;
+      &:active { background: var(--ion-color-light-shade); transform: scale(0.93); }
+      &:disabled { opacity: 0.4; cursor: default; }
+      &--delete { background: transparent; font-size: 1.3rem; }
+      &--ghost { background: transparent; pointer-events: none; }
+    }
   `]
 })
 export class ChildRewardsComponent {
   @Input() child!: Child;
   
   private rewardsService = inject(RewardsService);
-  
+
+  // ── Rewards computed ────────────────────────────────────────────────────
   childPoints = computed(() => 
     this.rewardsService.getPointsForChild(this.child.id)
   );
-  
   starsEarned = computed(() => 
     this.rewardsService.getStarsForPoints(this.childPoints()?.totalPoints || 0)
   );
-  
-  starsArray = computed(() => 
-    Array(this.starsEarned()).fill(0)
-  );
-  
+  starsArray = computed(() => Array(this.starsEarned()).fill(0));
   pointsToNext = computed(() => 
     this.rewardsService.getPointsToNextStar(this.childPoints()?.totalPoints || 0)
   );
-  
-  hasPartialProgress = computed(() => 
-    (this.childPoints()?.totalPoints || 0) % 50 > 0
-  );
-  
-  progressPercentage = computed(() => 
-    ((this.childPoints()?.totalPoints || 0) % 50) * 2
-  );
+  hasPartialProgress = computed(() => (this.childPoints()?.totalPoints || 0) % 50 > 0);
+  progressPercentage = computed(() => ((this.childPoints()?.totalPoints || 0) % 50) * 2);
+
+  // ── PIN modal state ─────────────────────────────────────────────────────
+  showPinModal = signal(false);
+  isSettingPin = signal(false);
+  pinValue = signal('');
+  pinError = signal('');
+  pinLoading = signal(false);
+
+  openRedeemModal() {
+    this.pinValue.set('');
+    this.pinError.set('');
+    this.pinLoading.set(true);
+    this.rewardsService.hasPinSet().subscribe({
+      next: (hasPin) => {
+        this.pinLoading.set(false);
+        this.isSettingPin.set(!hasPin);
+        this.showPinModal.set(true);
+      },
+      error: () => {
+        // Fallback: mostra il flusso di impostazione PIN
+        this.pinLoading.set(false);
+        this.isSettingPin.set(true);
+        this.showPinModal.set(true);
+      }
+    });
+  }
+
+  closePinModal() {
+    this.showPinModal.set(false);
+    this.pinValue.set('');
+    this.pinError.set('');
+  }
+
+  appendPin(digit: string) {
+    if (this.pinValue().length >= 4) return;
+    this.pinValue.update(v => v + digit);
+    this.pinError.set('');
+
+    if (this.pinValue().length === 4) {
+      this.isSettingPin() ? this.submitSetPin() : this.submitVerifyPin();
+    }
+  }
+
+  deletePin() {
+    this.pinValue.update(v => v.slice(0, -1));
+    this.pinError.set('');
+  }
+
+  private submitSetPin() {
+    this.pinLoading.set(true);
+    this.rewardsService.setPin(this.pinValue()).subscribe({
+      next: () => {
+        this.pinLoading.set(false);
+        // PIN impostato → ora riscuoti direttamente
+        this.rewardsService.redeemPoints(this.child.id);
+        this.closePinModal();
+      },
+      error: () => {
+        this.pinLoading.set(false);
+        this.pinError.set('Errore nel salvataggio del PIN. Riprova.');
+        this.pinValue.set('');
+      }
+    });
+  }
+
+  private submitVerifyPin() {
+    this.pinLoading.set(true);
+    this.rewardsService.verifyPin(this.pinValue()).subscribe({
+      next: ({ valid }) => {
+        this.pinLoading.set(false);
+        if (valid) {
+          this.rewardsService.redeemPoints(this.child.id);
+          this.closePinModal();
+        } else {
+          this.pinError.set('PIN errato. Riprova.');
+          this.pinValue.set('');
+        }
+      },
+      error: () => {
+        this.pinLoading.set(false);
+        this.pinError.set('Errore di rete. Riprova.');
+        this.pinValue.set('');
+      }
+    });
+  }
 }
