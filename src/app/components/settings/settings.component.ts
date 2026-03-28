@@ -47,6 +47,27 @@ export class SettingsComponent implements OnInit {
   showTaskModal = signal(false);
   editingTask = signal<Task | null>(null);
 
+  // Time picker modal state
+  showTimePickerModal = signal(false);
+  timePickerTask: Task | null = null;
+  timePickerDay = '';
+  timePickerForm = { startTime: '08:00', endTime: '08:30' };
+  private timePickerResolve: ((val: { startTime: string; endTime: string; duration: number } | null) => void) | null = null;
+
+  confirmTimePicker() {
+    const { startTime, endTime } = this.timePickerForm;
+    const duration = this.calculateDurationFromTimes(startTime, endTime);
+    this.timePickerResolve?.({ startTime, endTime, duration });
+    this.timePickerResolve = null;
+    this.showTimePickerModal.set(false);
+  }
+
+  cancelTimePicker() {
+    this.timePickerResolve?.(null);
+    this.timePickerResolve = null;
+    this.showTimePickerModal.set(false);
+  }
+
   taskForm = {
     emoji: '🎯',
     title: '',
@@ -683,45 +704,15 @@ export class SettingsComponent implements OnInit {
 
   private promptTimeForTask(task: Task, day: string): Promise<{ startTime: string, endTime: string, duration: number } | null> {
     return new Promise((resolve) => {
-      const alert = document.createElement('ion-alert');
-      alert.header = `⏰ Orario per ${task.emoji} ${task.title}`;
-      alert.subHeader = this.getDayLabel(day);
-      alert.inputs = [
-        {
-          name: 'startTime',
-          type: 'time',
-          value: '08:00',
-          label: 'Ora inizio'
-        },
-        {
-          name: 'endTime',
-          type: 'time',
-          value: '08:30',
-          label: 'Ora fine'
-        }
-      ];
-      alert.buttons = [
-        {
-          text: 'Salta',
-          role: 'cancel',
-          handler: () => resolve(null)
-        },
-        {
-          text: 'Conferma',
-          handler: (data) => {
-            const startTime = data.startTime || '08:00';
-            const endTime = data.endTime || '08:30';
-            const duration = this.calculateDurationFromTimes(startTime, endTime);
-            resolve({
-              startTime,
-              endTime,
-              duration
-            });
-          }
-        }
-      ];
-      document.body.appendChild(alert);
-      alert.present();
+      this.timePickerTask = task;
+      this.timePickerDay = day;
+      // Pre-fill with task's default times if available
+      this.timePickerForm = {
+        startTime: (task as any).startTime || '08:00',
+        endTime: (task as any).endTime || '08:30'
+      };
+      this.timePickerResolve = resolve;
+      this.showTimePickerModal.set(true);
     });
   }
 

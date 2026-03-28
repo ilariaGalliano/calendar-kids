@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation, ElementRef, inject } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { IonItem, IonLabel, IonBadge, IonIcon, IonCheckbox} from '@ionic/angular/standalone';
-import { DatePipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KidTask } from 'src/app/models/kid.models';
 import { RewardsService } from '../../services/rewards.service';
@@ -9,7 +9,7 @@ import { RewardsService } from '../../services/rewards.service';
 @Component({
   selector: 'app-kid-task-card',
   standalone: true,
-  imports: [IonItem, IonLabel, IonBadge, DatePipe, CommonModule, IonCheckbox, FormsModule],
+  imports: [IonItem, IonLabel, IonBadge, CommonModule, IonCheckbox, FormsModule],
   templateUrl: './kid-task-card.component.html',
   styleUrls: ['./kid-task-card.component.scss'],
   animations: [
@@ -71,5 +71,19 @@ export class KidTaskCardComponent {
       // Rimuovi punti quando l'attività viene decompletata
       this.rewardsService.removePointsForTask(childId);
     }
+  }
+
+  /** Estrae l'orario di inizio senza conversione di fuso orario */
+  getStartTime(): string {
+    if (this.task.startTime) return this.task.startTime;
+    // Prende direttamente i caratteri HH:MM dall'ISO UTC string (pos 11-15)
+    // senza usare Date() che convertirebbe in orario locale
+    return this.task.start.substring(11, 16);
+  }
+
+  /** Estrae l'orario di fine senza conversione di fuso orario */
+  getEndTime(): string {
+    if (this.task.endTime) return this.task.endTime;
+    return this.task.end.substring(11, 16);
   }
 }

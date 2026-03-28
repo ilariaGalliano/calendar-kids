@@ -12,13 +12,12 @@
         <span style="font-size: 28px;">{{ task.icon }}</span>
       </div>
       <p class="task-time">
-        {{ task.start | date:'shortTime' }} → {{ task.end | date:'shortTime' }}
+        🕐 {{ getStartTime() }} → {{ getEndTime() }}
         <ion-badge *ngIf="task.duration" class="duration-badge" color="primary" style="margin-left:8px;">
           {{ task.duration }} min
         </ion-badge>
       </p>
     </ion-label>
-
     <!-- Fare timer -->
 
     <!-- Icona moneta con punti -->

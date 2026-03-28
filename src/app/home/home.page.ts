@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, computed, signal, inject } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -42,7 +43,9 @@ interface TaskInstance {
   icon?: string;  // tasks.icon (solo routine activities)
   timer?: number | null; // activities.timer (durata in minuti)
   value?: number | null; // activities.value (punti reward)
-  source?: 'routine' | 'activity'; // campo sintetico dal BE
+  source?: 'routine' | 'activity'; // campo sintetico dal BE,
+  startTime?: string; 
+  endTime?: string; 
 }
 
 interface DayTasks {
@@ -66,7 +69,7 @@ interface DayTasks {
     ChildRewardsComponent
   ]
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
   private calendarService = inject(CalendarService);
   private familyService = inject(FamilyService);
   private router = inject(Router);
@@ -177,6 +180,12 @@ export class HomePage implements OnInit, OnDestroy {
 
 
 
+  ionViewWillEnter() {
+    // Reload tasks every time the page comes back into view
+    // (e.g. after navigating back from Settings)
+    this.loadChildrenAndTasks();
+  }
+
   ngOnDestroy() {
     // Clean up subscriptions if any
   }
@@ -274,6 +283,8 @@ export class HomePage implements OnInit, OnDestroy {
             timer: a.timer ?? null,
             value: a.value ?? null,
             source: a.source ?? 'activity',
+            startTime: a.start_time ? a.start_time.substring(0, 5) : null,
+            endTime: a.end_time ? a.end_time.substring(0, 5) : null,
           };
         }),
       };
@@ -313,6 +324,8 @@ export class HomePage implements OnInit, OnDestroy {
           timer: activity.timer ?? null,
           value: activity.value ?? null,
           source: activity.source ?? 'activity',
+          startTime: activity.start_time ? activity.start_time.substring(0, 5) : null,
+          endTime: activity.end_time ? activity.end_time.substring(0, 5) : null,
         });
       });
     return weekTasks;

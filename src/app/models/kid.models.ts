@@ -28,4 +28,6 @@ export interface KidTask {
   timerActive?: boolean;
   timerValue?: number; 
   duration?: number; // minuti, opzionale
+  startTime?: string | null; // HH:MM raw string (no timezone conversion)
+  endTime?: string | null;   // HH:MM raw string
 }

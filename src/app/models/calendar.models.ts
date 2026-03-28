@@ -103,6 +103,8 @@ export function calendarTaskToKidTask(calendarTask: CalendarTask & { timer?: num
     icon: calendarTask.icon,
     childId: calendarTask.childId,
     childName: calendarTask.childName,
-    duration: typeof calendarTask.timer === 'number' ? calendarTask.timer : undefined
+    duration: typeof calendarTask.timer === 'number' ? calendarTask.timer : undefined,
+    startTime: calendarTask.startTime ?? null,
+    endTime: calendarTask.endTime ?? null,
   };
 }
