@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface RewardPoints {
   childId: string;
@@ -16,17 +19,28 @@ export interface PointsAnimation {
   timestamp: number;
 }
 
+export interface RedemptionRecord {
+  childId: string;
+  childName: string;
+  pointsRedeemed: number;
+  redeemedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RewardsService {
   private readonly POINTS_PER_TASK = 10;
   private readonly STORAGE_KEY = 'calendarKids_rewards';
+  private readonly REDEMPTION_HISTORY_KEY = 'calendarKids_redemptions';
+  private http = inject(HttpClient);
   
   // Signals per il reactive state
   childrenPoints = signal<RewardPoints[]>([]);
   pointsAnimations = signal<PointsAnimation[]>([]);
+  redemptionHistory = signal<RedemptionRecord[]>([]);
 
   constructor() {
     this.loadPointsFromStorage();
+    this.loadRedemptionHistory();
   }
 
   // Aggiunge punti quando un'attività viene completata
@@ -154,5 +168,59 @@ export class RewardsService {
   getPointsToNextStar(points: number): number {
     const nextStarPoints = (Math.floor(points / 50) + 1) * 50;
     return nextStarPoints - points;
+  }
+
+  // ── PIN & Redemption ─────────────────────────────────────────────────────
+
+  hasPinSet(): Observable<boolean> {
+    return new Observable(observer => {
+      this.http.get<{ hasPin: boolean }>(`${environment.apiBase}/users/me/pin/status`)
+        .subscribe({
+          next: ({ hasPin }) => { observer.next(hasPin); observer.complete(); },
+          error: (e) => observer.error(e)
+        });
+    });
+  }
+
+  setPin(pin: string): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${environment.apiBase}/users/me/pin`, { pin });
+  }
+
+  verifyPin(pin: string): Observable<{ valid: boolean }> {
+    return this.http.post<{ valid: boolean }>(`${environment.apiBase}/users/me/pin/verify`, { pin });
+  }
+
+  redeemPoints(childId: string): void {
+    const points = this.childrenPoints();
+    const idx = points.findIndex(p => p.childId === childId);
+    if (idx < 0) return;
+
+    const child = points[idx];
+    const record: RedemptionRecord = {
+      childId,
+      childName: child.childName,
+      pointsRedeemed: child.totalPoints,
+      redeemedAt: new Date().toISOString()
+    };
+
+    points[idx] = { ...child, totalPoints: 0, dailyPoints: 0, tasksCompleted: 0 };
+    this.childrenPoints.set([...points]);
+    this.savePointsToStorage();
+
+    this.redemptionHistory.update(h => [record, ...h]);
+    this.saveRedemptionHistory();
+  }
+
+  private saveRedemptionHistory(): void {
+    try {
+      localStorage.setItem(this.REDEMPTION_HISTORY_KEY, JSON.stringify(this.redemptionHistory()));
+    } catch {}
+  }
+
+  private loadRedemptionHistory(): void {
+    try {
+      const saved = localStorage.getItem(this.REDEMPTION_HISTORY_KEY);
+      if (saved) this.redemptionHistory.set(JSON.parse(saved) as RedemptionRecord[]);
+    } catch {}
   }
 }
