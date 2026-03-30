@@ -18,7 +18,7 @@ import { Child } from '../../models/family.models';
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="points-display">
-            <ion-icon name="star" class="star-icon"></ion-icon>
+            🌟
             <span class="points-text">{{ childPoints()?.totalPoints || 0 }}</span>
           </div>
           @if ((childPoints()?.totalPoints || 0) > 0) {
@@ -222,7 +222,7 @@ import { Child } from '../../models/family.models';
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       border: none;
       border-radius: 20px;
-      padding: 5px 10px;
+      padding: 8px 12px;
       font-size: 1rem;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(245,158,11,0.35);
