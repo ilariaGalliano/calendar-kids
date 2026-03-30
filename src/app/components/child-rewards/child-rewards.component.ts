@@ -1,14 +1,14 @@
 import { Component, Input, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, IonBadge, IonModal, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon, IonBadge, IonModal, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner, IonToast } from '@ionic/angular/standalone';
 import { RewardsService } from '../../services/rewards.service';
 import { Child } from '../../models/family.models';
 
 @Component({
   selector: 'app-child-rewards',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonIcon, IonBadge, IonModal, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner],
+  imports: [CommonModule, FormsModule, IonIcon, IonBadge, IonModal, IonButton, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonSpinner, IonToast],
   template: `
     <div class="child-rewards">
       <div class="rewards-header">
@@ -110,6 +110,16 @@ import { Child } from '../../models/family.models';
         </ion-content>
       </ng-template>
     </ion-modal>
+
+    <!-- Toast successo riscossione -->
+    <ion-toast
+      [isOpen]="showSuccessToast()"
+      [message]="successToastMsg()"
+      [duration]="3000"
+      color="success"
+      position="top"
+      (didDismiss)="showSuccessToast.set(false)"
+    ></ion-toast>
   `,
   styles: [`
     .child-rewards {
@@ -283,6 +293,8 @@ export class ChildRewardsComponent {
   pinValue = signal('');
   pinError = signal('');
   pinLoading = signal(false);
+  showSuccessToast = signal(false);
+  successToastMsg = signal('');
 
   openRedeemModal() {
     this.pinValue.set('');
@@ -326,9 +338,12 @@ export class ChildRewardsComponent {
     this.pinLoading.set(true);
     this.rewardsService.setPin(this.pinValue()).subscribe({
       next: () => {
+        const pts = this.childPoints()?.totalPoints || 0;
         this.pinLoading.set(false);
         this.rewardsService.redeemPoints(this.child.id);
         this.closePinModal();
+        this.successToastMsg.set(`🎉 Hai riscosso ${pts} punti di ${this.child.name}!`);
+        this.showSuccessToast.set(true);
       },
       error: () => {
         this.pinLoading.set(false);
@@ -344,8 +359,11 @@ export class ChildRewardsComponent {
       next: ({ valid }) => {
         this.pinLoading.set(false);
         if (valid) {
+          const pts = this.childPoints()?.totalPoints || 0;
           this.rewardsService.redeemPoints(this.child.id);
           this.closePinModal();
+          this.successToastMsg.set(`🎉 Hai riscosso ${pts} punti di ${this.child.name}!`);
+          this.showSuccessToast.set(true);
         } else {
           this.pinError.set('PIN errato. Riprova.');
           this.pinValue.set('');
