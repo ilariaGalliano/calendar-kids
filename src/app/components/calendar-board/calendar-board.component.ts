@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, signal } fro
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonContent,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
   IonButton, IonSegment, IonSegmentButton, IonLabel, IonIcon,
   IonText
 } from '@ionic/angular/standalone';
@@ -18,7 +18,7 @@ import { calendar, today, chevronBack, chevronForward, moveOutline, calendarOutl
   standalone: true,
   imports: [
     CommonModule, DatePipe,
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge,
     IonSegment, IonSegmentButton, IonLabel, IonIcon,
     CdkDropList, CdkDrag, CdkDragPlaceholder, CdkDragHandle, KidTaskCardComponent, IonText
   ],
