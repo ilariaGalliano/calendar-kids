@@ -51,19 +51,6 @@ export class LoginComponent implements OnInit {
   }
 
   async login() {
-
-    const demoFamily = {
-      id: "demo-family",
-      parentName: "Lorena",
-      createdAt: new Date(),
-      children: [
-        { id: "kid1", name: "Sofia", avatar: "🧚‍♀️", age: 8, point: 0, sex: "female", createdAt: new Date(), tasks: [] },
-        { id: "kid2", name: "Marco", avatar: "🤴", age: 6, point: 0, sex: "male", createdAt: new Date(), tasks: [] },
-        { id: "kid3", name: "Emma", avatar: "🦸‍♀️", age: 3, point: 0, sex: "female", createdAt: new Date(), tasks: [] }
-      ]
-    };
-
-    localStorage.setItem('calendarKids_family', JSON.stringify(demoFamily));
     await this.authService.setToken('token');
     // this.router.navigateByUrl('/home', { replaceUrl: true });
     this.router.navigate(['/family-setup']);

@@ -2,7 +2,7 @@ export interface Child {
   id: string;
   name: string;
   avatar?: string;
-  age: number;
+  years: string;
   view: 'teen' | 'child';
   createdAt: Date;
 }

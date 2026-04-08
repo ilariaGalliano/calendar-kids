@@ -1,15 +1,7 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * App Global CSS — CalendarKids 2026 Design System
  */
 
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
 /* Basic CSS for apps built with Ionic */
@@ -36,177 +28,233 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* ---------- Base palette (Kids Premium) ---------- */
+/* ── Design Tokens ────────────────────────────────────────────── */
 :root {
-  --ion-color-primary:   #6C8CFF; /* azzurro lavanda */
-  --ion-color-secondary: #FFD47A; /* giallo miele */
-  --ion-color-tertiary:  #FF9BAA; /* rosa pesca */
-  --ion-color-success:   #7ED8A4; /* verde positivo */
-  --ion-color-warning:   #FFD56B;
-  --ion-color-danger:    #FFB5C2;
-  --ion-color-medium:    #94A3B8; /* slate/medium */
-  --ion-color-dark:      #2C2C54;
+  /* ─ Ionic color overrides ─ */
+  --ion-color-primary:           #6366F1;
+  --ion-color-primary-rgb:       99, 102, 241;
+  --ion-color-primary-contrast:  #ffffff;
+  --ion-color-primary-shade:     #4F46E5;
+  --ion-color-primary-tint:      #EEF2FF;
 
-  --ion-background-color:        #F8FAFF; /* sfondo app */
-  --ion-text-color:              #0F172A; /* slate-900 */
-  --ion-card-background:         #FFFFFF;
-  --ion-toolbar-background:      #FFFFFF;
-  --ion-item-background:         #FFFFFF;
+  --ion-color-secondary:         #F59E0B;
+  --ion-color-secondary-rgb:     245, 158, 11;
+  --ion-color-secondary-contrast:#ffffff;
+  --ion-color-secondary-shade:   #D97706;
+  --ion-color-secondary-tint:    #FEF3C7;
+
+  --ion-color-success:           #22C55E;
+  --ion-color-success-rgb:       34, 197, 94;
+  --ion-color-success-contrast:  #ffffff;
+  --ion-color-success-shade:     #16A34A;
+  --ion-color-success-tint:      #DCFCE7;
+
+  --ion-color-warning:           #F97316;
+  --ion-color-warning-rgb:       249, 115, 22;
+  --ion-color-warning-contrast:  #ffffff;
+  --ion-color-warning-shade:     #EA580C;
+  --ion-color-warning-tint:      #FFEDD5;
+
+  --ion-color-danger:            #EF4444;
+  --ion-color-danger-rgb:        239, 68, 68;
+  --ion-color-danger-contrast:   #ffffff;
+  --ion-color-danger-shade:      #DC2626;
+  --ion-color-danger-tint:       #FEE2E2;
+
+  --ion-color-medium:            #64748B;
+  --ion-color-medium-rgb:        100, 116, 139;
+  --ion-color-medium-contrast:   #ffffff;
+  --ion-color-medium-shade:      #475569;
+  --ion-color-medium-tint:       #CBD5E1;
+
+  --ion-color-dark:              #0F172A;
+  --ion-color-dark-rgb:          15, 23, 42;
+  --ion-color-dark-contrast:     #ffffff;
+  --ion-color-dark-shade:        #020617;
+  --ion-color-dark-tint:         #1E293B;
+
+  --ion-background-color:        #F8FAFC;
+  --ion-text-color:              #0F172A;
+  --ion-card-background:         #ffffff;
+  --ion-toolbar-background:      #ffffff;
+  --ion-item-background:         #ffffff;
+
+  /* ─ Shadow scale ─ */
+  --shadow-xs:      0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-sm:      0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-md:      0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg:      0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl:      0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+  --shadow-colored: 0 4px 14px -2px rgb(99 102 241 / 0.28);
+
+  /* ─ Border radius ─ */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-2xl:  32px;
+  --radius-full: 9999px;
+
+  /* ─ Transitions ─ */
+  --ease-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ─ Kids dynamic theme — overridden per child by KidProfileService ─ */
+  --kid-primary:    #6366F1;
+  --kid-surface:    #ffffff;
+  --kid-text:       #0F172A;
+  --kid-border:     #E2E8F0;
+  --kid-gradient:   linear-gradient(135deg, #EEF2FF 0%, #F0FDF4 100%);
+  --kid-shadow:     rgb(99 102 241 / 0.12);
+
+  /* ─ Legacy aliases (backward compat) ─ */
+  --kids-blue:          #6366F1;
+  --kids-pink:          #F472B6;
+  --kids-green:         #22C55E;
+  --kids-yellow:        #F59E0B;
+  --kids-text-dark:     #0F172A;
+  --kids-border-radius: var(--radius-lg);
+  --kids-card-shadow:   var(--shadow-md);
+  --kids-bg-gradient:   linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%);
 }
 
-/* Card Ionic più tonde di default */
+/* ── Ionic component overrides ───────────────────────────────── */
 ion-card {
-  --border-radius: 20px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.06);
+  --border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgb(226 232 240 / 0.5);
 }
 
-/* Migliora anteprima drag & feedback */
-.cdk-drag-preview { box-sizing: border-box; }
-.dropzone .cdk-drag-placeholder { opacity: 1; } /* la nostra ha già il bg */
-.cdk-drop-list.cdk-drop-list-dragging { background-color: #eef2ff; }
-
-/* Evita selezione testo su iOS durante il drag */
-.task-card, .drag-handle {
-  -webkit-AppUser-select: none;
-  AppUser-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
+ion-button {
+  --border-radius: var(--radius-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-/* Migliora il drag and drop per touch devices */
-.cdk-drag {
-  touch-action: none;
-  -webkit-AppUser-drag: none;
-  -webkit-tap-highlight-color: transparent;
-  cursor: grab;
-  
-  &:active {
-    cursor: grabbing;
-  }
+ion-segment {
+  --background: #F1F5F9;
+  border-radius: var(--radius-md);
+  padding: 3px;
 }
 
-.cdk-drag-handle {
-  cursor: grab;
-  touch-action: none;
-  
-  &:active {
-    cursor: grabbing;
-  }
+ion-segment-button {
+  --border-radius: var(--radius-sm);
+  --color: #64748B;
+  --color-checked: #0F172A;
+  --indicator-color: #ffffff;
+  --indicator-box-shadow: var(--shadow-sm);
+  font-weight: 600;
+  min-height: 36px;
 }
 
+/* ── CDK Drag & Drop ─────────────────────────────────────────── */
 .cdk-drag-preview {
   box-sizing: border-box;
-  border-radius: var(--kids-border-radius);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-  transform: rotate(5deg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  transform: rotate(1.5deg) scale(1.02);
+  opacity: 0.96;
   z-index: 1000;
 }
 
 .cdk-drag-placeholder {
   opacity: 0.3;
-  background: rgba(108, 140, 255, 0.1);
-  border: 2px dashed var(--kids-blue);
-  border-radius: var(--kids-border-radius);
+  background: rgb(99 102 241 / 0.06);
+  border: 2px dashed #6366F1;
+  border-radius: var(--radius-lg);
 }
 
-// Variabili colore per bambini (Kids Premium Palette)
-:root {
-  --kids-bg-gradient: linear-gradient(135deg, #6C8CFF 0%, #FF9BAA 100%);
-  --kids-card-shadow: 0 8px 25px rgba(108, 140, 255, 0.15);
-  --kids-border-radius: 20px;
-  --kids-pink: var(--ion-color-tertiary);    /* #FF9BAA rosa pesca */
-  --kids-blue: var(--ion-color-primary);     /* #6C8CFF azzurro lavanda */
-  --kids-green: var(--ion-color-success);    /* #7ED8A4 verde positivo */
-  --kids-yellow: var(--ion-color-secondary); /* #FFD47A giallo miele */
-  --kids-text-dark: var(--ion-color-dark);   /* #2C2C54 */
-  
-  // Variabili dinamiche per i temi dei bambini
-  --kid-primary: var(--kids-blue);
-  --kid-secondary: #C2E5F7;
-  --kid-accent: var(--kids-blue);
-  --kid-background: #F0F8FF;
-  --kid-surface: #FFFFFF;
-  --kid-text: #4A6B8A;
-  --kid-gradient: linear-gradient(135deg, #A8D8F0 0%, #C2E5F7 50%, #E1F2FA 100%);
-  --kid-shadow: rgba(168, 216, 240, 0.3);
+.cdk-drop-list.cdk-drop-list-dragging {
+  background-color: rgb(99 102 241 / 0.03);
 }
 
-// Animazioni per elementi fluttuanti
-@keyframes gentle-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(5deg); }
+/* Prevent text selection during drag */
+.task-card, .drag-handle {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-// Classi utility
+.cdk-drag {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  &:active { cursor: grabbing; }
+}
+
+.cdk-drag-handle {
+  cursor: grab;
+  touch-action: none;
+  &:active { cursor: grabbing; }
+}
+
+/* ── Utility classes ─────────────────────────────────────────── */
 .kids-page {
-  background: var(--kids-bg-gradient);
-  min-height: 100vh;
+  background: #F8FAFC;
   position: relative;
-  overflow: hidden;
-}
-
-.floating-decorations {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  
-  .decoration {
-    position: absolute;
-    font-size: 2rem;
-    opacity: 0.6;
-    animation: gentle-float 8s ease-in-out infinite;
-    
-    &:nth-child(1) { top: 8%; left: 5%; animation-delay: 0s; }
-    &:nth-child(2) { top: 15%; right: 8%; animation-delay: 2s; }
-    &:nth-child(3) { top: 45%; left: 3%; animation-delay: 4s; }
-    &:nth-child(4) { bottom: 25%; right: 6%; animation-delay: 1s; }
-    &:nth-child(5) { bottom: 10%; left: 10%; animation-delay: 3s; }
-  }
 }
 
 .kids-card {
-  border-radius: var(--kids-border-radius);
-  box-shadow: var(--kids-card-shadow);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background: #ffffff;
+  border: 1px solid rgb(226 232 240 / 0.5);
+  transition: box-shadow var(--ease-base), transform var(--ease-base);
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 }
 
 .kids-button {
-  --border-radius: 15px;
-  font-weight: 600;
-  box-shadow: var(--kids-card-shadow);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-  }
+  --border-radius: var(--radius-full);
+  font-weight: 700;
 }
 
 .page-title {
-  text-align: center;
-  color: white;
-  margin-bottom: 25px;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  
+  margin-bottom: 24px;
+
   h1 {
-    font-size: 2.2rem;
-    margin: 0;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
   }
-  
+
   p {
     font-size: 1rem;
-    opacity: 0.9;
-    margin: 8px 0;
+    color: #64748B;
+    margin: 0;
   }
+}
+
+/* Floating decorations — very subtle */
+.floating-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  .decoration {
+    position: absolute;
+    font-size: 1.1rem;
+    opacity: 0.1;
+    animation: subtleFloat 18s ease-in-out infinite;
+
+    &:nth-child(1) { top: 8%;  left: 5%;    animation-delay: 0s;  }
+    &:nth-child(2) { top: 16%; right: 6%;   animation-delay: 5s;  }
+    &:nth-child(3) { top: 55%; left: 4%;    animation-delay: 10s; }
+    &:nth-child(4) { bottom: 28%; right: 7%; animation-delay: 3s; }
+    &:nth-child(5) { bottom: 10%; left: 12%; animation-delay: 7s; }
+  }
+}
+
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0)     scale(1);    }
+  50%       { transform: translateY(-7px) scale(1.03); }
 }

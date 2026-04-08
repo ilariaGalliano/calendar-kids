@@ -1,7 +1,253 @@
 .login-page {
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --background: #F8FAFC;
+}
+
+// Hide outdated cloud decorations
+.clouds { display: none; }
+
+.login-container {
   position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px 20px;
+  background: #F8FAFC;
+}
+
+.welcome-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    font-weight: 900;
+    color: #0F172A;
+    letter-spacing: -0.04em;
+    margin: 0 0 8px;
+    line-height: 1.1;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #64748B;
+    margin: 0;
+    font-weight: 450;
+  }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px -8px rgb(0 0 0 / 0.12), 0 0 0 1px rgb(226 232 240 / 0.6);
+  background: #ffffff;
   overflow: hidden;
+}
+
+.card-emoji {
+  text-align: center;
+  font-size: 2.8rem;
+  margin-bottom: 6px;
+}
+
+ion-card-title {
+  text-align: center;
+  color: #0F172A;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.login-section {
+  margin: 20px 0;
+
+  h3 {
+    text-align: center;
+    margin: 0 0 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #475569;
+  }
+}
+
+.parent-section {
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  background: #FAFAFA;
+}
+
+.kids-section {
+  border: 1.5px solid #FEF3C7;
+  border-radius: 16px;
+  padding: 20px;
+  background: #FFFBEB;
+}
+
+.kids-subtitle {
+  text-align: center;
+  color: #94A3B8;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.custom-item {
+  --border-radius: var(--radius-md, 12px);
+  --background: #F8FAFC;
+  margin-bottom: 10px;
+
+  ion-input { color: #0F172A; }
+}
+
+.login-btn {
+  margin-top: 12px;
+  --border-radius: var(--radius-full, 9999px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.parent-btn {
+  --background: #6366F1;
+  --background-hover: #4F46E5;
+  --box-shadow: 0 4px 14px -2px rgb(99 102 241 / 0.35);
+}
+
+.divider {
+  text-align: center;
+  margin: 28px 0;
+  position: relative;
+
+  span {
+    background: white;
+    padding: 0 16px;
+    color: #94A3B8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #E2E8F0;
+  }
+}
+
+.kids-grid {
+  --ion-grid-padding: 0;
+}
+
+.kid-name-card {
+  text-align: center;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 14px 10px;
+  border-radius: 16px;
+  border: 1.5px solid #E2E8F0;
+  background: #ffffff;
+
+  &:hover {
+    border-color: #6366F1;
+    box-shadow: 0 4px 16px rgb(99 102 241 / 0.12);
+    transform: translateY(-2px);
+  }
+
+  &:active { transform: scale(0.97); }
+
+  .name-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    background: #EEF2FF;
+    border: 2px solid #C7D2FE;
+    transition: all 200ms ease;
+
+    .name-initial {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #6366F1;
+      text-transform: uppercase;
+    }
+  }
+
+  p {
+    color: #0F172A;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 6px 0 2px;
+  }
+
+  small {
+    color: #94A3B8;
+    font-size: 0.72rem;
+    display: block;
+  }
+
+  &:hover .name-circle {
+    background: #6366F1;
+    border-color: #6366F1;
+    .name-initial { color: white; }
+  }
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #94A3B8;
+    font-weight: 500;
+  }
+}
+
+// Avatar modal
+.avatar-modal {
+  --height: 90vh;
+  --max-height: 90vh;
+  --border-radius: 24px 24px 0 0;
+  --backdrop-opacity: 0.4;
+
+  .modal-content {
+    --background: #F8FAFC;
+    height: 100%;
+    overflow-y: auto;
+
+    app-avatar-selector {
+      display: block;
+      width: 100%;
+      min-height: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-header h1 { font-size: 1.8rem; }
+  .login-card { margin: 0 4px; }
+
+  .kid-name-card {
+    padding: 10px 6px;
+    .name-circle { width: 48px; height: 48px; }
+    .name-initial { font-size: 1.3rem; }
+    p { font-size: 0.85rem; }
+  }
+
+  .avatar-modal { --height: 95vh; }
 }
 
 .clouds {

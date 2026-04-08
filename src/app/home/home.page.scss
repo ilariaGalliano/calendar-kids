@@ -110,11 +110,11 @@
     flex-direction: column;
     
     .family-info {
-      background: rgba(55, 48, 163, 0.06);
+      background: #EEF2FF;
       border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 32px;
-      border: 1px solid rgba(55, 48, 163, 0.12);
+      padding: 20px;
+      margin-bottom: 28px;
+      border: 1px solid #C7D2FE;
       
       h4 {
         margin: 0 0 8px 0;
@@ -152,11 +152,11 @@
           }
           
           &.selected {
-            background: rgba(55, 48, 163, 0.1);
-            border-color: #3730a3;
+            background: #EEF2FF;
+            border-color: #6366F1;
             
             .child-name {
-              color: #3730a3;
+              color: #6366F1;
               font-weight: 600;
             }
           }
@@ -168,7 +168,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
             font-size: 1.2rem;
             color: white;
           }
@@ -220,11 +220,11 @@
         font-weight: 600;
         
         &[color="primary"] {
-          --background: #3730a3;
-          --box-shadow: 0 4px 12px rgba(55, 48, 163, 0.25);
+          --background: #6366F1;
+          --box-shadow: 0 4px 12px rgb(99 102 241 / 0.28);
           
           &:hover {
-            --background: #4338ca;
+            --background: #4F46E5;
           }
         }
         

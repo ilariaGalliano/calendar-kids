@@ -43,7 +43,7 @@ import { Child } from 'src/app/models/family.models';
 
         <ion-item>
           <ion-label position="stacked">Età</ion-label>
-          <ion-input type="number" formControlName="age"></ion-input>
+          <ion-input type="number" formControlName="years"></ion-input>
         </ion-item>
 
         <ion-item>
@@ -74,7 +74,7 @@ export class AddChildModalComponent {
 
   form = this.fb.group({
     name: ['', Validators.required],
-    age: [0, Validators.required],
+    years: [0, Validators.required],
     view: ['child', Validators.required],
   });
 
