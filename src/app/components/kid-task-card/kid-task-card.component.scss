@@ -6,8 +6,8 @@
 
 .task-item {
   position: relative;
-  border: 1px solid var(--border);
-  color: black
+  border: 1px solid var(--kid-border, #e2e8f0);
+  --ripple-color: transparent;
 }
 
 /* barra colore */
@@ -24,13 +24,14 @@
   font-weight: 700;
   font-size: 0.98rem;
   letter-spacing: .2px;
-  color: var(--text);
+  color: var(--kid-text, #2c2c54);
   margin: 0 0 2px;
 }
 
 .task-time {
   font-size: .84rem;
-  color: var(--muted);
+  color: var(--kid-text, #4a6b8a);
+  opacity: 0.72;
   margin: 0;
 }
 
@@ -120,4 +121,128 @@ ion-icon.drag-handle {
 .completed .task-time {
   text-decoration: line-through;
   opacity: .55;
+}
+
+// ─── Timer Widget ───────────────────────────────────────────────────────────
+
+.timer-widget {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  cursor: pointer;
+  margin-right: 4px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.92); }
+}
+
+// SVG ring
+.timer-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  .ring-track {
+    stroke: var(--border, #e2e8f0);
+  }
+
+  .ring-progress {
+    transition: stroke-dashoffset 0.9s linear, stroke 0.4s ease;
+  }
+}
+
+// Center overlay
+.timer-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  z-index: 1;
+}
+
+// Idle state: play icon + duration label
+.timer-icon-play {
+  font-size: 20px;
+  color: var(--muted, #94a3b8);
+  display: block;
+}
+
+.timer-total-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--muted, #94a3b8);
+  line-height: 1;
+  margin-top: 1px;
+}
+
+// Running / paused / warning: countdown + small icon
+.timer-countdown {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text, #1e293b);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.timer-icon-control {
+  font-size: 12px;
+  color: var(--muted, #94a3b8);
+  margin-top: 2px;
+}
+
+// Finished state: done icon + label
+.timer-icon-done {
+  font-size: 20px;
+  color: #ef4444;
+}
+
+.timer-done-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #ef4444;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+// ── State modifiers ──────────────────────────────────────────────────────────
+
+.timer-running {
+  .timer-countdown { color: var(--text, #1e293b); }
+}
+
+.timer-paused {
+  .timer-countdown { color: var(--muted, #94a3b8); }
+  .timer-icon-control { opacity: 0.7; }
+}
+
+.timer-warning {
+  .timer-countdown {
+    color: #f97316;
+    animation: timerPulse 0.8s ease-in-out infinite;
+  }
+}
+
+.timer-finished {
+  animation: timerFinishedFlash 0.6s ease 0s 3;
+}
+
+// ── Animations ───────────────────────────────────────────────────────────────
+
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.08); }
+}
+
+@keyframes timerFinishedFlash {
+  0%, 100% { background-color: transparent; }
+  50%       { background-color: rgba(239, 68, 68, 0.15); }
 }
