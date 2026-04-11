@@ -146,29 +146,6 @@ ion-card {
   overflow: hidden;
 }
 
-.floating-decorations {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  
-  .decoration {
-    position: absolute;
-    font-size: 2rem;
-    opacity: 0.6;
-    animation: gentle-float 8s ease-in-out infinite;
-    
-    &:nth-child(1) { top: 8%; left: 5%; animation-delay: 0s; }
-    &:nth-child(2) { top: 15%; right: 8%; animation-delay: 2s; }
-    &:nth-child(3) { top: 45%; left: 3%; animation-delay: 4s; }
-    &:nth-child(4) { bottom: 25%; right: 6%; animation-delay: 1s; }
-    &:nth-child(5) { bottom: 10%; left: 10%; animation-delay: 3s; }
-  }
-}
-
 .kids-card {
   border-radius: var(--kids-border-radius);
   box-shadow: var(--kids-card-shadow);

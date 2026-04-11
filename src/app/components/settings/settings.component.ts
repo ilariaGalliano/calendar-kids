@@ -359,7 +359,7 @@ export class SettingsComponent implements OnInit {
 
   // Actions
   goBack() {
-    this.router.navigate(['/home']);
+    this.router.navigate(['/home'], { queryParams: { mode: 'parent' } });
   }
 
   async logout() {

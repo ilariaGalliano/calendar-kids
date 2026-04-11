@@ -64,7 +64,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>{{ editingTask() ? 'Modifica Task' : 'Nuovo Task' }}</ion-title>
+          <ion-title>{{ editingTask() ? 'Modifica Attività' : 'Nuovo Attività' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="closeTaskModal()">✖️</ion-button>
           </ion-buttons>
@@ -79,7 +79,7 @@
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Nome Task</ion-label>
+            <ion-label position="stacked">Nome Attività</ion-label>
             <ion-input [(ngModel)]="taskForm.title" placeholder="Es: Lavare i denti">
             </ion-input>
           </ion-item>
@@ -133,7 +133,7 @@
               Annulla
             </ion-button>
             <ion-button expand="block" (click)="saveTask()">
-              {{ editingTask() ? 'Aggiorna' : 'Crea' }} Task
+              {{ editingTask() ? 'Aggiorna' : 'Crea' }} Attività
             </ion-button>
           </div>
         </div>

@@ -258,10 +258,15 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       const family = this.activeFamily();
       let activities: any[] = [];
 
+      // Use today's full-day activities instead of ±2h window.
+      // Routine tasks are generated at fixed times (e.g. 08:00) which are always
+      // outside a ±2h window when the app is opened later in the day.
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+
       if (this.isParent) {
-        activities = await this.calendarService.getActivitiesForMeNow().toPromise() ?? [];
+        activities = await this.calendarService.getActivitiesForMeDay(today).toPromise() ?? [];
       } else if (this.selectedChildId) {
-        const res = await this.calendarService.getActivitiesForNow(this.selectedChildId).toPromise();
+        const res = await this.calendarService.getActivitiesForDay(this.selectedChildId, today).toPromise();
         activities = res?.activities ?? res ?? [];
         if (res?.point !== undefined) this.updateChildPoint(this.selectedChildId, res.point);
       }
@@ -270,7 +275,7 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       this.timeWindowData = {
         currentTime: now.toISOString(),
         currentDate: now.toISOString().slice(0, 10),
-        tasks: activities.map(a => {
+        tasks: activities.filter((a: any) => !a.done).map(a => {
           const childId = a.children_id ?? this.selectedChildId ?? '';
           const child = (family?.children as Child[] ?? []).find(c => c.id === childId);
           return {
@@ -431,11 +436,22 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
         await toast.present();
       }
 
-      // Se il task è completato, ricarica per nasconderlo
+      // Se il task è completato, rimuovilo immediatamente dall'UI e ricarica
       if (event.done) {
-        // Aspetta un momento per permettere all'animazione di completarsi
+        // Rimuovi subito da timeWindowData (vista Now)
+        if (this.timeWindowData && Array.isArray(this.timeWindowData.tasks)) {
+          this.timeWindowData = {
+            ...this.timeWindowData,
+            tasks: this.timeWindowData.tasks.filter((t: any) => t.instanceId !== event.instanceId)
+          };
+        }
+        // Aspetta un momento per permettere all'animazione di completarsi, poi ricarica la vista corrente
         setTimeout(() => {
-          this.loadTasks();
+          if (this.currentCalendarView() === 'now') {
+            this.loadNowTasks();
+          } else {
+            this.loadTasks();
+          }
         }, 1000);
       }
     } catch (error) {
@@ -467,6 +483,10 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  goToProfilePicker() {
+    this.router.navigate(['/family-profile-picker']);
   }
 
   async logout() {

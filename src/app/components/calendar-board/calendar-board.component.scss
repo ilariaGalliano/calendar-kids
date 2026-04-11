@@ -7,31 +7,6 @@
   min-height: 0;
 }
 
-// Clean, minimal floating elements for modern look
-.floating-decorations {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 1;
-  
-  .decoration {
-    position: absolute;
-    font-size: 1.5rem;
-    opacity: 0.3;
-    animation: subtle-float 12s ease-in-out infinite;
-    color: #64748b;
-    
-    &:nth-child(1) { top: 12%; left: 8%; animation-delay: 0s; }
-    &:nth-child(2) { top: 18%; right: 12%; animation-delay: 4s; }
-    &:nth-child(3) { top: 55%; left: 6%; animation-delay: 8s; }
-    &:nth-child(4) { bottom: 30%; right: 10%; animation-delay: 2s; }
-    &:nth-child(5) { bottom: 15%; left: 15%; animation-delay: 6s; }
-  }
-}
-
 @keyframes subtle-float {
   0%, 100% { transform: translateY(0px) scale(1); opacity: 0.2; }
   50% { transform: translateY(-8px) scale(1.05); opacity: 0.4; }

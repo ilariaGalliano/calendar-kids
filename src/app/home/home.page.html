@@ -5,7 +5,10 @@
     <ion-content [fullscreen]="true">
       <div class="home-container">
         <!-- Clean, modern header -->
-        <header class="home-header">
+        <header class="home-header">                   
+          <ion-button fill="clear" color="dark" (click)="goToProfilePicker()" class="back-btn">
+            <img src="https://www.svgrepo.com/show/326563/chevron-back-outline.svg" alt="back" style="width:24px;height:24px;" />
+          </ion-button>
           <h2 class="family-title">
             <span *ngIf="currentFamily()">Famiglia {{ currentFamily()?.parentName }}</span>
             <span *ngIf="!currentFamily()">CalendarKids</span>

@@ -1,12 +1,4 @@
 <ion-content class="settings-page">
-  <!-- Decorazioni -->
-  <div class="floating-decorations">
-    <div class="decoration">⚙️</div>
-    <div class="decoration">👨‍👩‍👧‍👦</div>
-    <div class="decoration">📋</div>
-    <div class="decoration">⏰</div>
-  </div>
-
   <div class="settings-container">
     <!-- Header -->
     <div class="page-header">
@@ -28,7 +20,7 @@
         <ion-label>👶 Bambini</ion-label>
       </ion-segment-button>
       <ion-segment-button value="tasks">
-        <ion-label>📋 Task</ion-label>
+        <ion-label>📋 Attività</ion-label>
       </ion-segment-button>
       <ion-segment-button value="routines">
         <ion-label>⏰ Routine</ion-label>
@@ -87,7 +79,7 @@
 
       <ion-card class="kids-card">
         <ion-card-header>
-          <ion-card-title>📋 Libreria Task</ion-card-title>
+          <ion-card-title>📋 Libreria Attività</ion-card-title>
         </ion-card-header>
         <ion-card-content>
           <div class="tasks-grid">
@@ -113,7 +105,7 @@
           </div>
 
           <ion-button expand="block" fill="outline" (click)="addTask()" class="add-btn">
-            ➕ Crea Nuovo Task
+            ➕ Crea Nuova attività
           </ion-button>
         </ion-card-content>
       </ion-card>
@@ -224,7 +216,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>{{ editingTask() ? 'Modifica Task' : 'Nuovo Task' }}</ion-title>
+          <ion-title>{{ editingTask() ? 'Modifica Attività' : 'Nuovo Attività'' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="closeTaskModal()">✖️</ion-button>
           </ion-buttons>
@@ -239,7 +231,7 @@
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Nome Task</ion-label>
+            <ion-label position="stacked">Nome Attività'</ion-label>
             <ion-input [(ngModel)]="taskForm.title" placeholder="Es: Lavare i denti">
             </ion-input>
           </ion-item>
@@ -291,7 +283,7 @@
               Annulla
             </ion-button>
             <ion-button expand="block" (click)="saveTask()">
-              {{ editingTask() ? 'Aggiorna' : 'Crea' }} Task
+              {{ editingTask() ? 'Aggiorna' : 'Crea' }} Attività'
             </ion-button>
           </div>
         </div>
