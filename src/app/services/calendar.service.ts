@@ -21,8 +21,8 @@ export class CalendarService {
   constructor() {}
 
   // Nuove API per activities
-  getActivitiesForWeek(childId: string, startDate: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/week?startDate=${startDate}`);
+  getActivitiesForWeek(childId: string, startDate: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/activities/child/${childId}/week?startDate=${startDate}`);
   }
 
   /** Singola chiamata: tutte le attività per tutti i figli dell'utente loggato */
@@ -40,12 +40,12 @@ export class CalendarService {
     return this.http.get<any[]>(`${this.baseUrl}/activities/me/now`);
   }
 
-  getActivitiesForDay(childId: string, date: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/day?date=${date}`);
+  getActivitiesForDay(childId: string, date: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/activities/child/${childId}/day?date=${date}`);
   }
 
-  getActivitiesForNow(childId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/activities/child/${childId}/now`);
+  getActivitiesForNow(childId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/activities/child/${childId}/now`);
   }
 
   /** Salva le modifiche dello schedule (drag & drop) */
