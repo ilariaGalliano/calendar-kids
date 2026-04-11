@@ -209,7 +209,9 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       if (this.isParent) {
         activities = await this.calendarService.getActivitiesForMeWeek(startDate).toPromise() ?? [];
       } else if (this.selectedChildId) {
-        activities = await this.calendarService.getActivitiesForWeek(this.selectedChildId, startDate).toPromise() ?? [];
+        const res = await this.calendarService.getActivitiesForWeek(this.selectedChildId, startDate).toPromise();
+        activities = res?.activities ?? res ?? [];
+        if (res?.point !== undefined) this.updateChildPoint(this.selectedChildId, res.point);
       }
       this.tasksByDay.set(this.mapActivitiesToDayTasks(activities, family));
 
@@ -232,7 +234,9 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       if (this.isParent) {
         activities = await this.calendarService.getActivitiesForMeDay(date).toPromise() ?? [];
       } else if (this.selectedChildId) {
-        activities = await this.calendarService.getActivitiesForDay(this.selectedChildId, date).toPromise() ?? [];
+        const res = await this.calendarService.getActivitiesForDay(this.selectedChildId, date).toPromise();
+        activities = res?.activities ?? res ?? [];
+        if (res?.point !== undefined) this.updateChildPoint(this.selectedChildId, res.point);
       }
 
       this.tasksByDay.set(this.mapActivitiesToDayTasks(activities, family));
@@ -257,7 +261,9 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       if (this.isParent) {
         activities = await this.calendarService.getActivitiesForMeNow().toPromise() ?? [];
       } else if (this.selectedChildId) {
-        activities = await this.calendarService.getActivitiesForNow(this.selectedChildId).toPromise() ?? [];
+        const res = await this.calendarService.getActivitiesForNow(this.selectedChildId).toPromise();
+        activities = res?.activities ?? res ?? [];
+        if (res?.point !== undefined) this.updateChildPoint(this.selectedChildId, res.point);
       }
 
       const now = new Date();
@@ -508,6 +514,7 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
     return {
       id: selected.id,
       name: selected.name,
+      point: selected.point ?? 0,
       selectedAvatar: {
         emoji: selected.avatar,
         name: 'Avatar',
@@ -518,6 +525,14 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
         }
       }
     };
+  }
+
+  /** Aggiorna il campo point sul model Child in memoria */
+  private updateChildPoint(childId: string, point: number) {
+    const family = this.currentFamily();
+    if (!family) return;
+    const child = family.children.find(c => c.id === childId);
+    if (child) child.point = point;
   }
 
   onViewChanged(event: { view: string, date?: string }) {

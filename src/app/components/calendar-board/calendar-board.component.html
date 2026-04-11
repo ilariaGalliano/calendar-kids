@@ -33,6 +33,10 @@
           <span class="stat-number">{{ getCompletedTasksCount() }}</span>
           <span class="stat-label">Completate</span>
         </div>
+        <div class="stat-item" [style.color]="activeKidProfile.selectedAvatar.palette.accent">
+          <span class="stat-number">💰 {{ activeKidProfile.point ?? 0 }}</span>
+          <span class="stat-label">Punti</span>
+        </div>
       </div>
     </div>
     }
