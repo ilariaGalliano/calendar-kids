@@ -5,6 +5,11 @@ import { KidAvatar, PREDEFINED_AVATARS } from '../../models/avatar.models';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from 'src/app/services/profile-service';
+import { RewardsService } from '../../services/rewards.service';
+import {
+  IonModal, IonButton, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonButtons, IonSpinner
+} from '@ionic/angular/standalone';
 
 export interface FamilyProfile {
   id: string;
@@ -16,7 +21,10 @@ export interface FamilyProfile {
 @Component({
   selector: 'app-family-profile-picker',
   standalone: true,
-  imports: [CommonModule, AvatarSelectorComponent, FormsModule],
+  imports: [CommonModule, AvatarSelectorComponent, FormsModule,
+    IonModal, IonButton, IonHeader, IonToolbar, IonTitle,
+    IonContent, IonButtons, IonSpinner
+  ],
   templateUrl: './family-profile-picker.component.html',
   styleUrls: ['./family-profile-picker.component.scss']
 })
@@ -25,11 +33,19 @@ export class FamilyProfilePickerComponent implements OnInit {
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
   private router = inject(Router);
+  private rewardsService = inject(RewardsService);
   AppUserLogged: WritableSignal<string> = signal('');
 
   showAvatarSelector: boolean = false;
   newKidName: string = '';
   selectedAvatar: KidAvatar | null = null;
+
+  // ── PIN modal state ────────────────────────────────────────────────────
+  showPinModal = signal(false);
+  isSettingPin = signal(false);
+  pinValue = signal('');
+  pinError = signal('');
+  pinLoading = signal(false);
 
   parentProfile: FamilyProfile = {
     id: 'parent',
@@ -61,29 +77,113 @@ export class FamilyProfilePickerComponent implements OnInit {
   }
 
   selectProfile(profile: FamilyProfile) {
-    if (!profile.id) { // Now the add-profile uses id: ''
+    if (!profile.id) {
       this.showAvatarSelector = true;
       this.newKidName = '';
       this.selectedAvatar = null;
       return;
     }
 
-    this.profileSelected.emit(profile);
-
     if (profile.isParent) {
-      this.router.navigate(['/home'], {
-        queryParams: { mode: 'parent' },
-        state: { parentName: this.parentProfile.name }
-      });
-    } else {
-      this.router.navigate(['/home'], {
-        queryParams: {
-          mode: 'child',
-          childId: profile.id
-        },
-        state: { parentName: this.parentProfile.name }
-      });
+      // Chiedi il PIN prima di entrare come genitore
+      this.openParentPinModal();
+      return;
     }
+
+    this.navigateAsChild(profile);
+  }
+
+  private navigateAsParent() {
+    this.profileSelected.emit(this.parentProfile);
+    this.router.navigate(['/home'], {
+      queryParams: { mode: 'parent' },
+      state: { parentName: this.parentProfile.name }
+    });
+  }
+
+  private navigateAsChild(profile: FamilyProfile) {
+    this.profileSelected.emit(profile);
+    this.router.navigate(['/home'], {
+      queryParams: { mode: 'child', childId: profile.id },
+      state: { parentName: this.parentProfile.name }
+    });
+  }
+
+  // ── PIN methods ──────────────────────────────────────────────────────────
+
+  openParentPinModal() {
+    this.pinValue.set('');
+    this.pinError.set('');
+    this.pinLoading.set(true);
+    this.rewardsService.hasPinSet().subscribe({
+      next: (hasPin) => {
+        this.pinLoading.set(false);
+        this.isSettingPin.set(!hasPin);
+        this.showPinModal.set(true);
+      },
+      error: () => {
+        this.pinLoading.set(false);
+        this.isSettingPin.set(true);
+        this.showPinModal.set(true);
+      }
+    });
+  }
+
+  closePinModal() {
+    this.showPinModal.set(false);
+    this.pinValue.set('');
+    this.pinError.set('');
+  }
+
+  appendPin(digit: string) {
+    if (this.pinValue().length >= 4) return;
+    this.pinValue.update(v => v + digit);
+    this.pinError.set('');
+    if (this.pinValue().length === 4) {
+      this.isSettingPin() ? this.submitSetPin() : this.submitVerifyPin();
+    }
+  }
+
+  deletePin() {
+    this.pinValue.update(v => v.slice(0, -1));
+    this.pinError.set('');
+  }
+
+  private submitSetPin() {
+    this.pinLoading.set(true);
+    this.rewardsService.setPin(this.pinValue()).subscribe({
+      next: () => {
+        this.pinLoading.set(false);
+        this.closePinModal();
+        this.navigateAsParent();
+      },
+      error: () => {
+        this.pinLoading.set(false);
+        this.pinError.set('Errore nel salvataggio del PIN. Riprova.');
+        this.pinValue.set('');
+      }
+    });
+  }
+
+  private submitVerifyPin() {
+    this.pinLoading.set(true);
+    this.rewardsService.verifyPin(this.pinValue()).subscribe({
+      next: ({ valid }) => {
+        this.pinLoading.set(false);
+        if (valid) {
+          this.closePinModal();
+          this.navigateAsParent();
+        } else {
+          this.pinError.set('PIN errato. Riprova.');
+          this.pinValue.set('');
+        }
+      },
+      error: () => {
+        this.pinLoading.set(false);
+        this.pinError.set('Errore di rete. Riprova.');
+        this.pinValue.set('');
+      }
+    });
   }
 
   onAvatarSelected(avatar: KidAvatar) {
