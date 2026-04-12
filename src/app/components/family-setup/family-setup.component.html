@@ -145,6 +145,21 @@
                 </ion-input>
               </ion-item>
 
+              <!-- Birth date -->
+              <ion-item class="name-item">
+                <ion-input
+                  label="🎂 Data di nascita"
+                  labelPlacement="stacked"
+                  type="date"
+                  [value]="form.birth_date"
+                  [max]="today"
+                  (ionChange)="onBirthDateChange(i, $event.detail.value!)">
+                </ion-input>
+              </ion-item>
+              <small class="age-hint" *ngIf="form.birth_date">
+                📅 Età: {{ getAgeLabel(form.birth_date) }}
+              </small>
+
               <!-- Gender selection -->
               <div class="gender-selector">
                 <ion-button 

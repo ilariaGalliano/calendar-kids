@@ -35,6 +35,7 @@ interface ChildForm {
   name: string;
   isValid: boolean;
   sex: string;
+  birth_date: string; // YYYY-MM-DD
 }
 
 @Component({
@@ -97,6 +98,8 @@ export class FamilySetupComponent implements OnInit {
     neutral: ['Alex', 'Sasha', 'Andrea', 'Nicola']
   };
 
+  today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD for [max] binding
+
   ngOnInit() {
     this.loadParentEmail();
     this.loadChildrenFromAPI();
@@ -139,7 +142,8 @@ export class FamilySetupComponent implements OnInit {
       id: child.id,
       name: child.name,
       isValid: true,
-      sex: child.sex
+      sex: child.sex,
+      birth_date: child.birth_date ?? ''
     }));
     this.childrenForms.set(forms);
   }
@@ -168,6 +172,7 @@ export class FamilySetupComponent implements OnInit {
         id: `temp-${i}`, // ID temporaneo solo per il form, DB genererà UUID
         name: '',
         sex: 'male', 
+        birth_date: '',
         isValid: false
       });
     }
@@ -194,7 +199,7 @@ export class FamilySetupComponent implements OnInit {
       // Prepara i dati dei bambini
       const childrenData = childrenForms.map(form => ({
         name: form.name.trim(),
-        years: '5',
+        birth_date: form.birth_date || null,
         icon: form.sex === 'female' ? '👧' : '🧒',
         sex: form.sex
       }));
@@ -286,6 +291,23 @@ export class FamilySetupComponent implements OnInit {
       sex: sex
     };
     this.childrenForms.set([...forms]);
+  }
+
+  onBirthDateChange(index: number, date: string) {
+    const forms = this.childrenForms();
+    forms[index] = { ...forms[index], birth_date: date };
+    this.childrenForms.set([...forms]);
+  }
+
+  /** Returns age string from birth_date for display */
+  getAgeLabel(birth_date: string): string {
+    if (!birth_date) return '';
+    const today = new Date();
+    const dob = new Date(birth_date);
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age >= 0 ? `${age} anni` : '';
   }
 
   useSuggestedName(index: number, name: string) {

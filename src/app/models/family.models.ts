@@ -6,7 +6,8 @@ export interface Family {
 }
 
 export interface Child {
-  years: number | null;
+  birth_date?: string | null; // YYYY-MM-DD
+  years?: number | null;      // legacy, kept for compat
   id: string;
   name: string;
   avatar: string;
@@ -15,6 +16,17 @@ export interface Child {
   point?: number;
   view: 'teen' | 'child';
   tasks: ChildTask[];
+}
+
+/** Calculates age in years from a YYYY-MM-DD birth date */
+export function calcAge(birth_date?: string | null): number | null {
+  if (!birth_date) return null;
+  const today = new Date();
+  const dob = new Date(birth_date);
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
 }
 
 export interface ChildTask {

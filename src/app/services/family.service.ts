@@ -58,7 +58,7 @@ export class FamilyService {
   }
 
   // API: crea batch di bambini
-  createChildrenBatch(children: Array<{name: string, icon: string, years: string, sex: string}>) {
+  createChildrenBatch(children: Array<{name: string, icon: string, birth_date: string | null, sex: string}>) {
     return this.http.post<Child[]>(`${this.baseUrl}/children/batch`, { children });
   }
 

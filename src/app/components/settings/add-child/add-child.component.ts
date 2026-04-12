@@ -1,8 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ReactiveFormsModule, Validators, FormBuilder } from '@angular/forms';
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonNote } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { Child } from 'src/app/models/family.models';
+import { Child, calcAge } from 'src/app/models/family.models';
 
 @Component({
   selector: 'app-add-child',
@@ -20,7 +20,8 @@ import { Child } from 'src/app/models/family.models';
     IonLabel,
     IonInput,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+    IonNote
   ],
   template: `
     <ion-header>
@@ -42,9 +43,12 @@ import { Child } from 'src/app/models/family.models';
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Età</ion-label>
-          <ion-input type="number" formControlName="age"></ion-input>
+          <ion-label position="stacked">Data di nascita</ion-label>
+          <ion-input type="date" formControlName="birth_date" [max]="today"></ion-input>
         </ion-item>
+        <ion-note class="ion-padding-start" color="medium" *ngIf="computedAge !== null">
+          Età: {{ computedAge }} anni
+        </ion-note>
 
         <ion-item>
           <ion-label position="stacked">Visualizzazione</ion-label>
@@ -68,15 +72,21 @@ import { Child } from 'src/app/models/family.models';
     </ion-content>
   `
 })
-export class AddChildModalComponent {
+export class AddChildModalComponent implements OnInit {
 
   @Input() child!: Child;
 
+  today = new Date().toISOString().split('T')[0];
+
   form = this.fb.group({
     name: ['', Validators.required],
-    age: [0, Validators.required],
+    birth_date: [null as string | null],
     view: ['child', Validators.required],
   });
+
+  get computedAge(): number | null {
+    return calcAge(this.form.value.birth_date);
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -85,7 +95,11 @@ export class AddChildModalComponent {
 
   ngOnInit() {
     if (this.child) {
-      this.form.patchValue(this.child);
+      this.form.patchValue({
+        name: this.child.name,
+        birth_date: this.child.birth_date ?? null,
+        view: this.child.view ?? 'child',
+      });
     }
   }
 
