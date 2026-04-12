@@ -642,3 +642,56 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+// Inline create routine form
+.create-routine-inline {
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 2px dashed var(--ion-color-primary);
+}
+
+.inline-days {
+  margin-top: 16px;
+
+  .inline-days-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    margin: 0 0 8px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .days-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .day-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: white;
+    border: 1.5px solid var(--ion-color-medium-tint);
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &.selected {
+      background: var(--ion-color-primary);
+      border-color: var(--ion-color-primary);
+      color: white;
+    }
+  }
+}
+
+.inline-routine-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}

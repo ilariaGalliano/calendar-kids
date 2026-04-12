@@ -128,7 +128,7 @@
                 </div>
               </div>
 
-              <ion-button fill="solid" size="small" (click)="openCreateRoutineModal(child.id)">
+              <ion-button fill="solid" size="small" (click)="openCreateRoutineInline(child.id)">
                 ➕ Nuova routine
               </ion-button>
             </div>
@@ -145,7 +145,6 @@
               </div>
 
               <div class="routine-actions">
-                <ion-toggle [checked]="routine.isActive" (ionChange)="onRoutineToggle(routine, $event.detail.checked)"></ion-toggle>
                 <ion-button fill="clear" size="small" (click)="editRoutine(routine)">✏️</ion-button>
                 <ion-button fill="clear" size="small" color="danger" (click)="deleteRoutine(routine)">🗑️</ion-button>
               </div>
@@ -211,12 +210,58 @@
     }
   </div>
 
+  <!-- Modal selezione task per routine -->
+  <ion-modal [isOpen]="showTaskSelectModal()" (willDismiss)="closeTaskSelectModal()" [breakpoints]="[0, 0.75]" [initialBreakpoint]="0.75">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+            📅 {{ getDayLabel(taskSelectDay) }}
+            @if (taskSelectRoutine) { — {{ taskSelectRoutine.name }} }
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeTaskSelectModal()">✖️</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <div style="padding: 16px;">
+          <ion-button expand="block" fill="outline" color="primary" (click)="openCreateTaskFromRoutine()">
+            ➕ Crea nuova attività
+          </ion-button>
+
+          @if (tasks().length > 0) {
+          <h4 style="margin: 16px 0 8px; font-size: 0.9rem; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">
+            Attività esistenti
+          </h4>
+          <ion-list>
+            @for (task of tasks(); track task.id) {
+            <ion-item button (click)="selectExistingTask(task)" detail="false">
+              <ion-label>
+                <div style="display:flex; align-items:center; gap: 10px;">
+                  <span style="font-size: 1.5rem;">{{ task.emoji }}</span>
+                  <div>
+                    <div style="font-weight: 600;">{{ task.title }}</div>
+                    <div style="font-size: 0.8rem; color: var(--ion-color-medium);">{{ task.duration }} min · 🏆 {{ task.reward }}</div>
+                  </div>
+                </div>
+              </ion-label>
+              <div slot="end" [style.width]="'10px'" [style.height]="'100%'" [style.background]="task.color" [style.borderRadius]="'4px'"></div>
+            </ion-item>
+            }
+          </ion-list>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
   <!-- Modal per aggiungere/modificare task -->
   <ion-modal [isOpen]="showTaskModal()" (willDismiss)="closeTaskModal()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>{{ editingTask() ? 'Modifica Attività' : 'Nuovo Attività'' }}</ion-title>
+          <ion-title>{{ editingTask() ? 'Modifica Attività' : 'Nuova Attività'}}</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="closeTaskModal()">✖️</ion-button>
           </ion-buttons>
@@ -267,7 +312,7 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
+          <!-- <ion-item>
             <ion-label position="stacked">Colore</ion-label>
             <div class="color-picker">
               @for (color of taskColors; track color) {
@@ -276,7 +321,7 @@
               </div>
               }
             </div>
-          </ion-item>
+          </ion-item> -->
 
           <div class="form-actions">
             <ion-button expand="block" fill="outline" (click)="closeTaskModal()">

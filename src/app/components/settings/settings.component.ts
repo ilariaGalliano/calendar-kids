@@ -16,7 +16,6 @@ import { Child } from 'src/app/models/family.models';
 import { AuthService } from '../../common/auth.service';
 import { SettingService } from '../../services/setting.service';
 import { AddChildModalComponent } from './add-child/add-child.component';
-import { CreateRoutineModalComponent } from './create-routine-modal/create-routine-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -46,6 +45,11 @@ export class SettingsComponent implements OnInit {
 
   showTaskModal = signal(false);
   editingTask = signal<Task | null>(null);
+
+  // Task select modal state (for adding to routine)
+  showTaskSelectModal = signal(false);
+  taskSelectRoutine: Routine | null = null;
+  taskSelectDay = '';
 
   // Time picker modal state
   showTimePickerModal = signal(false);
@@ -261,48 +265,13 @@ export class SettingsComponent implements OnInit {
   }
 
   // --- Routine Actions ---
-  async openCreateRoutineModal(childId: string) {
-    const modal = await this.modalCtrl.create({
-      component: CreateRoutineModalComponent,
-      componentProps: { childId }
-    });
-
-    modal.onDidDismiss().then(result => {
-      if (!result.data) return;
-
-      // Transform FE shape back to DB shape
-      const firstDay = Array.isArray(result.data.days) && result.data.days.length > 0
-        ? result.data.days[0]
-        : 'mon';
-
-      const dayNumber = this.dayCodeToNumber(firstDay);
-      
-      // Convert tasksByDay from string keys to number keys
-      const tasksByDayNumeric: Record<number, string[]> = {};
-      if (result.data.tasksByDay && typeof result.data.tasksByDay === 'object') {
-        for (const [dayKey, tasks] of Object.entries(result.data.tasksByDay)) {
-          const dayNum = this.dayCodeToNumber(dayKey);
-          const taskArray = Array.isArray(tasks) ? tasks : [];
-          if (taskArray.length > 0) {
-            tasksByDayNumeric[dayNum] = taskArray
-              .map((task: any) => String(task?.id ?? ''))
-              .filter((id: string) => !!id);
-          }
-        }
-      }
-
-      const payload = {
-        childId,
-        nametask: result.data.name ?? 'Nuova routine',
-        description: result.data.description ?? '',
-        day_of_week: dayNumber,
-        tasksByDay: Object.keys(tasksByDayNumeric).length > 0 ? tasksByDayNumeric : undefined
-      };
-
-      this.settingService.createRoutine(payload).subscribe(() => this.loadRoutines());
-    });
-
-    await modal.present();
+  openCreateRoutineInline(childId: string) {
+    this.settingService.createRoutine({
+      childId,
+      nametask: 'Nuova Routine',
+      description: '',
+      day_of_week: 1,
+    }).subscribe(() => this.loadRoutines());
   }
 
   updateRoutine(routine: Routine) {
@@ -322,11 +291,6 @@ export class SettingsComponent implements OnInit {
 
     this.settingService.updateRoutine(routine.id, { nametask: newName })
       .subscribe(() => this.loadRoutines());
-  }
-
-  onRoutineToggle(routine: Routine, checked: boolean) {
-    routine.isActive = checked;
-    this.updateRoutine(routine);
   }
 
   async deleteRoutine(routine: Routine) {
@@ -549,53 +513,62 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  async addTaskRoutine(routine: Routine, day: string) {
-    // Forza il caricamento dei tasks anche se già caricati (per refresh)
-    await new Promise<void>((resolve) => {
-      this.settingService.getTasks().subscribe({
-        next: (data) => {
-          this.tasks.set(data);
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading tasks:', err);
-          resolve();
-        }
-      });
+  addTaskRoutine(routine: Routine, day: string) {
+    // Load tasks then open select modal
+    this.settingService.getTasks().subscribe(data => {
+      this.tasks.set(data);
+      this.taskSelectRoutine = routine;
+      this.taskSelectDay = day;
+      this.showTaskSelectModal.set(true);
     });
+  }
 
-    const existingTasks = this.tasks();
-    
-    if (existingTasks.length === 0) {
-      // No tasks exist, create a new one
-      this.createNewTaskForRoutine(routine, day);
-      return;
-    }
+  closeTaskSelectModal() {
+    this.showTaskSelectModal.set(false);
+    this.taskSelectRoutine = null;
+    this.taskSelectDay = '';
+  }
 
-    // Use alert to show options
-    const alert = document.createElement('ion-alert');
-    alert.header = `Aggiungi Attività - ${this.getDayLabel(day)}`;
-    alert.message = `Routine: ${routine.name}`;
-    alert.buttons = [
-      {
-        text: 'Seleziona Esistente',
-        handler: () => {
-          this.selectExistingTaskForRoutine(routine, day);
-        }
-      },
-      {
-        text: 'Crea Nuova',
-        handler: () => {
-          this.createNewTaskForRoutine(routine, day);
-        }
-      },
-      {
-        text: 'Annulla',
-        role: 'cancel'
-      }
-    ];
-    document.body.appendChild(alert);
-    await alert.present();
+  selectExistingTask(task: Task) {
+    const routine = this.taskSelectRoutine!;
+    const day = this.taskSelectDay;
+    this.closeTaskSelectModal();
+    this.timePickerTask = task;
+    this.timePickerDay = day;
+    this.timePickerForm = {
+      startTime: (task as any).startTime || '08:00',
+      endTime: (task as any).endTime || '08:30'
+    };
+    this.timePickerResolve = (times) => {
+      if (!times) return;
+      const dayNumber = this.dayCodeToNumber(day);
+      const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
+      const taskEntries = [
+        ...currentTasksForDay.map((t: any) => ({
+          id: typeof t === 'string' ? t : t.id,
+          startTime: t.startTime || null,
+          endTime: t.endTime || null,
+          duration: t.duration || null
+        })),
+        { id: task.id, startTime: times.startTime, endTime: times.endTime, duration: times.duration }
+      ];
+      this.settingService.updateRoutine(routine.id, {
+        nametask: routine.name,
+        isActive: routine.isActive,
+        tasksByDay: { [dayNumber]: taskEntries }
+      }).subscribe(() => {
+        this.loadRoutines();
+        this.showToast(`✅ "${task.title}" aggiunto a ${this.getDayLabel(day)}`);
+      });
+    };
+    this.showTimePickerModal.set(true);
+  }
+
+  openCreateTaskFromRoutine() {
+    const routine = this.taskSelectRoutine!;
+    const day = this.taskSelectDay;
+    this.closeTaskSelectModal();
+    this.createNewTaskForRoutine(routine, day);
   }
 
   private createNewTaskForRoutine(routine: Routine, day: string) {
