@@ -39,10 +39,10 @@
             @for (child of children(); track child.id) {
             <ion-item class="child-item">
               <ion-avatar slot="start">
-                @if (child.avatar) {
-                <img [src]="child.avatar" [alt]="child.name">
+                @if (child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http'))) {
+                <img [src]="child.avatar" [alt]="child.name" style="object-fit:cover">
                 } @else {
-                <div class="child-avatar">🧒</div>
+                <div class="child-avatar-emoji">{{ child.avatar || '🧒' }}</div>
                 }
               </ion-avatar>
               <ion-label>
@@ -121,7 +121,13 @@
           <ion-card-title>
             <div class="routine-board-header">
               <div class="routine-child-info">
-                <div class="routine-child-avatar">🧒</div>
+                <div class="routine-child-avatar">
+                  @if (child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http'))) {
+                    <img [src]="child.avatar" [alt]="child.name" class="routine-child-avatar-img" />
+                  } @else {
+                    {{ child.avatar || '🧒' }}
+                  }
+                </div>
                 <div>
                   <div class="routine-child-title">Routine di {{ child.name }}</div>
                   <div class="routine-child-subtitle">Pianificazione settimanale</div>
@@ -155,7 +161,14 @@
               <div class="day-section board-column">
                 <div class="day-title board-column-title">
                   <span>📅 {{ getDayLabel(day) }}</span>
-                  <ion-button size="small" fill="clear" (click)="addTaskRoutine(routine, day)">＋</ion-button>
+                  <div class="day-header-actions">
+                    <ion-button size="small" fill="clear" (click)="addTaskRoutine(routine, day)">＋</ion-button>
+                    @if (getTasksForRoutineDay(routine, day).length > 0) {
+                      <ion-button size="small" fill="clear" color="secondary" (click)="copyTasksToAllDays(routine, day)">
+                        📋 Aggiungi su tutti
+                      </ion-button>
+                    }
+                  </div>
                 </div>
 
                 <div class="day-tasks board-column-body">
@@ -175,7 +188,7 @@
                     </div>
 
                     <div class="task-actions">
-                      <ion-button fill="clear" size="small" (click)="editTask(task)">✏️</ion-button>
+                      <ion-button fill="clear" size="small" (click)="editTaskInRoutine(routine, day, task)">✏️</ion-button>
                       <ion-button fill="clear" size="small" color="danger" (click)="removeTaskFromRoutine(routine, day, task)">🗑️</ion-button>
                     </div>
                   </div>

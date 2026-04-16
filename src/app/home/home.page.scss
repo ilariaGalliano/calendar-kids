@@ -76,6 +76,14 @@
     font-size: 1em;
     margin-right: 0.3em;
   }
+  .child-avatar-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.3em;
+    vertical-align: middle;
+  }
 }
 
 // Modern sidebar design

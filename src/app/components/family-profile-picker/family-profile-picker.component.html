@@ -4,7 +4,11 @@
   <div class="parent-section">
     <div class="profile-card parent-card" (click)="selectProfile(parentProfile)">
       <div class="avatar-circle parent-avatar">
-        <span class="avatar-emoji">👩</span>
+        @if (parentProfile.photo) {
+          <img [src]="parentProfile.photo" [alt]="parentProfile.name" class="avatar-photo" />
+        } @else {
+          <span class="avatar-emoji">{{ parentProfile.icon }}</span>
+        }
       </div>
       <div class="profile-name parent-name">{{ AppUserLogged() }}</div>
       <div class="parent-label">Genitore</div>
@@ -16,13 +20,13 @@
   <div class="profiles-grid">
     <div *ngFor="let profile of profiles" class="profile-card" (click)="selectProfile(profile)">
       <div class="avatar-circle">
-        <span class="avatar-emoji">{{ profile.icon }}</span>
+        @if (profile.photo) {
+          <img [src]="profile.photo" [alt]="profile.name" class="avatar-photo" />
+        } @else {
+          <span class="avatar-emoji">{{ profile.icon }}</span>
+        }
       </div>
       <div class="profile-name">{{ profile.name }}</div>
-    </div>
-    <div class="profile-card add-profile" (click)="selectProfile({id: '', name: '', icon: ''})">
-      <div class="avatar-circle add-avatar">+</div>
-      <div class="profile-name">Aggiungi profilo</div>
     </div>
   </div>
   }

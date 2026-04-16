@@ -35,6 +35,27 @@ import { Child, calcAge } from 'src/app/models/family.models';
 
     <ion-content class="ion-padding">
 
+      <!-- Photo upload section -->
+      <div class="photo-section">
+        <div class="photo-preview" (click)="photoInput.click()">
+          @if (photoPreview) {
+            <img [src]="photoPreview" alt="Foto profilo" class="preview-img" />
+            <div class="photo-overlay">
+              <span>✏️ Cambia</span>
+            </div>
+          } @else {
+            <div class="photo-placeholder">
+              <span class="photo-icon">📷</span>
+              <span class="photo-label">Aggiungi foto</span>
+            </div>
+          }
+        </div>
+        <input #photoInput type="file" accept="image/*" style="display:none" (change)="onPhotoSelected($event)" />
+        @if (photoPreview) {
+          <button class="remove-photo-btn" (click)="removePhoto()">🗑️ Rimuovi foto</button>
+        }
+      </div>
+
       <form [formGroup]="form" (ngSubmit)="submit()">
 
         <ion-item>
@@ -70,6 +91,63 @@ import { Child, calcAge } from 'src/app/models/family.models';
       </form>
 
     </ion-content>
+
+    <style>
+      .photo-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0 8px;
+        gap: 10px;
+      }
+      .photo-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+        background: var(--ion-color-light);
+        border: 2px dashed var(--ion-color-medium-tint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .photo-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        color: white;
+        font-size: 0.85rem;
+      }
+      .photo-preview:hover .photo-overlay { opacity: 1; }
+      .photo-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .photo-icon { font-size: 2rem; }
+      .photo-label { font-size: 0.75rem; color: var(--ion-color-medium); }
+      .remove-photo-btn {
+        background: none;
+        border: none;
+        color: var(--ion-color-danger);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 4px 8px;
+      }
+    </style>
   `
 })
 export class AddChildModalComponent implements OnInit {
@@ -77,6 +155,7 @@ export class AddChildModalComponent implements OnInit {
   @Input() child!: Child;
 
   today = new Date().toISOString().split('T')[0];
+  photoPreview: string | null = null;
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -100,7 +179,24 @@ export class AddChildModalComponent implements OnInit {
         birth_date: this.child.birth_date ?? null,
         view: this.child.view ?? 'child',
       });
+      if (this.child.avatar) {
+        this.photoPreview = this.child.avatar;
+      }
     }
+  }
+
+  onPhotoSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.photoPreview = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto() {
+    this.photoPreview = null;
   }
 
   close() {
@@ -109,7 +205,7 @@ export class AddChildModalComponent implements OnInit {
 
   submit() {
     if (this.form.valid) {
-      this.modalCtrl.dismiss(this.form.value);
+      this.modalCtrl.dismiss({ ...this.form.value, avatar: this.photoPreview ?? null });
     }
   }
 }

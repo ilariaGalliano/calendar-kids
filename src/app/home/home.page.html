@@ -57,7 +57,11 @@
                 [fill]="currentSelectedChild()?.id === child.id ? 'solid' : 'outline'"
                 [color]="currentSelectedChild()?.id === child.id ? 'primary' : 'medium'" size="small"
                 (click)="selectChild(child.id)">
-                <span class="child-emoji">{{ child.avatar }}</span>
+                @if (child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http'))) {
+                  <img [src]="child.avatar" [alt]="child.name" class="child-avatar-img" />
+                } @else {
+                  <span class="child-emoji">{{ child.avatar }}</span>
+                }
                 {{ child.name }}
                 {{ child.point }}
                 💰
@@ -77,7 +81,8 @@
             [timeWindowInput]="getVisibleTimeWindowData()" [activeKidProfile]="getActiveKidProfile()"
             (taskDone)="onTaskDone($event)" 
             (viewChanged)="onViewChanged($event)"
-            (changesRequested)="onSaveCalendarChanges($event)">
+            (changesRequested)="onSaveCalendarChanges($event)"
+            (photoChanged)="onKidPhotoChanged($event)">
           </app-calendar-board>
 
         </div>

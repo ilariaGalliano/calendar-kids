@@ -10,7 +10,8 @@ export interface Child {
   years?: number | null;      // legacy, kept for compat
   id: string;
   name: string;
-  avatar: string;
+  avatar: string;             // emoji or data URL photo
+  photo?: string | null;      // base64 photo (overrides avatar for display)
   createdAt: Date;
   sex: string;
   point?: number;

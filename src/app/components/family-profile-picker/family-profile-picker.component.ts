@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from 'src/app/services/profile-service';
 import { RewardsService } from '../../services/rewards.service';
+import { FamilyService } from 'src/app/services/family.service';
 import {
   IonModal, IonButton, IonHeader, IonToolbar, IonTitle,
   IonContent, IonButtons, IonSpinner
@@ -15,6 +16,7 @@ export interface FamilyProfile {
   id: string;
   name: string;
   icon: string;
+  photo?: string | null;
   isParent?: boolean;
 }
 
@@ -54,7 +56,7 @@ export class FamilyProfilePickerComponent implements OnInit {
     isParent: true
   };
 
-  constructor(private profileService: ProfileService) { }
+  constructor(private profileService: ProfileService, private familyService: FamilyService) { }
 
   ngOnInit() {
     // Recupera i dati passati dalla navigazione
@@ -71,8 +73,33 @@ export class FamilyProfilePickerComponent implements OnInit {
         id: child.id,
         name: child.name,
         icon: child.icon || '🧒',
+        photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
         isParent: false
       }));
+    } else {
+      // Fallback: carica dalla FamilyService in memoria o dall'API
+      const family = this.familyService.getCurrentFamily();
+      if (family?.children?.length) {
+        this.profiles = family.children.map((child: any) => ({
+          id: child.id,
+          name: child.name,
+          icon: child.avatar && !child.avatar.startsWith('data:') && !child.avatar.startsWith('http') ? child.avatar : '🧒',
+          photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
+          isParent: false
+        }));
+      } else {
+        this.familyService.fetchChildrenForCurrentUser().subscribe({
+          next: (children) => {
+            this.profiles = children.map((child: any) => ({
+              id: child.id,
+              name: child.name,
+              icon: child.avatar && !child.avatar.startsWith('data:') && !child.avatar.startsWith('http') ? child.avatar : (child.icon || '🧒'),
+              photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
+              isParent: false
+            }));
+          }
+        });
+      }
     }
   }
 

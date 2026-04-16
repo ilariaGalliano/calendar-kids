@@ -5,8 +5,15 @@
     @if (activeKidProfile) {
     <div class="kid-profile-header">
       <div class="kid-welcome">
-        <div class="kid-avatar-circle" [style.background]="activeKidProfile.selectedAvatar.palette.gradient">
-          <span class="kid-emoji">{{ activeKidProfile.selectedAvatar.emoji }}</span>
+        <div class="kid-avatar-circle" [style.background]="activeKidProfile.photo ? 'transparent' : activeKidProfile.selectedAvatar.palette.gradient"
+             (click)="avatarInput.click()" style="cursor:pointer; position:relative; overflow:hidden;">
+          @if (activeKidProfile.photo) {
+            <img [src]="activeKidProfile.photo" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+          } @else {
+            <span class="kid-emoji">{{ activeKidProfile.selectedAvatar.emoji }}</span>
+          }
+          <div class="avatar-edit-overlay">📷</div>
+          <input #avatarInput type="file" accept="image/*" style="display:none" (change)="onAvatarPhotoSelected($event)" />
         </div>
         <div class="kid-info">
           <h2>{{ activeKidProfile.name }}</h2>
@@ -67,7 +74,13 @@
             <div class="now-kid-card child-section">
               <div class="child-header">
                 <div class="child-avatar-container">
-                  <div class="child-avatar">{{ getChildAvatar(kid.childId) }}</div>
+                  <div class="child-avatar">
+                    @if (kid.childPhoto) {
+                      <img [src]="kid.childPhoto" alt="" class="child-avatar-img" />
+                    } @else {
+                      {{ getChildAvatar(kid.childId) }}
+                    }
+                  </div>
                   <div class="child-info">
                     <h4 class="child-name">{{ kid.childName }}</h4>
                     <p class="child-progress">{{ kid.tasks.length }} attività</p>
@@ -137,7 +150,13 @@
           <div class="child-section">
             <div class="child-header">
               <div class="child-avatar-container">
-                <div class="child-avatar">{{ child.avatar }}</div>
+                <div class="child-avatar">
+                  @if (child.photo) {
+                    <img [src]="child.photo" alt="" class="child-avatar-img" />
+                  } @else {
+                    {{ child.avatar }}
+                  }
+                </div>
                 <div class="child-info">
                   <h4 class="child-name">{{ child.name }}</h4>
                   <p class="child-progress">
@@ -203,7 +222,13 @@
               <div class="child-section">
                 <div class="child-header">
                   <div class="child-avatar-container">
-                    <div class="child-avatar">{{ kid.avatar }}</div>
+                    <div class="child-avatar">
+                      @if (kid.photo) {
+                        <img [src]="kid.photo" alt="" class="child-avatar-img" />
+                      } @else {
+                        {{ kid.avatar }}
+                      }
+                    </div>
                     <div class="child-info">
                       <h4 class="child-name">{{ kid.name }}</h4>
                       <p class="child-progress">

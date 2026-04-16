@@ -30,4 +30,5 @@ export interface KidTask {
   duration?: number; // minuti, opzionale
   startTime?: string | null; // HH:MM raw string (no timezone conversion)
   endTime?: string | null;   // HH:MM raw string
+  childPhoto?: string | null; // base64 or URL photo of the child
 }

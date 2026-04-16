@@ -43,6 +43,18 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>,
     orderUpdates: Array<{ taskId: string, childId: string, day: string, newPosition: number }>
   }>();
+  @Output() photoChanged = new EventEmitter<{ childId: string; photo: string }>();
+
+  onAvatarPhotoSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file || !this.activeKidProfile) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const photo = e.target?.result as string;
+      this.photoChanged.emit({ childId: this.activeKidProfile.id, photo });
+    };
+    reader.readAsDataURL(file);
+  }
 
   // Signal per la gestione della vista
   currentView = signal<'day' | 'week' | 'now'>('week');
@@ -396,22 +408,22 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
   }
 
   // Nuovi metodi per organizzare le attività per bambino
-  getChildrenWithTasksForDay(day: string): Array<{ id: string, name: string, avatar: string, tasks: any[] }> {
+  getChildrenWithTasksForDay(day: string): Array<{ id: string, name: string, avatar: string, photo: string | null, tasks: any[] }> {
     const tasks = this.lists()[day] || [];
     const childrenMap = new Map();
 
-    // Raggruppa le attività per bambino
     tasks.forEach(task => {
-      // Estrai l'ID del bambino dall'attività (assumendo che sia in task.childId o task.assigneeProfileId)
       const childId = (task as any).childId || (task as any).assigneeProfileId;
       const childName = (task as any).childName || 'Bambino';
       const childAvatar = this.getChildAvatar(childId);
+      const childPhoto = (task as any).childPhoto ?? null;
 
       if (!childrenMap.has(childId)) {
         childrenMap.set(childId, {
           id: childId,
           name: childName,
           avatar: childAvatar,
+          photo: childPhoto,
           tasks: []
         });
       }
@@ -426,25 +438,26 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
    * Returns the list of children with their tasks for the given day, used in week/month views.
    * If a kid is selected, only that kid's activities are shown. Otherwise, all kids with tasks for the day.
    */
-  getWeekChildrenForDay(day: string): Array<{ id: string, name: string, avatar: string, tasks: any[] }> {
+  getWeekChildrenForDay(day: string): Array<{ id: string, name: string, avatar: string, photo: string | null, tasks: any[] }> {
     const tasks = this.lists()[day] || [];
     const childrenMap = new Map();
     tasks.forEach(task => {
       const childId = (task as any).childId || (task as any).assigneeProfileId;
       const childName = (task as any).childName || 'Bambino';
       const childAvatar = this.getChildAvatar(childId);
+      const childPhoto = (task as any).childPhoto ?? null;
       if (!childrenMap.has(childId)) {
         childrenMap.set(childId, {
           id: childId,
           name: childName,
           avatar: childAvatar,
+          photo: childPhoto,
           tasks: []
         });
       }
       childrenMap.get(childId).tasks.push(task);
     });
     let children = Array.from(childrenMap.values());
-    // If a kid is selected, filter to only that kid
     if (this.activeKidProfile && this.activeKidProfile.id) {
       children = children.filter(child => child.id === this.activeKidProfile.id);
     }

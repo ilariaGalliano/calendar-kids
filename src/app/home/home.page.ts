@@ -24,6 +24,7 @@ import { ChildRewardsComponent } from '../components/child-rewards/child-rewards
 
 import { CalendarService } from '../services/calendar.service';
 import { FamilyService } from '../services/family.service';
+import { SettingService } from '../services/setting.service';
 
 import { Family, Child } from '../models/family.models';
 
@@ -45,7 +46,8 @@ interface TaskInstance {
   value?: number | null; // activities.value (punti reward)
   source?: 'routine' | 'activity'; // campo sintetico dal BE,
   startTime?: string; 
-  endTime?: string; 
+  endTime?: string;
+  childPhoto?: string | null;
 }
 
 interface DayTasks {
@@ -72,6 +74,7 @@ interface DayTasks {
 export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
   private calendarService = inject(CalendarService);
   private familyService = inject(FamilyService);
+  private settingService = inject(SettingService);
   private router = inject(Router);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
@@ -110,9 +113,6 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
 
   // Data
   days = this.getWeekDates(); // Cambiamo per usare date reali
-
-  // Colors for children
-  private childColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726', '#66BB6A', '#AB47BC', '#F48FB1', '#81C784'];
 
   ngOnInit() {
     // Recupera parentName dal router state
@@ -290,6 +290,7 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
             description: a.description ?? null,
             childId,
             childName: child?.name ?? a.child_name ?? 'Bambino',
+            childPhoto: child?.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
             icon: a.icon ?? undefined,
             timer: a.timer ?? null,
             value: a.value ?? null,
@@ -331,6 +332,7 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
           description: activity.description ?? null,
           childId,
           childName: child?.name ?? activity.child_name ?? 'Bambino',
+          childPhoto: child?.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
           icon: activity.icon ?? undefined,
           timer: activity.timer ?? null,
           value: activity.value ?? null,
@@ -342,15 +344,8 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
     return weekTasks;
   }
 
-
   getChildColor(childId: string): string {
-    const family = this.currentFamily();
-    if (!family) {
-      return '#FF6B6B';
-    }
-
-    const childIndex = (family.children as Child[]).findIndex(child => child.id === childId);
-    return childIndex >= 0 ? this.childColors[childIndex % this.childColors.length] : '#FF6B6B';
+    return '#4ECDC4';
   }
 
   getTotalTasksForChild(childId: string): number {
@@ -486,7 +481,18 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   goToProfilePicker() {
-    this.router.navigate(['/family-profile-picker']);
+    const family = this.currentFamily();
+    this.router.navigate(['/family-profile-picker'], {
+      state: {
+        parentName: family?.parentName || this.parentName(),
+        children: (family?.children || []).map(c => ({
+          id: c.id,
+          name: c.name,
+          icon: c.avatar && !c.avatar.startsWith('data:') && !c.avatar.startsWith('http') ? c.avatar : '🧒',
+          avatar: c.avatar
+        }))
+      }
+    });
   }
 
   async logout() {
@@ -535,8 +541,9 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       id: selected.id,
       name: selected.name,
       point: selected.point ?? 0,
+      photo: selected.avatar && (selected.avatar.startsWith('data:') || selected.avatar.startsWith('http')) ? selected.avatar : null,
       selectedAvatar: {
-        emoji: selected.avatar,
+        emoji: selected.avatar && !selected.avatar.startsWith('data:') && !selected.avatar.startsWith('http') ? selected.avatar : '🧒',
         name: 'Avatar',
         palette: {
           name: 'Default',
@@ -553,6 +560,27 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
     if (!family) return;
     const child = family.children.find(c => c.id === childId);
     if (child) child.point = point;
+  }
+
+  onKidPhotoChanged(event: { childId: string; photo: string }) {
+    const family = this.currentFamily();
+    if (!family) return;
+    const child = family.children.find(c => c.id === event.childId);
+    if (!child) return;
+    child.avatar = event.photo;
+    // persist to backend
+    this.settingService.updateChild(event.childId, { avatar: event.photo }).subscribe();
+    // trigger re-render by refreshing the signal
+    this.activeFamily.set({ ...family, children: [...family.children] });
+    // Update childPhoto in all tasks so the calendar board shows the new photo immediately
+    const currentTasks = this.tasksByDay();
+    const updatedTasks: DayTasks = {};
+    for (const [day, tasks] of Object.entries(currentTasks)) {
+      updatedTasks[day] = tasks.map(t =>
+        t.childId === event.childId ? { ...t, childPhoto: event.photo } : t
+      );
+    }
+    this.tasksByDay.set(updatedTasks);
   }
 
   onViewChanged(event: { view: string, date?: string }) {

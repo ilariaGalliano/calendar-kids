@@ -529,6 +529,36 @@ export class SettingsComponent implements OnInit {
     this.taskSelectDay = '';
   }
 
+  editTaskInRoutine(routine: Routine, day: string, task: Task) {
+    const dayNumber = this.dayCodeToNumber(day);
+    this.timePickerTask = task;
+    this.timePickerDay = day;
+    this.timePickerForm = {
+      startTime: (task as any).startTime || '08:00',
+      endTime: (task as any).endTime || '08:30'
+    };
+    this.timePickerResolve = (times) => {
+      if (!times) return;
+      const currentTasksForDay = routine.tasksByDay?.[dayNumber] || [];
+      const updatedTasks = currentTasksForDay.map((t: any) => {
+        const tId = String(typeof t === 'string' ? t : t.id);
+        if (tId === String(task.id)) {
+          return { id: tId, startTime: times.startTime, endTime: times.endTime, duration: times.duration };
+        }
+        return { id: tId, startTime: t.startTime || null, endTime: t.endTime || null, duration: t.duration || null };
+      });
+      this.settingService.updateRoutine(routine.id, {
+        nametask: routine.name,
+        isActive: routine.isActive,
+        tasksByDay: { [dayNumber]: updatedTasks }
+      }).subscribe(() => {
+        this.loadRoutines();
+        this.showToast(`⏰ Orario aggiornato per "${task.title}"`);
+      });
+    };
+    this.showTimePickerModal.set(true);
+  }
+
   selectExistingTask(task: Task) {
     const routine = this.taskSelectRoutine!;
     const day = this.taskSelectDay;
@@ -708,6 +738,62 @@ export class SettingsComponent implements OnInit {
     
     // Minimo 1 minuto
     return Math.max(1, duration);
+  }
+
+  copyTasksToAllDays(routine: Routine, day: string) {
+    const sourceDayNumber = this.dayCodeToNumber(day);
+    const sourceTasks = routine.tasksByDay?.[sourceDayNumber] || [];
+
+    if (sourceTasks.length === 0) {
+      this.showToast('⚠️ Nessuna attività in questo giorno da copiare');
+      return;
+    }
+
+    // Normalize source tasks
+    const normalizedSourceTasks = sourceTasks.map((t: any) => ({
+      id: String(typeof t === 'string' ? t : t.id),
+      startTime: t.startTime || null,
+      endTime: t.endTime || null,
+      duration: t.duration || null
+    }));
+
+    // For each other day, merge existing tasks with source tasks (additive)
+    const tasksByDay: Record<number, any[]> = {};
+
+    for (const d of this.weekDaysOrder) {
+      if (d === day) continue; // skip the source day
+      const dayNum = this.dayCodeToNumber(d);
+      const existingTasks = routine.tasksByDay?.[dayNum] || [];
+      const existingIds = existingTasks.map((t: any) => String(typeof t === 'string' ? t : t.id));
+
+      // Only add source tasks not already present in this day
+      const tasksToAdd = normalizedSourceTasks.filter((t) => !existingIds.includes(t.id));
+      if (tasksToAdd.length === 0) continue;
+
+      tasksByDay[dayNum] = [
+        ...existingTasks.map((t: any) => ({
+          id: typeof t === 'string' ? t : t.id,
+          startTime: t.startTime || null,
+          endTime: t.endTime || null,
+          duration: t.duration || null
+        })),
+        ...tasksToAdd
+      ];
+    }
+
+    if (Object.keys(tasksByDay).length === 0) {
+      this.showToast('ℹ️ Le attività sono già presenti in tutti i giorni');
+      return;
+    }
+
+    this.settingService.updateRoutine(routine.id, {
+      nametask: routine.name,
+      isActive: routine.isActive,
+      tasksByDay
+    }).subscribe(() => {
+      this.loadRoutines();
+      this.showToast(`✅ Attività di ${this.getDayLabel(day)} copiate su tutti i giorni`);
+    });
   }
 
   private finalizeTasksToRoutine(routine: Routine, day: string, tasks: any[]) {

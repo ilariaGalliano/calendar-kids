@@ -13,7 +13,11 @@ import { Child } from '../../models/family.models';
     <div class="child-rewards">
       <div class="rewards-header">
         <div class="child-info">
-          <span class="child-avatar">{{ child.avatar }}</span>
+          @if (child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http'))) {
+            <img [src]="child.avatar" [alt]="child.name" class="child-avatar-img" />
+          } @else {
+            <span class="child-avatar">{{ child.avatar }}</span>
+          }
           <span class="child-name">{{ child.name }}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -92,6 +96,13 @@ import { Child } from '../../models/family.models';
 
     .child-avatar {
       font-size: 1.5rem;
+    }
+
+    .child-avatar-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     .child-name {
