@@ -51,6 +51,9 @@ import { Child, calcAge } from 'src/app/models/family.models';
           }
         </div>
         <input #photoInput type="file" accept="image/*" style="display:none" (change)="onPhotoSelected($event)" />
+        @if (fileSizeError) {
+          <p class="file-error">⚠️ {{ fileSizeError }}</p>
+        }
         @if (photoPreview) {
           <button class="remove-photo-btn" (click)="removePhoto()">🗑️ Rimuovi foto</button>
         }
@@ -147,6 +150,12 @@ import { Child, calcAge } from 'src/app/models/family.models';
         cursor: pointer;
         padding: 4px 8px;
       }
+      .file-error {
+        color: var(--ion-color-danger);
+        font-size: 0.8rem;
+        margin: 4px 0 0;
+        text-align: center;
+      }
     </style>
   `
 })
@@ -156,6 +165,9 @@ export class AddChildModalComponent implements OnInit {
 
   today = new Date().toISOString().split('T')[0];
   photoPreview: string | null = null;
+  selectedFile: File | null = null;
+  readonly MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  fileSizeError: string | null = null;
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -186,8 +198,18 @@ export class AddChildModalComponent implements OnInit {
   }
 
   onPhotoSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
+
+    if (file.size > this.MAX_FILE_SIZE) {
+      this.fileSizeError = `Il file è troppo grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Massimo consentito: 2 MB`;
+      input.value = '';
+      return;
+    }
+
+    this.fileSizeError = null;
+    this.selectedFile = file;
     const reader = new FileReader();
     reader.onload = (e) => {
       this.photoPreview = e.target?.result as string;
@@ -197,6 +219,7 @@ export class AddChildModalComponent implements OnInit {
 
   removePhoto() {
     this.photoPreview = null;
+    this.selectedFile = null;
   }
 
   close() {
@@ -205,7 +228,8 @@ export class AddChildModalComponent implements OnInit {
 
   submit() {
     if (this.form.valid) {
-      this.modalCtrl.dismiss({ ...this.form.value, avatar: this.photoPreview ?? null });
+      // Passa il File originale (se selezionato) invece del base64
+      this.modalCtrl.dismiss({ ...this.form.value, avatarFile: this.selectedFile ?? null });
     }
   }
 }

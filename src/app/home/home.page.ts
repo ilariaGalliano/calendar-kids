@@ -158,6 +158,12 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
           };
           
           this.activeFamily.set(familyFromDB);
+
+          // Re-select child if pending from queryParams (family wasn't loaded yet)
+          if (this.selectedChildId) {
+            this.selectChild(this.selectedChildId);
+          }
+
           this.loadTasks();
         },
         error: (err) => {
@@ -562,14 +568,13 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
     if (child) child.point = point;
   }
 
-  onKidPhotoChanged(event: { childId: string; photo: string }) {
+  onKidPhotoChanged(event: { childId: string; photo: string; file?: File }) {
     const family = this.currentFamily();
     if (!family) return;
     const child = family.children.find(c => c.id === event.childId);
     if (!child) return;
+    // Show base64 preview immediately
     child.avatar = event.photo;
-    // persist to backend
-    this.settingService.updateChild(event.childId, { avatar: event.photo }).subscribe();
     // trigger re-render by refreshing the signal
     this.activeFamily.set({ ...family, children: [...family.children] });
     // Update childPhoto in all tasks so the calendar board shows the new photo immediately
@@ -581,6 +586,18 @@ export class HomePage implements OnInit, OnDestroy, ViewWillEnter {
       );
     }
     this.tasksByDay.set(updatedTasks);
+    // Persist to backend via multipart upload
+    if (event.file) {
+      this.settingService.uploadChildAvatar(event.childId, event.file).subscribe({
+        next: (saved: any) => {
+          // Update in-memory avatar with the persisted URL from backend
+          if (saved?.avatar) {
+            child.avatar = saved.avatar;
+            this.activeFamily.set({ ...this.activeFamily()!, children: [...this.activeFamily()!.children] });
+          }
+        }
+      });
+    }
   }
 
   onViewChanged(event: { view: string, date?: string }) {

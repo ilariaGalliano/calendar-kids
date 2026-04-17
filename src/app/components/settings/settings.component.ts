@@ -88,6 +88,13 @@ export class SettingsComponent implements OnInit {
     '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
   ];
 
+  availableIcons = [
+    '🎯', '📚', '🦷', '🛏️', '🧹', '🍽️', '🎨', '🎵',
+    '⚽', '🏊', '🚿', '👕', '🎒', '✏️', '🧮', '🌿',
+    '🐕', '🚶', '💤', '🧘', '🎮', '📖', '🧪', '🎭',
+    '🏃', '🚴', '🧸', '🍳', '🧼', '💊', '🌅', '🌙'
+  ];
+
   constructor(
     private router: Router,
     private authService: AuthService = inject(AuthService),
@@ -352,13 +359,26 @@ export class SettingsComponent implements OnInit {
 
     if (!formValue) return;
 
-    const updated: Child = {
-      ...child,
-      ...formValue
-    };
+    const { avatarFile, ...childData } = formValue;
 
-    this.settingService.updateChild(child.id, updated)
-      .subscribe(() => this.loadChildren());
+    // Strip avatar from PUT body: it's handled separately via uploadChildAvatar
+    const { avatar: _avatar, ...childWithoutAvatar } = child as any;
+    const updated: Child = { ...childWithoutAvatar, ...childData };
+
+    this.settingService.updateChild(child.id, updated).subscribe((savedChild) => {
+      if (avatarFile) {
+        this.settingService.uploadChildAvatar(child.id, avatarFile)
+          .subscribe({
+            next: () => this.loadChildren(),
+            error: () => {
+              alert('Caricamento foto fallito. Riprova con un file più piccolo (max 2 MB).');
+              this.loadChildren();
+            }
+          });
+      } else {
+        this.loadChildren();
+      }
+    });
   }
 
   deleteChild(child: Child) {
@@ -385,7 +405,7 @@ export class SettingsComponent implements OnInit {
 
   editTask(task: Task) {
     this.taskForm = {
-      emoji: task.emoji,
+      emoji: task.emoji || '🎯',
       title: task.title,
       description: task.description ?? '',
       duration: task.duration,

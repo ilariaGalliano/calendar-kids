@@ -43,7 +43,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     movedTasks: Array<{ taskId: string, fromDay: string, toDay: string, fromChildId: string, toChildId: string }>,
     orderUpdates: Array<{ taskId: string, childId: string, day: string, newPosition: number }>
   }>();
-  @Output() photoChanged = new EventEmitter<{ childId: string; photo: string }>();
+  @Output() photoChanged = new EventEmitter<{ childId: string; photo: string; file: File }>();
 
   onAvatarPhotoSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
@@ -51,7 +51,7 @@ export class CalendarBoardComponent implements OnInit, OnChanges {
     const reader = new FileReader();
     reader.onload = (e) => {
       const photo = e.target?.result as string;
-      this.photoChanged.emit({ childId: this.activeKidProfile.id, photo });
+      this.photoChanged.emit({ childId: this.activeKidProfile.id, photo, file });
     };
     reader.readAsDataURL(file);
   }

@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ProfileService } from 'src/app/services/profile-service';
 import { RewardsService } from '../../services/rewards.service';
 import { FamilyService } from 'src/app/services/family.service';
+import { ViewWillEnter } from '@ionic/angular';
 import {
   IonModal, IonButton, IonHeader, IonToolbar, IonTitle,
   IonContent, IonButtons, IonSpinner
@@ -30,7 +31,7 @@ export interface FamilyProfile {
   templateUrl: './family-profile-picker.component.html',
   styleUrls: ['./family-profile-picker.component.scss']
 })
-export class FamilyProfilePickerComponent implements OnInit {
+export class FamilyProfilePickerComponent implements OnInit, ViewWillEnter {
   @Input() profiles: FamilyProfile[] = [];
   @Output() profileSelected = new EventEmitter<FamilyProfile>();
 
@@ -59,7 +60,6 @@ export class FamilyProfilePickerComponent implements OnInit {
   constructor(private profileService: ProfileService, private familyService: FamilyService) { }
 
   ngOnInit() {
-    // Recupera i dati passati dalla navigazione
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state || (window as any).history?.state;
     
@@ -67,7 +67,8 @@ export class FamilyProfilePickerComponent implements OnInit {
       this.AppUserLogged.set(state.parentName);
       this.parentProfile.name = state.parentName;
     }
-    
+
+    // Mostra subito i dati dalla navigazione (istantaneo)
     if (state?.children && Array.isArray(state.children)) {
       this.profiles = state.children.map((child: any) => ({
         id: child.id,
@@ -76,31 +77,22 @@ export class FamilyProfilePickerComponent implements OnInit {
         photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
         isParent: false
       }));
-    } else {
-      // Fallback: carica dalla FamilyService in memoria o dall'API
-      const family = this.familyService.getCurrentFamily();
-      if (family?.children?.length) {
-        this.profiles = family.children.map((child: any) => ({
+    }
+  }
+
+  ionViewWillEnter() {
+    // Aggiorna in background dal DB per avatar freschi
+    this.familyService.fetchChildrenForCurrentUser().subscribe({
+      next: (children) => {
+        this.profiles = children.map((child: any) => ({
           id: child.id,
           name: child.name,
-          icon: child.avatar && !child.avatar.startsWith('data:') && !child.avatar.startsWith('http') ? child.avatar : '🧒',
+          icon: child.avatar && !child.avatar.startsWith('data:') && !child.avatar.startsWith('http') ? child.avatar : (child.icon || '🧒'),
           photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
           isParent: false
         }));
-      } else {
-        this.familyService.fetchChildrenForCurrentUser().subscribe({
-          next: (children) => {
-            this.profiles = children.map((child: any) => ({
-              id: child.id,
-              name: child.name,
-              icon: child.avatar && !child.avatar.startsWith('data:') && !child.avatar.startsWith('http') ? child.avatar : (child.icon || '🧒'),
-              photo: child.avatar && (child.avatar.startsWith('data:') || child.avatar.startsWith('http')) ? child.avatar : null,
-              isParent: false
-            }));
-          }
-        });
       }
-    }
+    });
   }
 
   selectProfile(profile: FamilyProfile) {

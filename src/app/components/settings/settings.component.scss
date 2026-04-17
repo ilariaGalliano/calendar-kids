@@ -655,8 +655,7 @@
 
 // Task time display
 .task-time {
-  background: var(--ion-color-primary-tint);
-  color: var(--ion-color-primary-shade);
+  font-weight: bold;
   padding: 2px 6px;
   border-radius: 8px;
   font-size: 0.75rem;
@@ -725,4 +724,78 @@
   font-size: 1.5rem;
   background: var(--ion-color-light);
   border-radius: 50%;
+}
+
+// Time picker modal
+.timepicker-form {
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  .timepicker-day-label {
+    text-align: center;
+    color: var(--ion-color-medium);
+    margin: 0 0 16px;
+    font-size: 0.95rem;
+  }
+
+  .timepicker-item-gap {
+    margin-top: 12px;
+  }
+
+  .timepicker-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+
+    ion-button {
+      flex: 1;
+    }
+  }
+}
+
+.icon-picker-section {
+  padding: 12px 16px;
+
+  ion-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    margin-bottom: 8px;
+    display: block;
+  }
+}
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.icon-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  font-size: 22px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.08);
+    transform: scale(1.1);
+  }
+
+  &.selected {
+    background: rgba(78, 205, 196, 0.15);
+    border-color: #4ECDC4;
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+  }
 }

@@ -24,6 +24,11 @@ export class SettingService {
   deleteChild(id: string) {
     return this.http.delete<any>(`${this.base}/settings/children/${id}`);
   }
+  uploadChildAvatar(id: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.base}/settings/children/${id}/avatar`, formData);
+  }
 
   // --- Tasks ---
   getTasks(timeOfDay?: string) {
