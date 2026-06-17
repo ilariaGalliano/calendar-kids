@@ -9,9 +9,9 @@ import { supabase } from '../../core/supabase.client';
   imports: [IonContent, IonSpinner],
   template: `
     <ion-content class="ion-padding ion-text-center">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p style="margin-top:16px;color:#666;">Accesso in corso...</p>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <ion-spinner name="crescent" style="--color:white;width:50px;height:50px;"></ion-spinner>
+        <p style="margin-top:20px;color:white;font-size:1.2rem;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Verifica account in corso...</p>
       </div>
     </ion-content>
   `

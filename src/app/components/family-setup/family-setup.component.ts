@@ -23,7 +23,8 @@ import {
   IonToolbar,
   IonTitle,
   AlertController,
-  IonAlert
+  IonAlert,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { Family, Child } from 'src/app/models/family.models';
 import { FamilyService } from 'src/app/services/family.service';
@@ -60,7 +61,8 @@ interface ChildForm {
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonAlert
+    IonAlert,
+    IonSpinner
   ],
   templateUrl: './family-setup.component.html',
   styleUrls: ['./family-setup.component.scss'],
@@ -78,6 +80,8 @@ export class FamilySetupComponent implements OnInit {
   
   // Stato UI
   isLoading = signal<boolean>(false);
+  checkingAccount = signal<boolean>(false);
+  private checkingTimeout: any = null;
   showAlert = signal<boolean>(false);
   alertMessage = signal<string>('');
 
@@ -115,8 +119,15 @@ export class FamilySetupComponent implements OnInit {
   }
 
   private loadChildrenFromAPI() {
+    // Mostra spinner solo se la chiamata impiega più di 2 secondi
+    this.checkingTimeout = setTimeout(() => {
+      this.checkingAccount.set(true);
+    }, 2000);
+
     this.familyService.fetchChildrenForCurrentUser().subscribe({
       next: (children) => {
+        clearTimeout(this.checkingTimeout);
+        this.checkingAccount.set(false);
         if (children && children.length > 0) {
           // Se ci sono già bambini, vai direttamente a family-picker con i dati
           this.router.navigate(['/family-profile-picker'], {
@@ -132,6 +143,8 @@ export class FamilySetupComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error fetching children:', err);
+        clearTimeout(this.checkingTimeout);
+        this.checkingAccount.set(false);
         this.step.set('welcome');
       }
     });

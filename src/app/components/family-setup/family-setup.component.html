@@ -17,8 +17,16 @@
 <ion-content class="family-setup-page">
   <div class="setup-container">
 
+    <!-- Checking account overlay -->
+    <div *ngIf="checkingAccount()" class="checking-overlay">
+      <div class="checking-content">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Verifica account esistente in corso...</p>
+      </div>
+    </div>
+
     <!-- Step 1: Welcome / Existing Family -->
-    <div *ngIf="step() === 'welcome'" class="step-container welcome-step">
+    <div *ngIf="step() === 'welcome' && !checkingAccount()" class="step-container welcome-step">
       <div class="welcome-header">
         <div class="family-emoji">👨‍👩‍👧‍👦</div>
         <h1>Crea la tua famiglia</h1>
