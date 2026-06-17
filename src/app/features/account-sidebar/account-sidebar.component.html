@@ -88,25 +88,25 @@
         }
       </ion-list>
     </div>
-
-    <!-- Azioni -->
-    <div class="actions-section">
-      <ion-button 
-        expand="block" 
-        fill="outline"
-        (click)="goToSettings()">
-        <ion-icon name="settings-outline" slot="start"></ion-icon>
-        Gestisci Famiglia
-      </ion-button>
-
-      <ion-button 
-        expand="block" 
-        fill="clear"
-        color="danger"
-        (click)="logout()">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon>
-        Esci
-      </ion-button>
-    </div>
   </ion-content>
+
+  <!-- Azioni - FUORI da ion-content per rimanere fisso in fondo -->
+  <div class="actions-section">
+    <ion-button 
+      expand="block" 
+      fill="outline"
+      (click)="goToSettings()">
+      <ion-icon name="settings-outline" slot="start"></ion-icon>
+      Gestisci Famiglia
+    </ion-button>
+
+    <ion-button 
+      expand="block" 
+      fill="clear"
+      color="danger"
+      (click)="logout()">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      Esci
+    </ion-button>
+  </div>
 </div>
