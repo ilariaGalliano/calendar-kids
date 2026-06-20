@@ -2,6 +2,7 @@ import { Component, Input, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, IonBadge, IonToast } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular/standalone';
 import { RewardsService } from '../../services/rewards.service';
 import { Child } from '../../models/family.models';
 
@@ -203,6 +204,7 @@ export class ChildRewardsComponent {
   @Input() child!: Child;
   
   private rewardsService = inject(RewardsService);
+  private alertController = inject(AlertController);
 
   // ── Rewards computed ────────────────────────────────────────────────────
   childPoints = computed(() => 
@@ -221,11 +223,30 @@ export class ChildRewardsComponent {
   showSuccessToast = signal(false);
   successToastMsg = signal('');
 
-  redeemNow() {
+  async redeemNow() {
     const pts = this.childPoints()?.totalPoints || 0;
     if (pts <= 0) return;
-    this.rewardsService.redeemPoints(this.child.id);
-    this.successToastMsg.set(`🎉 Hai riscosso ${pts} punti di ${this.child.name}!`);
-    this.showSuccessToast.set(true);
+
+    const alert = await this.alertController.create({
+      header: '🎁 Riscuoti punti',
+      message: `Vuoi riscuotere ${pts} punti di ${this.child.name}? I punti verranno azzerati.`,
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel'
+        },
+        {
+          text: 'Riscuoti',
+          role: 'confirm',
+          handler: () => {
+            this.rewardsService.redeemPoints(this.child.id);
+            this.successToastMsg.set(`🎉 Hai riscosso ${pts} punti di ${this.child.name}!`);
+            this.showSuccessToast.set(true);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }
