@@ -36,6 +36,32 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+/* ---------- Global Mobile Scroll Improvements ---------- */
+/* Miglioramenti per scroll su dispositivi mobile vecchi */
+html, body {
+  -webkit-overflow-scrolling: touch; // smooth scrolling su iOS
+  scroll-behavior: smooth;
+  overscroll-behavior: none; // previene pull-to-refresh indesiderato
+}
+
+ion-content {
+  --overflow: auto;
+  
+  &::part(scroll) {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
+}
+
+// Migliora scroll su tutti gli elementi scrollabili
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
 /* ---------- Base palette (Kids Premium) ---------- */
 :root {
   --ion-color-primary:   #6C8CFF; /* azzurro lavanda */

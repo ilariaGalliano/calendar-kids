@@ -6,6 +6,9 @@
 .family-setup-page {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; // smooth scrolling su iOS
+  overscroll-behavior: contain;
 
   .setup-container {
     padding: 24px 8px 32px 8px;
@@ -374,8 +377,13 @@
 
   // Responsive
   @media (max-width: 600px) {
+    overflow-y: scroll; // forza scrollbar su device vecchi
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    
     .setup-container {
       padding: 10px;
+      padding-bottom: calc(32px + env(safe-area-inset-bottom));
       border-radius: 0;
       box-shadow: none;
     }

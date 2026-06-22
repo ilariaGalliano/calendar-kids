@@ -2,7 +2,10 @@
 .kids-page {
   background: linear-gradient(160deg, #f0f4ff 0%, #f8fafc 45%, #eef2ff 100%);
   position: relative;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; // smooth scrolling su iOS
+  overscroll-behavior: contain;
   height: auto;
   min-height: 0;
 }
@@ -751,6 +754,12 @@
 
 // Responsive design for modern layout
 @media (max-width: 768px) {
+  .kids-page {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y; // migliora scroll su device vecchi
+  }
+  
   .calendar-container {
     padding: 12px;
     padding-bottom: calc(80px + env(safe-area-inset-bottom)); // spazio per tab bar
@@ -859,8 +868,22 @@
 }
 
 @media (max-width: 480px) {
+  .kids-page {
+    overflow-y: scroll; // forza scrollbar visibile su device vecchi
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
   .calendar-container {
     padding: 12px;
+  }
+  
+  // Drop zone scrollabile su mobile
+  .drop-zone,
+  .child-drop-zone,
+  .kid-task-list {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   // Drag handle ancora più grande su mobile piccolo

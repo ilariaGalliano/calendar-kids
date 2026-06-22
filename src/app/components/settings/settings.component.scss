@@ -1,7 +1,10 @@
 .settings-page {
   --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; // smooth scrolling su iOS
+  overscroll-behavior: contain;
 }
 
 @keyframes gentle-float {
@@ -366,6 +369,11 @@
 }
 
 @media (max-width: 768px) {
+  .settings-page {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
   .routine-top {
     align-items: flex-start;
     flex-direction: column;
@@ -414,10 +422,15 @@
 
   .settings-container {
     padding: 12px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
   }
 }
 
 @media (max-width: 480px) {
+  .settings-page {
+    overflow-y: scroll; // forza scrollbar su device vecchi
+  }
+  
   .page-header {
     h1 {
       font-size: 1.5rem;
