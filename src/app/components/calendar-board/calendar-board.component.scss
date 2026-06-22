@@ -2,10 +2,7 @@
 .kids-page {
   background: linear-gradient(160deg, #f0f4ff 0%, #f8fafc 45%, #eef2ff 100%);
   position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch; // smooth scrolling su iOS
-  overscroll-behavior: contain;
+  overflow: visible; // lascia scroll al parent (ion-content) su desktop
   height: auto;
   min-height: 0;
 }
